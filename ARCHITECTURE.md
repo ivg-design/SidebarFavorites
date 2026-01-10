@@ -123,7 +123,7 @@ IconApp-{UUID}.app/
       "folderPath": "/Users/ivg/github",
       "iconType": "custom",
       "iconValue": "github.custom",
-      "customSVGPath": "icons/github.custom.svg",
+      "customSVGPath": "Icons/github.custom.svg",
       "enabled": true,
       "createdAt": "2024-01-10T12:00:00Z",
       "updatedAt": "2024-01-10T12:00:00Z"
@@ -163,6 +163,7 @@ Icons/
 ├── work.custom.svg
 └── ...
 ```
+NOTE (added by review): Keep `Icons/` casing consistent in stored paths; mismatches break on case-sensitive volumes.
 
 ---
 
@@ -404,14 +405,16 @@ func validateSFSymbolSVG(_ url: URL) -> Result<Void, SymbolError> {
 
 **Asset Compilation**:
 ```bash
-# Create symbolset structure
-mkdir -p symbol.symbolset
-cp custom.svg symbol.symbolset/
-echo '{"info":{"version":1,"author":"xcode"},"symbols":[{"idiom":"universal","filename":"custom.svg"}]}' > symbol.symbolset/Contents.json
+# Create asset catalog + symbolset structure
+mkdir -p Symbols.xcassets/customicon.symbolset
+cp custom.svg Symbols.xcassets/customicon.symbolset/customicon.svg
+echo '{"info":{"version":1,"author":"xcode"}}' > Symbols.xcassets/Contents.json
+echo '{"info":{"version":1,"author":"xcode"},"symbols":[{"idiom":"universal","filename":"customicon.svg"}]}' > Symbols.xcassets/customicon.symbolset/Contents.json
 
 # Compile to Assets.car
-xcrun actool symbol.symbolset --compile output/ --platform macosx --minimum-deployment-target 13.0
+xcrun actool Symbols.xcassets --compile output/ --platform macosx --minimum-deployment-target 13.0
 ```
+NOTE (added by review): `actool` expects an `.xcassets` catalog root; compiling the `.symbolset` directory alone is unreliable.
 
 ---
 
@@ -425,18 +428,18 @@ Generated icon apps need to be signed to:
 
 ### Solution
 
-Use ad-hoc signing with the same team ID:
-
-```bash
-codesign --force --deep --sign "Apple Development: your@email.com (TEAM_ID)" \
-    --entitlements entitlements.plist \
-    IconApp.app
-```
-
-Or for distribution without developer account:
+For development (ad-hoc signing):
 ```bash
 codesign --force --deep --sign - IconApp.app
 ```
+For distribution (Developer ID):
+```bash
+codesign --force --deep --sign "Developer ID Application: your@email.com (TEAM_ID)" \
+    --options runtime \
+    --entitlements entitlements.plist \
+    IconApp.app
+```
+NOTE (added by review): Ad-hoc signing does not use a team ID; keep dev vs distribution flows explicit.
 
 ### Entitlements
 
@@ -446,11 +449,14 @@ The Finder Sync extension needs:
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "...">
 <plist version="1.0">
 <dict>
+    <key>com.apple.developer.finder-sync</key>
+    <true/>
     <key>com.apple.security.app-sandbox</key>
     <false/>
 </dict>
 </plist>
 ```
+NOTE (added by review): The extension must include `com.apple.developer.finder-sync` to load on clean systems.
 
 ---
 
@@ -608,6 +614,7 @@ The Finder Sync extension is essentially a "flag" that tells Finder: "this folde
 ### Evidence
 
 Tested on macOS 16 (Tahoe). Screenshots available in repository wiki (TODO).
+NOTE (added by review): Attach a concrete screenshot or remove this claim to avoid unverified documentation.
 
 ---
 
@@ -627,16 +634,18 @@ For custom SF Symbol icons, each generated icon app needs its own compiled asset
    - Check for weight variants
         │
         ▼
-3. Create .symbolset folder
+3. Create asset catalog + .symbolset
    ┌─────────────────────────────────┐
-   │ customicon.symbolset/           │
+   │ Symbols.xcassets/               │
    │ ├── Contents.json               │
-   │ └── customicon.svg              │
+   │ └── customicon.symbolset/       │
+   │     ├── Contents.json           │
+   │     └── customicon.svg          │
    └─────────────────────────────────┘
         │
         ▼
 4. Compile with actool
-   $ xcrun actool customicon.symbolset \
+   $ xcrun actool Symbols.xcassets \
        --compile OutputDir/ \
        --platform macosx \
        --minimum-deployment-target 13.0 \
@@ -658,6 +667,15 @@ For custom SF Symbol icons, each generated icon app needs its own compiled asset
 ### Contents.json Format
 
 ```json
+// Symbols.xcassets/Contents.json
+{
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  }
+}
+
+// Symbols.xcassets/customicon.symbolset/Contents.json
 {
   "info": {
     "version": 1,
@@ -671,6 +689,7 @@ For custom SF Symbol icons, each generated icon app needs its own compiled asset
   ]
 }
 ```
+NOTE (added by review): The root catalog `Symbols.xcassets/Contents.json` is required for actool to produce `Assets.car`.
 
 ### Important Notes
 
@@ -697,7 +716,7 @@ For EACH icon app, the user must:
 **Manager App Assistance:**
 ```swift
 // Open System Settings to the right pane
-NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.extensions?Finder")!)
 
 // Show alert with instructions
 let alert = NSAlert()
@@ -706,6 +725,7 @@ alert.informativeText = "Please enable '\(extensionName)' in System Settings to 
 alert.addButton(withTitle: "Open System Settings")
 alert.addButton(withTitle: "Later")
 ```
+NOTE (added by review): The deep link should target Finder Extensions, not Full Disk Access.
 
 ### 2. Add Folder to Favorites
 
