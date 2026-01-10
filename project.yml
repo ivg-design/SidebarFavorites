@@ -1,0 +1,42 @@
+name: SidebarFavorites
+options:
+  bundleIdPrefix: com.ivg-design
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+
+targets:
+  SidebarFavorites:
+    type: application
+    platform: macOS
+    sources:
+      - path: SidebarFavorites
+    settings:
+      base:
+        INFOPLIST_FILE: SidebarFavorites/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 7S422NVLUK
+    dependencies:
+      - target: SidebarFavoritesSync
+        embed: true
+        codeSign: true
+
+  SidebarFavoritesSync:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: SidebarFavoritesSync
+        excludes:
+          - "URLs"
+      - path: SidebarFavoritesSync/URLs
+        type: file
+        buildPhase: resources
+    settings:
+      base:
+        INFOPLIST_FILE: SidebarFavoritesSync/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites.Sync
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 7S422NVLUK
+        CODE_SIGN_ENTITLEMENTS: SidebarFavoritesSync/SidebarFavoritesSync.entitlements
+        SKIP_INSTALL: YES
