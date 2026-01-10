@@ -607,7 +607,7 @@ The Finder Sync extension is essentially a "flag" that tells Finder: "this folde
 
 ### Evidence
 
-Tested on macOS 15 (Sequoia). Screenshots available in repository wiki (TODO).
+Tested on macOS 16 (Tahoe). Screenshots available in repository wiki (TODO).
 
 ---
 
@@ -763,7 +763,8 @@ killall Finder
 
 | macOS Version | Status | Notes |
 |---------------|--------|-------|
-| macOS 15 (Sequoia) | ✅ Tested | Primary development target |
+| macOS 16 (Tahoe) | ✅ Tested | Primary development target |
+| macOS 15 (Sequoia) | 🔲 Untested | Should work |
 | macOS 14 (Sonoma) | 🔲 Untested | Should work |
 | macOS 13 (Ventura) | 🔲 Untested | Minimum target |
 | macOS 12 and earlier | ❌ Not supported | Missing required APIs |

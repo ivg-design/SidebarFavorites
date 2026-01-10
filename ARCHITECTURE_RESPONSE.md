@@ -280,6 +280,6 @@ We have a **working prototype** that demonstrates the core architecture is sound
 The working prototype:
 - Repository: https://github.com/ivg-design/SidebarFavorites
 - Demonstrates: Custom SF Symbol icon in Finder sidebar
-- Tested on: macOS 15 (Sequoia)
+- Tested on: macOS 16 (Tahoe)
 - Icon placement: Correct (left side of folder name)
 - Folder behavior: Full Finder favorite functionality
