@@ -554,6 +554,232 @@ SidebarFavoritesManager/
 
 ---
 
+## How Sidebar Icons Work (Technical Detail)
+
+This section documents the exact mechanism by which custom icons appear in Finder's sidebar.
+
+### The Icon Source
+
+The sidebar icon comes from the **host app's Info.plist**, NOT from any Finder Sync API:
+
+```
+Host App (e.g., SidebarFavorites.app)
+└── Contents/
+    └── Info.plist
+        └── CFBundleIcons
+            └── CFBundlePrimaryIcon
+                └── CFBundleSymbolName: "github.custom"  ← Icon name
+    └── Resources/
+        └── Assets.car  ← Contains compiled "github.custom" symbol
+```
+
+### What the Extension Does
+
+The Finder Sync extension does **NOT** set the icon. It only:
+
+1. Registers directories to monitor via `FIFinderSyncController.default().directoryURLs`
+2. Optionally provides file badges via `requestBadgeIdentifier(for:)`
+3. Optionally provides toolbar items and context menus
+
+```swift
+class FinderSync: FIFinderSync {
+    override init() {
+        super.init()
+        // This is ALL the extension does for sidebar icons:
+        FIFinderSyncController.default().directoryURLs = [
+            URL(fileURLWithPath: "/Users/example/github")
+        ]
+    }
+}
+```
+
+### How the Icon Appears
+
+1. User drags folder to Finder's sidebar Favorites (manual action)
+2. Finder detects a Finder Sync extension is monitoring that folder
+3. Finder looks up the host app's `CFBundleSymbolName`
+4. Finder resolves the symbol from the app's compiled Assets.car
+5. Finder displays that symbol as the sidebar icon
+
+### Key Insight
+
+The Finder Sync extension is essentially a "flag" that tells Finder: "this folder is special, use my app's icon." The extension itself has no icon-setting API.
+
+### Evidence
+
+Tested on macOS 15 (Sequoia). Screenshots available in repository wiki (TODO).
+
+---
+
+## Custom Symbol Asset Pipeline
+
+For custom SF Symbol icons, each generated icon app needs its own compiled asset catalog.
+
+### Pipeline Steps
+
+```
+1. User provides SVG
+        │
+        ▼
+2. Validate SF Symbol structure
+   - Check for Symbols layer
+   - Check for Guides layer
+   - Check for weight variants
+        │
+        ▼
+3. Create .symbolset folder
+   ┌─────────────────────────────────┐
+   │ customicon.symbolset/           │
+   │ ├── Contents.json               │
+   │ └── customicon.svg              │
+   └─────────────────────────────────┘
+        │
+        ▼
+4. Compile with actool
+   $ xcrun actool customicon.symbolset \
+       --compile OutputDir/ \
+       --platform macosx \
+       --minimum-deployment-target 13.0 \
+       --output-format human-readable-text
+        │
+        ▼
+5. Copy Assets.car to icon app bundle
+   IconApp.app/Contents/Resources/Assets.car
+        │
+        ▼
+6. Update Info.plist
+   CFBundleSymbolName = "customicon"
+        │
+        ▼
+7. Re-sign the app bundle
+   $ codesign --force --deep --sign "..." IconApp.app
+```
+
+### Contents.json Format
+
+```json
+{
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  },
+  "symbols": [
+    {
+      "filename": "customicon.svg",
+      "idiom": "universal"
+    }
+  ]
+}
+```
+
+### Important Notes
+
+- SVG files in Resources/ alone will NOT work
+- Must be compiled into Assets.car via actool
+- Symbol name in CFBundleSymbolName must match the .symbolset folder name
+- Each icon app needs its own Assets.car (cannot share)
+
+---
+
+## Required Manual Steps
+
+Users must perform these one-time setup steps:
+
+### 1. Enable Finder Sync Extension
+
+For EACH icon app, the user must:
+
+1. Open **System Settings**
+2. Navigate to **Privacy & Security → Extensions → Added Extensions**
+3. Find the extension (e.g., "SidebarFavorites GitHub Sync")
+4. Toggle it **ON**
+
+**Manager App Assistance:**
+```swift
+// Open System Settings to the right pane
+NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+
+// Show alert with instructions
+let alert = NSAlert()
+alert.messageText = "Enable Extension"
+alert.informativeText = "Please enable '\(extensionName)' in System Settings to activate the sidebar icon."
+alert.addButton(withTitle: "Open System Settings")
+alert.addButton(withTitle: "Later")
+```
+
+### 2. Add Folder to Favorites
+
+The user must manually drag the folder to Finder's sidebar:
+
+1. Open Finder
+2. Navigate to the target folder
+3. Drag folder to sidebar under "Favorites"
+
+**Manager App Assistance:**
+- Show the folder in Finder: `NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: folderPath)`
+- Display instructional overlay or tooltip
+
+### 3. Restart Finder (Sometimes Required)
+
+If icon doesn't appear or shows stale:
+```bash
+killall Finder
+```
+
+**Manager App Assistance:**
+- Offer "Refresh Finder" button
+- Auto-restart Finder after icon changes (with user consent)
+
+---
+
+## Distribution Checklist
+
+### Local Development
+- [x] Ad-hoc signing (`codesign --sign -`)
+- [x] Extension loads from Xcode build
+- [x] Test on development machine
+
+### Direct Distribution (Outside App Store)
+
+#### Code Signing
+- [ ] Developer ID Application certificate
+- [ ] Sign main app: `codesign --sign "Developer ID Application: Name (TEAM)" --options runtime`
+- [ ] Sign each generated icon app with same identity
+- [ ] Verify: `codesign --verify --deep --strict IconApp.app`
+
+#### Notarization
+- [ ] Create ZIP or DMG for notarization
+- [ ] Submit: `xcrun notarytool submit app.zip --apple-id X --password X --team-id X`
+- [ ] Wait for approval (usually <15 minutes)
+- [ ] Staple: `xcrun stapler staple App.app`
+
+#### Gatekeeper Verification
+- [ ] Test on clean macOS VM or different Mac
+- [ ] Clear quarantine: Download from web, don't copy locally
+- [ ] Verify Gatekeeper accepts: App should open without warnings
+- [ ] Verify extension loads: Check System Settings → Extensions
+
+### macOS Version Matrix
+
+| macOS Version | Status | Notes |
+|---------------|--------|-------|
+| macOS 15 (Sequoia) | ✅ Tested | Primary development target |
+| macOS 14 (Sonoma) | 🔲 Untested | Should work |
+| macOS 13 (Ventura) | 🔲 Untested | Minimum target |
+| macOS 12 and earlier | ❌ Not supported | Missing required APIs |
+
+### Distribution Package
+
+For user-friendly distribution:
+```
+SidebarFavoritesManager-1.0.dmg
+├── SidebarFavoritesManager.app (signed + notarized)
+├── README.txt (quick start guide)
+└── .background/installer-bg.png
+```
+
+---
+
 ## Summary
 
 This architecture enables a single manager app to provide multiple sidebar favorites with different icons by:
