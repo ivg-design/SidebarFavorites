@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-01-11
+
+### Added
+- **Menu bar icon** with quick access to favorites and actions
+- **Extension status checker** - Shows warning when extension needs to be enabled in System Settings
+- **"Enable Extension" button** - Click to open System Settings directly to Login Items & Extensions
+- **SVG template export** - "Save Blank Template..." button to create custom icons with guidelines dialog
+- **Custom app icon** - Using icns format for transparent icon (no macOS Big Sur+ rounded rectangle)
+- **Recommended Xcode build settings** - DEAD_CODE_STRIPPING, ENABLE_USER_SCRIPT_SANDBOXING
+
+### Fixed
+- **Extensions button** now opens correct System Settings pane (Login Items & Extensions)
+- **App icon** - Uses icns format to avoid automatic macOS background on transparent icons
+
+### Changed
+- Archived prototype targets (`SidebarFavorites`, `SidebarFavoritesSync`) to `_archive/` folder
+- Inlined build number increment script to avoid sandbox issues
+
 ## [0.3.0] - 2026-01-11
 
 ### Added

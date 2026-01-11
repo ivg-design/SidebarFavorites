@@ -3,10 +3,12 @@ import SwiftUI
 struct FavoriteRow: View {
     let favorite: Favorite
     let isRunning: Bool
+    let isExtensionEnabled: Bool
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onToggle: () -> Void
     let onReveal: () -> Void
+    let onOpenExtensions: () -> Void
 
     @State private var isHovering = false
 
@@ -61,13 +63,28 @@ struct FavoriteRow: View {
                 }
             } else {
                 // Status indicator
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 8, height: 8)
-                    Text(statusText)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                if !isExtensionEnabled && favorite.enabled {
+                    // Show clickable warning when extension is not enabled
+                    Button(action: onOpenExtensions) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                            Text("Enable Extension")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Click to open System Settings and enable the extension")
+                } else {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(statusColor)
+                            .frame(width: 8, height: 8)
+                        Text(statusText)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
 
@@ -94,12 +111,18 @@ struct FavoriteRow: View {
         if !favorite.enabled {
             return .gray
         }
+        if !isExtensionEnabled {
+            return .red
+        }
         return isRunning ? .green : .orange
     }
 
     private var statusText: String {
         if !favorite.enabled {
             return "Disabled"
+        }
+        if !isExtensionEnabled {
+            return "Extension Off"
         }
         return isRunning ? "Active" : "Starting..."
     }
@@ -132,19 +155,23 @@ struct FavoriteRow: View {
         FavoriteRow(
             favorite: Favorite(name: "GitHub", folderPath: "~/github", iconValue: "folder.fill.badge.gearshape"),
             isRunning: true,
+            isExtensionEnabled: true,
             onEdit: {},
             onDelete: {},
             onToggle: {},
-            onReveal: {}
+            onReveal: {},
+            onOpenExtensions: {}
         )
         Divider()
         FavoriteRow(
             favorite: Favorite(name: "Projects", folderPath: "~/Projects", iconValue: "star.fill", enabled: false),
             isRunning: false,
+            isExtensionEnabled: false,
             onEdit: {},
             onDelete: {},
             onToggle: {},
-            onReveal: {}
+            onReveal: {},
+            onOpenExtensions: {}
         )
     }
     .frame(width: 400)

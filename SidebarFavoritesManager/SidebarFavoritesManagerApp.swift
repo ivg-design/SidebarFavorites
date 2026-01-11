@@ -28,5 +28,13 @@ struct SidebarFavoritesManagerApp: App {
             SettingsView()
                 .environmentObject(configManager)
         }
+
+        // Menu bar icon - always visible, controlled by isInserted
+        MenuBarExtra("SidebarFavorites", systemImage: "sidebar.left", isInserted: .constant(configManager.config.settings.showInMenuBar)) {
+            MenuBarView()
+                .environmentObject(configManager)
+                .environmentObject(lifecycleManager)
+        }
+        .menuBarExtraStyle(.menu)
     }
 }

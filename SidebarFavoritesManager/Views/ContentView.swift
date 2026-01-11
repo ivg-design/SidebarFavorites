@@ -7,6 +7,9 @@ struct ContentView: View {
     @State private var editingFavorite: Favorite?
     @State private var showingError = false
     @State private var errorMessage = ""
+    @State private var extensionStatuses: [UUID: Bool] = [:]
+    @State private var showingExtensionAlert = false
+    @State private var alertFavoriteName = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,8 +62,20 @@ struct ContentView: View {
         } message: {
             Text(errorMessage)
         }
+        .alert("Extension Not Enabled", isPresented: $showingExtensionAlert) {
+            Button("Open Settings") {
+                lifecycleManager.openExtensionsSettings()
+            }
+            Button("Later", role: .cancel) {}
+        } message: {
+            Text("The extension for '\(alertFavoriteName)' needs to be enabled in System Settings → Login Items & Extensions → Finder Extensions.")
+        }
         .task {
             await startEnabledApps()
+            refreshExtensionStatuses()
+        }
+        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
+            refreshExtensionStatuses()
         }
     }
 
@@ -92,10 +107,12 @@ struct ContentView: View {
                     FavoriteRow(
                         favorite: favorite,
                         isRunning: lifecycleManager.runningApps.contains(favorite.id),
+                        isExtensionEnabled: extensionStatuses[favorite.id] ?? false,
                         onEdit: { editingFavorite = favorite },
                         onDelete: { deleteFavorite(favorite) },
                         onToggle: { toggleFavorite(favorite) },
-                        onReveal: { lifecycleManager.revealInFinder(favorite.folderPath) }
+                        onReveal: { lifecycleManager.revealInFinder(favorite.folderPath) },
+                        onOpenExtensions: { lifecycleManager.openExtensionsSettings() }
                     )
                     Divider()
                 }
@@ -131,6 +148,16 @@ struct ContentView: View {
                     try await lifecycleManager.ensureIconAppRunning(for: favorite)
                     // Restart Finder to refresh sidebar icons
                     lifecycleManager.restartFinder()
+
+                    // Wait a moment then check if extension is enabled
+                    try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+                    await MainActor.run {
+                        refreshExtensionStatuses()
+                        if !lifecycleManager.isExtensionEnabled(for: favorite) {
+                            alertFavoriteName = favorite.name
+                            showingExtensionAlert = true
+                        }
+                    }
                 } catch {
                     await MainActor.run { showError(error) }
                 }
@@ -204,6 +231,10 @@ struct ContentView: View {
     private func showError(_ error: Error) {
         errorMessage = error.localizedDescription
         showingError = true
+    }
+
+    private func refreshExtensionStatuses() {
+        extensionStatuses = lifecycleManager.getExtensionStatuses()
     }
 }
 

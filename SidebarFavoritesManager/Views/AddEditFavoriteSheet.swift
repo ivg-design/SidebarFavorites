@@ -14,6 +14,8 @@ struct AddEditFavoriteSheet: View {
     @State private var customSVGPath: String?
 
     @State private var showingSVGPicker = false
+    @State private var showingSVGSavePanel = false
+    @State private var showingTemplateGuidelines = false
     @State private var validationErrors: [SymbolValidator.ValidationError] = []
     @State private var showingValidationError = false
 
@@ -120,6 +122,25 @@ struct AddEditFavoriteSheet: View {
         } message: {
             Text(validationErrors.compactMap { $0.errorDescription }.joined(separator: "\n"))
         }
+        .alert("Template Saved", isPresented: $showingTemplateGuidelines) {
+            Button("Open in SF Symbols App") {
+                NSWorkspace.shared.open(URL(string: "sfsymbols://")!)
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("""
+            Your blank template has been saved.
+
+            To create a custom icon:
+            1. Open the template in a vector editor (Illustrator, Figma, etc.)
+            2. Replace the placeholder rectangle with your icon design
+            3. Keep your icon within the "Regular-S" bounds
+            4. The icon should use a single color (template tinting)
+            5. Save as SVG and import it here
+
+            Tip: Use SF Symbols app to export existing symbols as templates for reference.
+            """)
+        }
     }
 
     private var sfSymbolPicker: some View {
@@ -165,12 +186,18 @@ struct AddEditFavoriteSheet: View {
                 .background(Color(NSColor.controlBackgroundColor))
                 .cornerRadius(6)
             } else {
-                Button(action: { showingSVGPicker = true }) {
-                    Label("Import Custom SVG...", systemImage: "square.and.arrow.down")
+                HStack(spacing: 12) {
+                    Button(action: { showingSVGPicker = true }) {
+                        Label("Import Custom SVG...", systemImage: "square.and.arrow.down")
+                    }
+
+                    Button(action: { saveBlankTemplate() }) {
+                        Label("Save Blank Template...", systemImage: "doc.badge.plus")
+                    }
                 }
             }
 
-            Text("Import an SF Symbol template SVG with proper structure")
+            Text("Import an existing SVG or save a blank template to create your own")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -278,6 +305,63 @@ struct AddEditFavoriteSheet: View {
             validationErrors = result.errors
             showingValidationError = true
         }
+    }
+
+    private func saveBlankTemplate() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: "svg")!]
+        panel.nameFieldStringValue = "custom-icon-template.svg"
+        panel.message = "Choose where to save the blank SF Symbol template"
+        panel.prompt = "Save Template"
+
+        if panel.runModal() == .OK, let url = panel.url {
+            do {
+                try blankTemplateSVG.write(to: url, atomically: true, encoding: .utf8)
+                showingTemplateGuidelines = true
+            } catch {
+                validationErrors = []
+                showingValidationError = true
+            }
+        }
+    }
+
+    private var blankTemplateSVG: String {
+        """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!--Generator: SF Symbol template for SidebarFavorites-->
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="3300" height="2200">
+          <defs>
+            <style>
+              .guide { fill: none; stroke: #27AAE1; stroke-width: 1; opacity: 0.5; }
+              .symbol { fill: #000000; }
+            </style>
+          </defs>
+
+          <g id="Notes">
+            <text id="descriptive-name" x="100" y="100" font-size="40" fill="#999">custom.icon.name</text>
+            <text x="100" y="150" font-size="24" fill="#999">Replace the rectangle below with your icon design</text>
+            <text x="100" y="180" font-size="24" fill="#999">Keep design within the guide lines</text>
+          </g>
+
+          <g id="Guides">
+            <line id="Baseline-S" class="guide" x1="258" y1="1796" x2="858" y2="1796"/>
+            <line id="Capline-S" class="guide" x1="258" y1="1484" x2="858" y2="1484"/>
+            <line id="left-margin-S" class="guide" x1="258" y1="1484" x2="258" y2="1796"/>
+            <line id="right-margin-S" class="guide" x1="858" y1="1484" x2="858" y2="1796"/>
+          </g>
+
+          <g id="Symbols">
+            <!--
+              Replace this placeholder rectangle with your icon paths.
+              Your icon should fill the area between the guides.
+              Use solid fills only - the color will be tinted by the system.
+            -->
+            <g id="Regular-S">
+              <rect class="symbol" x="358" y="1534" width="400" height="212" rx="20" ry="20"/>
+            </g>
+          </g>
+        </svg>
+        """
     }
 
     private func save() {

@@ -129,11 +129,53 @@ final class LifecycleManager: ObservableObject {
         try? process.run()
     }
 
-    /// Open System Settings to Extensions pane
+    /// Open System Settings to Login Items & Extensions pane
     func openExtensionsSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.extensions?Finder") {
+        // macOS 13+ uses this URL for Login Items & Extensions
+        if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
             workspace.open(url)
         }
+    }
+
+    /// Check if a FinderSync extension is enabled
+    /// Returns: true if enabled, false if disabled or not found
+    func isExtensionEnabled(bundleIdentifier: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/pluginkit")
+        process.arguments = ["-m", "-i", bundleIdentifier]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8) {
+                // "+" prefix means enabled, "-" means disabled
+                return output.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("+")
+            }
+        } catch {
+            NSLog("Failed to check extension status: \(error)")
+        }
+
+        return false
+    }
+
+    /// Check if an extension is enabled for a favorite
+    func isExtensionEnabled(for favorite: Favorite) -> Bool {
+        return isExtensionEnabled(bundleIdentifier: favorite.extensionBundleIdentifier)
+    }
+
+    /// Get extension status for all favorites
+    func getExtensionStatuses() -> [UUID: Bool] {
+        var statuses: [UUID: Bool] = [:]
+        for favorite in configManager.config.favorites {
+            statuses[favorite.id] = isExtensionEnabled(for: favorite)
+        }
+        return statuses
     }
 
     /// Reveal folder in Finder (to help user drag to sidebar)

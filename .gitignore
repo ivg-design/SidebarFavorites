@@ -33,3 +33,6 @@ icons/*
 # IDE
 .vscode/
 .idea/
+
+# Archived prototype (kept for reference but not built)
+_archive/

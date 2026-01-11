@@ -9,6 +9,8 @@ settings:
   base:
     DEVELOPMENT_TEAM: 7S422NVLUK
     CODE_SIGN_STYLE: Automatic
+    DEAD_CODE_STRIPPING: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
 
 targets:
   # Main Manager App
@@ -29,7 +31,14 @@ targets:
     preBuildScripts:
       - name: Increment Build Number
         script: |
-          "${SRCROOT}/scripts/increment_build.sh"
+          PLIST_PATH="${SRCROOT}/${INFOPLIST_FILE}"
+          if [ -f "$PLIST_PATH" ]; then
+            BUILD_NUM=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST_PATH" 2>&1 | grep -E '^[0-9]+$' || echo "0")
+            if [ -z "$BUILD_NUM" ]; then BUILD_NUM=0; fi
+            NEW_BUILD_NUM=$((BUILD_NUM + 1))
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD_NUM" "$PLIST_PATH" 2>/dev/null
+            echo "Build number: $NEW_BUILD_NUM"
+          fi
         basedOnDependencyAnalysis: false
     dependencies:
       - target: IconAppTemplate
@@ -78,45 +87,6 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         SWIFT_VERSION: "5.9"
 
-  # Original Prototype (for testing)
-  SidebarFavorites:
-    type: application
-    platform: macOS
-    sources:
-      - path: SidebarFavorites
-    settings:
-      base:
-        INFOPLIST_FILE: SidebarFavorites/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites
-        PRODUCT_NAME: SidebarFavorites
-        MACOSX_DEPLOYMENT_TARGET: "13.0"
-        SWIFT_VERSION: "5.9"
-    dependencies:
-      - target: SidebarFavoritesSync
-        embed: true
-        codeSign: true
-
-  SidebarFavoritesSync:
-    type: app-extension
-    platform: macOS
-    sources:
-      - path: SidebarFavoritesSync
-        excludes:
-          - "URLs"
-      - path: SidebarFavoritesSync/URLs
-        type: file
-        buildPhase: resources
-    settings:
-      base:
-        INFOPLIST_FILE: SidebarFavoritesSync/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites.Sync
-        PRODUCT_NAME: SidebarFavoritesSync
-        PRODUCT_MODULE_NAME: SidebarFavoritesSync
-        CODE_SIGN_ENTITLEMENTS: SidebarFavoritesSync/SidebarFavoritesSync.entitlements
-        SKIP_INSTALL: YES
-        MACOSX_DEPLOYMENT_TARGET: "13.0"
-        SWIFT_VERSION: "5.9"
-
 schemes:
   SidebarFavoritesManager:
     build:
@@ -128,10 +98,3 @@ schemes:
       config: Release
     archive:
       config: Release
-
-  SidebarFavorites:
-    build:
-      targets:
-        SidebarFavorites: all
-    run:
-      config: Debug
