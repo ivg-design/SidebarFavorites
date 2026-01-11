@@ -30,6 +30,22 @@ The **SidebarFavorites Manager** app automates this process:
 3. The icon app's extension monitors your folder
 4. When you drag the folder to Favorites, it shows your custom icon
 
+### Do I Need to Keep the Manager Running?
+
+**No!** The Manager app is only needed for setup and configuration. Once you've:
+1. Added your favorites
+2. Enabled the extensions in System Settings
+
+You can close the Manager app. The sidebar icons will:
+- **Persist across reboots** - macOS automatically restarts FinderSync extensions
+- **Work independently** - The icon apps run as separate processes managed by the system
+- **Survive Finder restarts** - Icons reappear automatically
+
+**The Manager app is only needed when you want to:**
+- Add, edit, or delete favorites
+- Troubleshoot extension issues
+- Export custom icon templates
+
 ## Installation
 
 ### Requirements

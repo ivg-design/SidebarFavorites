@@ -86,8 +86,20 @@ To open it:
   3. Scroll down and click "Open Anyway"
 
 After First Run:
+- Add your favorite folders and choose icons
 - Enable the Finder extensions in System Settings → Login Items & Extensions
-- The app will show you if extensions need to be enabled
+- Drag your folders to Finder's sidebar Favorites section
+
+Do I Need to Keep the Manager Running?
+--------------------------------------
+NO! Once you've set up your favorites and enabled the extensions, you can
+close the Manager app. Your sidebar icons will:
+
+  • Persist across reboots - macOS auto-starts the extensions
+  • Work independently - The icon apps run as separate system processes
+  • Survive Finder restarts - Icons reappear automatically
+
+The Manager app is only needed when you want to add, edit, or delete favorites.
 
 Uninstall:
 1. Delete favorites in the app (this removes the sidebar icons)
