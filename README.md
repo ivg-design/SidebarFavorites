@@ -1,6 +1,6 @@
 # SidebarFavorites
 
-Add custom folders to macOS Finder's sidebar with custom SF Symbol icons.
+Add custom folders to macOS Finder's sidebar with custom designed and/or SF Symbol icons.
 
 ![macOS](https://img.shields.io/badge/macOS-13.0+-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
