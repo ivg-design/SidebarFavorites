@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-01-11
+
+### Added
+- **Accurate custom SVG icon rendering** - Uses NSImage native SVG support with proper SF Symbol template extraction
+- **Bundled SF Symbol template** - "Save Blank Template..." now exports a proper Apple SF Symbol template
+
+### Fixed
+- **Custom SVG icons now render correctly** - Extracts Regular-S symbol region from SF Symbol templates with correct viewBox coordinates
+- **Icon size matching** - Custom SVG icons now match SF Symbol icon sizes in the favorites list
+
+### Changed
+- Replaced WebKit-based SVG rendering with simpler NSImage approach
+- SVG thumbnail cache now properly extracts symbol region using guide line coordinates
+
 ## [0.4.0] - 2026-01-11
 
 ### Added

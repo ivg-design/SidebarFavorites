@@ -129,24 +129,12 @@ struct FavoriteRow: View {
 
     @ViewBuilder
     private var iconImage: some View {
-        if favorite.iconType == .custom {
-            customIconView
+        if favorite.iconType == .custom, let svgPath = favorite.customSVGPath {
+            let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
+            SVGThumbnailView(url: url, size: 36)
         } else {
             Image(systemName: favorite.iconValue)
         }
-    }
-
-    private var customIconView: some View {
-        // Force unwrap - we know it's not nil from earlier test
-        Image(loadCustomIconCG()!, scale: 1.0, label: Text("icon"))
-            .frame(width: 40, height: 40)
-            .border(Color.red) // Debug border to see if frame exists
-    }
-
-    private func loadCustomIconCG() -> CGImage? {
-        guard let svgPath = favorite.customSVGPath else { return nil }
-        let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
-        return SymbolValidator.renderPreviewCG(from: url, size: 40)
     }
 }
 

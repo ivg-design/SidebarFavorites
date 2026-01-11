@@ -123,9 +123,6 @@ struct AddEditFavoriteSheet: View {
             Text(validationErrors.compactMap { $0.errorDescription }.joined(separator: "\n"))
         }
         .alert("Template Saved", isPresented: $showingTemplateGuidelines) {
-            Button("Open in SF Symbols App") {
-                NSWorkspace.shared.open(URL(string: "sfsymbols://")!)
-            }
             Button("OK", role: .cancel) {}
         } message: {
             Text("""
@@ -137,8 +134,6 @@ struct AddEditFavoriteSheet: View {
             3. Keep your icon within the "Regular-S" bounds
             4. The icon should use a single color (template tinting)
             5. Save as SVG and import it here
-
-            Tip: Use SF Symbols app to export existing symbols as templates for reference.
             """)
         }
     }
@@ -226,14 +221,7 @@ struct AddEditFavoriteSheet: View {
     private var previewIcon: some View {
         if iconType == .custom, let svgPath = customSVGPath {
             let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
-            if let nsImage = SymbolValidator.renderPreview(from: url) {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-            } else {
-                Image(systemName: "square.on.square")
-            }
+            SVGThumbnailView(url: url, size: 16)
         } else {
             Image(systemName: iconValue)
         }
@@ -308,6 +296,14 @@ struct AddEditFavoriteSheet: View {
     }
 
     private func saveBlankTemplate() {
+        // Get bundled template from app resources
+        guard let templateURL = Bundle.main.url(forResource: "custom-icon-template", withExtension: "svg"),
+              let templateData = try? Data(contentsOf: templateURL) else {
+            validationErrors = []
+            showingValidationError = true
+            return
+        }
+
         let panel = NSSavePanel()
         panel.allowedContentTypes = [UTType(filenameExtension: "svg")!]
         panel.nameFieldStringValue = "custom-icon-template.svg"
@@ -316,52 +312,13 @@ struct AddEditFavoriteSheet: View {
 
         if panel.runModal() == .OK, let url = panel.url {
             do {
-                try blankTemplateSVG.write(to: url, atomically: true, encoding: .utf8)
+                try templateData.write(to: url)
                 showingTemplateGuidelines = true
             } catch {
                 validationErrors = []
                 showingValidationError = true
             }
         }
-    }
-
-    private var blankTemplateSVG: String {
-        """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!--Generator: SF Symbol template for SidebarFavorites-->
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="3300" height="2200">
-          <defs>
-            <style>
-              .guide { fill: none; stroke: #27AAE1; stroke-width: 1; opacity: 0.5; }
-              .symbol { fill: #000000; }
-            </style>
-          </defs>
-
-          <g id="Notes">
-            <text id="descriptive-name" x="100" y="100" font-size="40" fill="#999">custom.icon.name</text>
-            <text x="100" y="150" font-size="24" fill="#999">Replace the rectangle below with your icon design</text>
-            <text x="100" y="180" font-size="24" fill="#999">Keep design within the guide lines</text>
-          </g>
-
-          <g id="Guides">
-            <line id="Baseline-S" class="guide" x1="258" y1="1796" x2="858" y2="1796"/>
-            <line id="Capline-S" class="guide" x1="258" y1="1484" x2="858" y2="1484"/>
-            <line id="left-margin-S" class="guide" x1="258" y1="1484" x2="258" y2="1796"/>
-            <line id="right-margin-S" class="guide" x1="858" y1="1484" x2="858" y2="1796"/>
-          </g>
-
-          <g id="Symbols">
-            <!--
-              Replace this placeholder rectangle with your icon paths.
-              Your icon should fill the area between the guides.
-              Use solid fills only - the color will be tinted by the system.
-            -->
-            <g id="Regular-S">
-              <rect class="symbol" x="358" y="1534" width="400" height="212" rx="20" ry="20"/>
-            </g>
-          </g>
-        </svg>
-        """
     }
 
     private func save() {
