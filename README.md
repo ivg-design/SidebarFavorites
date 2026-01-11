@@ -10,7 +10,7 @@ Add custom folders to macOS Finder's sidebar with custom SF Symbol icons.
 
 SidebarFavorites lets you customize the Finder sidebar with your own icons. Instead of seeing generic folder icons, you can display any SF Symbol (including custom ones) for your favorite folders.
 
-![Sidebar Example](docs/assets/sidebar-example.png)
+![Finder Sidebar with Custom Icons](docs/assets/example.png)
 
 ## Features
 
@@ -19,6 +19,8 @@ SidebarFavorites lets you customize the Finder sidebar with your own icons. Inst
 - **Manager App**: Easy-to-use GUI for adding and managing favorites
 - **Automatic Generation**: The Manager app automatically creates and configures icon apps
 - **Persistent**: Icons survive restarts and Finder relaunches
+
+![Manager App](docs/assets/main-screen.png)
 
 ## How It Works
 
@@ -97,8 +99,10 @@ For testing with a single folder, use the included prototype:
    - **Folder Path**: Click Browse or enter path (supports `~`)
    - **Icon**: Choose an SF Symbol or import a custom SVG
 4. **Save**: The Manager generates the icon app automatically
-5. **Enable Extension**: Go to System Settings → Privacy & Security → Extensions → Finder Extensions and enable your new favorite
+5. **Enable Extension**: Go to System Settings → Login Items & Extensions → Extensions → Finder and enable your new favorite
 6. **Add to Sidebar**: Drag the folder to Finder's Favorites section
+
+![Add Favorite Dialog](docs/assets/add-favorites.png)
 
 ### Using Custom SF Symbol Icons
 
