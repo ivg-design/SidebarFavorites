@@ -17,9 +17,8 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
-# Personal development icons (keep examples/)
+# Icons folder - only track the github example
 icons/*
-!icons/examples/
 !icons/sidebar-github.rectangle.fixed.svg
 
 # Compiled assets that should be regenerated

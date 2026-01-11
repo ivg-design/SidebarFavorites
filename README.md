@@ -53,14 +53,22 @@ You can close the Manager app. The sidebar icons will:
 ### Requirements
 
 - macOS 13.0 (Ventura) or later
-- Xcode 15+ (for building)
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (for project generation)
 
-### Building from Source
+### Option 1: Download Pre-built DMG (Recommended)
+
+1. Download the latest DMG from [Releases](https://github.com/ivg-design/SidebarFavorites/releases)
+2. Open the DMG and drag **SidebarFavorites Manager** to Applications
+3. **First run**: Right-click the app → Open → Click "Open" in the dialog (required once for unsigned apps)
+
+No Xcode or developer tools needed!
+
+### Option 2: Build from Source
+
+Requires Xcode 15+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/SidebarFavorites.git
+git clone https://github.com/ivg-design/SidebarFavorites.git
 cd SidebarFavorites
 
 # Install XcodeGen if needed
@@ -76,16 +84,9 @@ xcodebuild -scheme SidebarFavoritesManager -configuration Release
 # ~/Library/Developer/Xcode/DerivedData/SidebarFavorites-*/Build/Products/Release/SidebarFavorites Manager.app
 ```
 
-### Quick Start (Prototype)
-
-For testing with a single folder, use the included prototype:
-
+To create a distributable DMG:
 ```bash
-# Build and run with default icon
-./scripts/setup_prototype.sh
-
-# Or with a custom SF Symbol SVG
-./scripts/setup_prototype.sh /path/to/your-symbol.svg
+./scripts/build-release.sh
 ```
 
 ## Usage
