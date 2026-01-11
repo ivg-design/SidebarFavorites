@@ -178,6 +178,23 @@ Configuration is stored in:
 
 The SF Symbol name must match the `descriptive-name` field in the SVG exactly. The Manager app extracts this automatically, but if using manual methods, verify the name matches.
 
+### Cloud Storage Folders (Google Drive, iCloud, Dropbox, etc.)
+
+**Problem**: Folders in `~/Library/CloudStorage/` (FileProvider mounts) don't support FinderSync sidebar icons. This is a macOS limitation, not a bug.
+
+**Workaround**: Create a symlink to the cloud folder and use the symlink as your favorite:
+
+```bash
+# Example for Google Drive
+ln -s ~/Library/CloudStorage/GoogleDrive-you@gmail.com/My\ Drive/Projects ~/Projects-gdrive
+
+# Then add ~/Projects-gdrive as your favorite in the Manager app
+```
+
+The symlink will appear in Finder's sidebar with your custom icon, and clicking it will open the actual cloud folder.
+
+**Why this works**: Symlinks are regular filesystem objects that FinderSync can monitor, while CloudStorage paths are virtual FileProvider mounts that bypass FinderSync entirely.
+
 ## Documentation
 
 - [Technical Setup Guide](docs/PROTOTYPE_SETUP.md) - Detailed manual setup instructions
