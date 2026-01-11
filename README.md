@@ -1,6 +1,6 @@
 # SidebarFavorites
 
-Add custom folders to macOS Finder's sidebar Favorites with custom icons.
+Add custom folders to macOS Finder's sidebar with custom SF Symbol icons.
 
 ![macOS](https://img.shields.io/badge/macOS-13.0+-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
@@ -8,102 +8,173 @@ Add custom folders to macOS Finder's sidebar Favorites with custom icons.
 
 ## Overview
 
-This project uses macOS Finder Sync extensions to display custom icons for folders in the Finder sidebar. When you drag a monitored folder to the Favorites section, it displays a custom SF Symbol icon instead of the default folder icon.
+SidebarFavorites lets you customize the Finder sidebar with your own icons. Instead of seeing generic folder icons, you can display any SF Symbol (including custom ones) for your favorite folders.
+
+![Sidebar Example](docs/assets/sidebar-example.png)
+
+## Features
+
+- **Custom SF Symbol Icons**: Use any built-in SF Symbol or create your own
+- **Multiple Favorites**: Manage as many custom sidebar folders as you want
+- **Manager App**: Easy-to-use GUI for adding and managing favorites
+- **Automatic Generation**: The Manager app automatically creates and configures icon apps
+- **Persistent**: Icons survive restarts and Finder relaunches
 
 ## How It Works
 
-1. The app registers a Finder Sync extension that monitors specified directories
-2. The sidebar icon comes from `CFBundleSymbolName` in the app's `Info.plist`
-3. When monitored folders are added to Favorites, they display the custom icon
+macOS Finder Sync extensions can provide custom icons for folders in the sidebar. This project leverages the `CFBundleSymbolName` property to display SF Symbols. Each favorite folder requires its own small app bundle with a Finder Sync extension.
 
-## Current Status
+The **SidebarFavorites Manager** app automates this process:
+1. You specify a folder path and choose an icon
+2. The Manager generates a dedicated icon app from a template
+3. The icon app's extension monitors your folder
+4. When you drag the folder to Favorites, it shows your custom icon
 
-This is a proof-of-concept implementation. See [ARCHITECTURE.md](ARCHITECTURE.md) for the planned full implementation with:
-- GUI for managing multiple favorites
-- Support for custom SF Symbol SVGs
-- Automatic icon app generation
-- Launch at login
-
-## Building
+## Installation
 
 ### Requirements
 
-- macOS 13.0+
-- Xcode 15+
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+- macOS 13.0 (Ventura) or later
+- Xcode 15+ (for building)
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (for project generation)
 
-### Steps
+### Building from Source
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/SidebarFavorites.git
+cd SidebarFavorites
+
 # Install XcodeGen if needed
 brew install xcodegen
 
 # Generate Xcode project
 xcodegen generate
 
-# Build
-xcodebuild -project SidebarFavorites.xcodeproj -scheme SidebarFavorites -configuration Release build
+# Build the Manager app (Release configuration)
+xcodebuild -scheme SidebarFavoritesManager -configuration Release
 
-# Install
-cp -R ~/Library/Developer/Xcode/DerivedData/SidebarFavorites-*/Build/Products/Release/SidebarFavorites.app /Applications/
+# The built app is at:
+# ~/Library/Developer/Xcode/DerivedData/SidebarFavorites-*/Build/Products/Release/SidebarFavorites Manager.app
+```
+
+### Quick Start (Prototype)
+
+For testing with a single folder, use the included prototype:
+
+```bash
+# Build and run with default icon
+./scripts/setup_prototype.sh
+
+# Or with a custom SF Symbol SVG
+./scripts/setup_prototype.sh /path/to/your-symbol.svg
 ```
 
 ## Usage
 
-1. Launch the app (it runs in background, no dock icon)
-2. Enable the Finder Sync extension in System Settings → Privacy & Security → Extensions → Added Extensions
-3. Drag the monitored folder (`~/github` by default) to Finder's sidebar Favorites
-4. The folder will display with the custom icon
+### Using the Manager App
 
-### Changing the Monitored Folder
+1. **Launch** SidebarFavorites Manager
+2. **Add a Favorite**: Click the `+` button
+3. **Configure**:
+   - **Name**: Display name for the favorite
+   - **Folder Path**: Click Browse or enter path (supports `~`)
+   - **Icon**: Choose an SF Symbol or import a custom SVG
+4. **Save**: The Manager generates the icon app automatically
+5. **Enable Extension**: Go to System Settings → Privacy & Security → Extensions → Finder Extensions and enable your new favorite
+6. **Add to Sidebar**: Drag the folder to Finder's Favorites section
 
-Edit `SidebarFavoritesSync/URLs` and rebuild:
+### Using Custom SF Symbol Icons
+
+1. Create your symbol using the [SF Symbols app](https://developer.apple.com/sf-symbols/)
+2. Export as SVG template (File → Export Symbol)
+3. Edit the SVG in your preferred editor
+4. Import via the Manager app's "Custom SVG" option
+
+**Important**: The symbol name is defined inside the SVG file in the `descriptive-name` field. This name is automatically extracted during import.
+
+## Project Structure
 
 ```
-~/your/folder/path
+SidebarFavorites/
+├── SidebarFavoritesManager/    # Main GUI application
+│   ├── Models/                 # Data models (Favorite, etc.)
+│   ├── Views/                  # SwiftUI views
+│   └── Services/               # Icon generation, lifecycle management
+├── IconAppTemplate/            # Template for generated icon apps
+│   ├── IconApp/                # Main app bundle template
+│   └── FinderSync/             # Finder Sync extension template
+├── SidebarFavorites/           # Standalone prototype app
+├── SidebarFavoritesSync/       # Prototype's Finder Sync extension
+├── scripts/                    # Utility scripts
+├── icons/                      # Example SF Symbol SVGs
+└── docs/                       # Technical documentation
 ```
 
-### Changing the Icon
+## Technical Details
 
-Edit `SidebarFavorites/Info.plist` and change `CFBundleSymbolName` to any SF Symbol name:
+### Key Concepts
 
-```xml
-<key>CFBundleSymbolName</key>
-<string>folder.fill.badge.gearshape</string>
+- **CFBundleSymbolName**: The `Info.plist` key that specifies the SF Symbol to use as the app icon (and sidebar icon)
+- **Finder Sync Extension**: An app extension type (`com.apple.FinderSync`) that can monitor folders and provide UI integration
+- **Assets.car**: Compiled asset catalog containing custom SF Symbols
+
+### Important Notes
+
+1. **Extension Registration**: Extensions must be properly code-signed to appear in System Settings. The Manager app signs generated apps with your Apple Development certificate.
+
+2. **Finder Cache**: Finder caches sidebar icons aggressively. After changing an icon, restart Finder: `killall Finder`
+
+3. **One App Per Icon**: Each unique sidebar icon requires its own app bundle. The Manager app handles this automatically.
+
+### Generated App Location
+
+Icon apps are stored in:
+```
+~/Library/Application Support/SidebarFavorites/Apps/
 ```
 
-Or use a custom SF Symbol SVG (see [Creating Custom SF Symbols](#creating-custom-sf-symbols)).
+Configuration is stored in:
+```
+~/Library/Application Support/SidebarFavorites/config.json
+```
 
-## Creating Custom SF Symbols
+## Troubleshooting
 
-1. Download the SF Symbols app from Apple
-2. Export a template SVG
-3. Edit in Illustrator/Sketch/etc.
-4. Ensure the SVG has:
-   - `id="Symbols"` layer with Ultralight-S, Regular-S, Black-S variants
-   - `id="Guides"` layer with margin guides
-   - `id="template-version"` text element
-5. Create a `.symbolset` folder in Assets.xcassets
-6. Reference it in Info.plist
+### Icon Not Appearing
 
-## Limitations
+1. Ensure the extension is enabled in System Settings → Privacy & Security → Extensions → Finder Extensions
+2. Restart Finder: `killall Finder`
+3. Remove the folder from sidebar and re-add it
 
-- **One icon per app**: Each unique sidebar icon requires a separate app
-- **Background app required**: The app must be running for icons to appear
-- **Finder restart**: May need to restart Finder after changes (`killall Finder`)
+### Extension Not Showing in System Settings
 
-## Architecture
+1. Check that the app is properly signed: `codesign -dv /path/to/app`
+2. Re-register with Launch Services: `lsregister -f -R -trusted /path/to/app`
+3. Try rebuilding the app
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full planned architecture including:
-- Manager app with GUI
-- Automatic icon app generation
-- Multiple favorites support
-- Custom icon import and validation
+### Blank Square Instead of Icon
+
+The SF Symbol name must match the `descriptive-name` field in the SVG exactly. The Manager app extracts this automatically, but if using manual methods, verify the name matches.
+
+## Documentation
+
+- [Technical Setup Guide](docs/PROTOTYPE_SETUP.md) - Detailed manual setup instructions
+- [Manager App Architecture](docs/SUMMARY.md) - Overview of how components work together
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## Credits
 
-Inspired by [rknightuk/custom-finder-sidebar-icons](https://github.com/rknightuk/custom-finder-sidebar-icons).
+- Inspired by [rknightuk/custom-finder-sidebar-icons](https://github.com/rknightuk/custom-finder-sidebar-icons)
+- Uses Apple's SF Symbols framework
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+**Note**: This project is not affiliated with Apple Inc. SF Symbols is a trademark of Apple Inc.

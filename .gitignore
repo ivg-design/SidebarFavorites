@@ -17,8 +17,10 @@ DerivedData/
 *.dSYM.zip
 *.dSYM
 
-# Personal development icons (not for distribution)
-icons/
+# Personal development icons (keep examples/)
+icons/*
+!icons/examples/
+!icons/sidebar-github.rectangle.fixed.svg
 
 # Compiled assets that should be regenerated
 *.car
@@ -27,3 +29,7 @@ icons/
 *.swp
 *.swo
 *~
+
+# IDE
+.vscode/
+.idea/

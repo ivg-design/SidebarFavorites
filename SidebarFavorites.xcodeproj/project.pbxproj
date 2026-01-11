@@ -7,14 +7,45 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */; };
+		0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E62EDE72F4C95ED46D7AD2E /* Config.swift */; };
+		25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */; };
+		2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33EDF718268412B7F826DEC /* ContentView.swift */; };
+		288E65B1E543CD5AE09260EC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62A8E5D947DF6094E78DAC1B /* main.swift */; };
+		29B4269AB49ADA47BC50133C /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0A8B1303A6C684E9FD5A5C /* FinderSync.swift */; };
+		3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */; };
+		39B1C61DBB47407D697E38E4 /* IconAppTemplateSync.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E9F2075CFC11865CB52659FA /* IconAppTemplateSync.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		47DD994C3239958390B0FDB7 /* LifecycleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DF501B60A6EFDEE8A296225 /* LifecycleManager.swift */; };
 		5D27046B224B3065B5395190 /* SidebarFavoritesSync.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 47C3A964BCD62A041D876CF5 /* SidebarFavoritesSync.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		687990519F80F3A17521D7B4 /* FinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5301F8A1394D61FD4F98D12 /* FinderSync.swift */; };
 		6F5277517FE737C05FA8F034 /* URLs in Resources */ = {isa = PBXBuildFile; fileRef = E6D6216B468F8C2F87759281 /* URLs */; };
 		86403F770921427B73815817 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C3326625BACE6FA414244B /* AppDelegate.swift */; };
+		916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */; };
+		9F2551B574084477E0003FC0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4182B79F6FBC4556EECCB96 /* SettingsView.swift */; };
+		A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94654D92B069C68956C0342E /* Favorite.swift */; };
+		B06924040AB9DD750BF9F782 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */; };
+		C70C37B997D4EFFF61A53C37 /* IconAppGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692364F82536C38D6D9534FC /* IconAppGenerator.swift */; };
+		C85394EFED462C5D27D19FF3 /* URLs in Resources */ = {isa = PBXBuildFile; fileRef = 744CEC6FE1A1C90159B6C2E4 /* URLs */; };
+		D76C5DEADF4EF55FB3E7F752 /* IconAppTemplate.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = B5C9C32A7D0BACF2357DCBDB /* IconAppTemplate.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */; };
 		F5CC6265C6B4589723C1942A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4457965D7025328FB116F890 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		00E3F3D8879880661FBA7A1A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F05F70B0FEEA28FF049A819F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 651936B1075159927D3954F8;
+			remoteInfo = IconAppTemplate;
+		};
+		06424EF32CEAB5A221B216E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F05F70B0FEEA28FF049A819F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BCACB040464C6078514DD460;
+			remoteInfo = IconAppTemplateSync;
+		};
 		A1666AD9916ADB0D1E7B6C2C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F05F70B0FEEA28FF049A819F /* Project object */;
@@ -36,21 +67,84 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		70A0F1E760A167353A06D349 /* Embed Dependencies */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				D76C5DEADF4EF55FB3E7F752 /* IconAppTemplate.app in Embed Dependencies */,
+			);
+			name = "Embed Dependencies";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A2EF2996A387A9EE4F289D30 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				39B1C61DBB47407D697E38E4 /* IconAppTemplateSync.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		147636508548FA032461B12F /* SidebarFavoritesManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SidebarFavoritesManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		17D16C7BC2716EC5697DA9FA /* SidebarFavoritesSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SidebarFavoritesSync.entitlements; sourceTree = "<group>"; };
+		1E62EDE72F4C95ED46D7AD2E /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		38EB140B780DCD819D79DE65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4457965D7025328FB116F890 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		47C3A964BCD62A041D876CF5 /* SidebarFavoritesSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SidebarFavoritesSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4DF501B60A6EFDEE8A296225 /* LifecycleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleManager.swift; sourceTree = "<group>"; };
 		50C3326625BACE6FA414244B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolValidator.swift; sourceTree = "<group>"; };
+		56994A0E52942D4D13A9956B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		62A8E5D947DF6094E78DAC1B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		692364F82536C38D6D9534FC /* IconAppGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconAppGenerator.swift; sourceTree = "<group>"; };
+		6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteRow.swift; sourceTree = "<group>"; };
+		744CEC6FE1A1C90159B6C2E4 /* URLs */ = {isa = PBXFileReference; path = URLs; sourceTree = "<group>"; };
+		74F0DE28CC2C8BCD9C03FC5F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7CEB2AC17AEB50E332F42B19 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		89610AFBA183528603BF8C49 /* SidebarFavorites.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SidebarFavorites.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94654D92B069C68956C0342E /* Favorite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
+		A4182B79F6FBC4556EECCB96 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarFavoritesManagerApp.swift; sourceTree = "<group>"; };
+		B5C9C32A7D0BACF2357DCBDB /* IconAppTemplate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IconAppTemplate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0A8B1303A6C684E9FD5A5C /* FinderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSync.swift; sourceTree = "<group>"; };
 		C5301F8A1394D61FD4F98D12 /* FinderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSync.swift; sourceTree = "<group>"; };
+		CD2515075504DB6D5657B6A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E33EDF718268412B7F826DEC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E66C4CE0FF1A3447D5E4D664 /* FinderSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FinderSync.entitlements; sourceTree = "<group>"; };
 		E6D6216B468F8C2F87759281 /* URLs */ = {isa = PBXFileReference; path = URLs; sourceTree = "<group>"; };
+		E9F2075CFC11865CB52659FA /* IconAppTemplateSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IconAppTemplateSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigManager.swift; sourceTree = "<group>"; };
+		F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditFavoriteSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		07F3735980CE3481C5E602AC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		183360E2F2C666C8142677AE /* FinderSync */ = {
+			isa = PBXGroup;
+			children = (
+				E66C4CE0FF1A3447D5E4D664 /* FinderSync.entitlements */,
+				BB0A8B1303A6C684E9FD5A5C /* FinderSync.swift */,
+				74F0DE28CC2C8BCD9C03FC5F /* Info.plist */,
+				744CEC6FE1A1C90159B6C2E4 /* URLs */,
+			);
+			path = FinderSync;
+			sourceTree = "<group>";
+		};
 		1CECF344F2EB30BE82C5BAF0 /* SidebarFavorites */ = {
 			isa = PBXGroup;
 			children = (
@@ -72,27 +166,133 @@
 			path = SidebarFavoritesSync;
 			sourceTree = "<group>";
 		};
+		5EB27C55F4D14CC6E1E78464 /* SidebarFavoritesManager */ = {
+			isa = PBXGroup;
+			children = (
+				56994A0E52942D4D13A9956B /* Info.plist */,
+				A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */,
+				8DE6F1E485FE3BE773EB5C5B /* Models */,
+				07F3735980CE3481C5E602AC /* Resources */,
+				EC6B0ACA83F7A825C9E3CA98 /* Services */,
+				FFCD9A9DA668F546C485B375 /* Views */,
+			);
+			path = SidebarFavoritesManager;
+			sourceTree = "<group>";
+		};
+		7410BC061F76695E7402360D /* IconAppTemplate */ = {
+			isa = PBXGroup;
+			children = (
+				183360E2F2C666C8142677AE /* FinderSync */,
+				B0CAC9FF2BEECCEED8D44D51 /* IconApp */,
+			);
+			path = IconAppTemplate;
+			sourceTree = "<group>";
+		};
+		8DE6F1E485FE3BE773EB5C5B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1E62EDE72F4C95ED46D7AD2E /* Config.swift */,
+				94654D92B069C68956C0342E /* Favorite.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B0CAC9FF2BEECCEED8D44D51 /* IconApp */ = {
+			isa = PBXGroup;
+			children = (
+				CD2515075504DB6D5657B6A6 /* Info.plist */,
+				62A8E5D947DF6094E78DAC1B /* main.swift */,
+			);
+			path = IconApp;
+			sourceTree = "<group>";
+		};
 		CBAF759A8D7D8A87491CDFC3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				B5C9C32A7D0BACF2357DCBDB /* IconAppTemplate.app */,
+				E9F2075CFC11865CB52659FA /* IconAppTemplateSync.appex */,
 				89610AFBA183528603BF8C49 /* SidebarFavorites.app */,
+				147636508548FA032461B12F /* SidebarFavoritesManager.app */,
 				47C3A964BCD62A041D876CF5 /* SidebarFavoritesSync.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		EC6B0ACA83F7A825C9E3CA98 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */,
+				692364F82536C38D6D9534FC /* IconAppGenerator.swift */,
+				4DF501B60A6EFDEE8A296225 /* LifecycleManager.swift */,
+				52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		F861356872C673D130EA4F26 = {
 			isa = PBXGroup;
 			children = (
+				7410BC061F76695E7402360D /* IconAppTemplate */,
 				1CECF344F2EB30BE82C5BAF0 /* SidebarFavorites */,
+				5EB27C55F4D14CC6E1E78464 /* SidebarFavoritesManager */,
 				3006FDED8671138BF48B769C /* SidebarFavoritesSync */,
 				CBAF759A8D7D8A87491CDFC3 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
+		FFCD9A9DA668F546C485B375 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */,
+				E33EDF718268412B7F826DEC /* ContentView.swift */,
+				6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */,
+				A4182B79F6FBC4556EECCB96 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4E77466C52B6D77D33F6D94E /* SidebarFavoritesManager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C00C403C961C73FC910D5CC7 /* Build configuration list for PBXNativeTarget "SidebarFavoritesManager" */;
+			buildPhases = (
+				2E4185B4F0771FAD898F941E /* Sources */,
+				3D4B1976198A7B5BEDEFBF48 /* Resources */,
+				70A0F1E760A167353A06D349 /* Embed Dependencies */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C9FC2DF053505F16B9FBA749 /* PBXTargetDependency */,
+			);
+			name = SidebarFavoritesManager;
+			packageProductDependencies = (
+			);
+			productName = SidebarFavoritesManager;
+			productReference = 147636508548FA032461B12F /* SidebarFavoritesManager.app */;
+			productType = "com.apple.product-type.application";
+		};
+		651936B1075159927D3954F8 /* IconAppTemplate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30F19B92D94E30958952091E /* Build configuration list for PBXNativeTarget "IconAppTemplate" */;
+			buildPhases = (
+				86303F72EF5CF31F75C23596 /* Sources */,
+				A2EF2996A387A9EE4F289D30 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9A96A9FAA21D33A233CC59B2 /* PBXTargetDependency */,
+			);
+			name = IconAppTemplate;
+			packageProductDependencies = (
+			);
+			productName = IconAppTemplate;
+			productReference = B5C9C32A7D0BACF2357DCBDB /* IconAppTemplate.app */;
+			productType = "com.apple.product-type.application";
+		};
 		ABD36FBD6AE1A7B8CAA8A1A4 /* SidebarFavorites */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AF30C7BEC2EBDBB9ABEEE9A2 /* Build configuration list for PBXNativeTarget "SidebarFavorites" */;
@@ -112,6 +312,24 @@
 			productName = SidebarFavorites;
 			productReference = 89610AFBA183528603BF8C49 /* SidebarFavorites.app */;
 			productType = "com.apple.product-type.application";
+		};
+		BCACB040464C6078514DD460 /* IconAppTemplateSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE8A989A65B407C9405C5688 /* Build configuration list for PBXNativeTarget "IconAppTemplateSync" */;
+			buildPhases = (
+				F191F8C12EFACB985EE6560B /* Sources */,
+				0BB371A3CDE9A0DCB89E85BD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IconAppTemplateSync;
+			packageProductDependencies = (
+			);
+			productName = IconAppTemplateSync;
+			productReference = E9F2075CFC11865CB52659FA /* IconAppTemplateSync.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		EEA71FD2D0060500523AF8FC /* SidebarFavoritesSync */ = {
 			isa = PBXNativeTarget;
@@ -140,7 +358,19 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					4E77466C52B6D77D33F6D94E = {
+						DevelopmentTeam = 7S422NVLUK;
+						ProvisioningStyle = Automatic;
+					};
+					651936B1075159927D3954F8 = {
+						DevelopmentTeam = 7S422NVLUK;
+						ProvisioningStyle = Automatic;
+					};
 					ABD36FBD6AE1A7B8CAA8A1A4 = {
+						DevelopmentTeam = 7S422NVLUK;
+						ProvisioningStyle = Automatic;
+					};
+					BCACB040464C6078514DD460 = {
 						DevelopmentTeam = 7S422NVLUK;
 						ProvisioningStyle = Automatic;
 					};
@@ -164,13 +394,32 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				651936B1075159927D3954F8 /* IconAppTemplate */,
+				BCACB040464C6078514DD460 /* IconAppTemplateSync */,
 				ABD36FBD6AE1A7B8CAA8A1A4 /* SidebarFavorites */,
+				4E77466C52B6D77D33F6D94E /* SidebarFavoritesManager */,
 				EEA71FD2D0060500523AF8FC /* SidebarFavoritesSync */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0BB371A3CDE9A0DCB89E85BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C85394EFED462C5D27D19FF3 /* URLs in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3D4B1976198A7B5BEDEFBF48 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B06924040AB9DD750BF9F782 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6D97D2610259A12E62C97BBF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -198,6 +447,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2E4185B4F0771FAD898F941E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */,
+				0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */,
+				F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */,
+				2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */,
+				A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */,
+				25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */,
+				C70C37B997D4EFFF61A53C37 /* IconAppGenerator.swift in Sources */,
+				47DD994C3239958390B0FDB7 /* LifecycleManager.swift in Sources */,
+				9F2551B574084477E0003FC0 /* SettingsView.swift in Sources */,
+				916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */,
+				052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		86303F72EF5CF31F75C23596 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				288E65B1E543CD5AE09260EC /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D98B51393073914BE0EE607F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -206,13 +481,31 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F191F8C12EFACB985EE6560B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29B4269AB49ADA47BC50133C /* FinderSync.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		9A96A9FAA21D33A233CC59B2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BCACB040464C6078514DD460 /* IconAppTemplateSync */;
+			targetProxy = 06424EF32CEAB5A221B216E9 /* PBXContainerItemProxy */;
+		};
 		C067A0AEFEA00AC1D790C6F4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EEA71FD2D0060500523AF8FC /* SidebarFavoritesSync */;
 			targetProxy = A1666AD9916ADB0D1E7B6C2C /* PBXContainerItemProxy */;
+		};
+		C9FC2DF053505F16B9FBA749 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 651936B1075159927D3954F8 /* IconAppTemplate */;
+			targetProxy = 00E3F3D8879880661FBA7A1A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -221,16 +514,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7S422NVLUK;
 				INFOPLIST_FILE = SidebarFavorites/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites";
+				PRODUCT_NAME = SidebarFavorites;
 				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
 		};
@@ -238,18 +532,56 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = SidebarFavoritesSync/SidebarFavoritesSync.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7S422NVLUK;
 				INFOPLIST_FILE = SidebarFavoritesSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.Sync";
+				PRODUCT_MODULE_NAME = SidebarFavoritesSync;
+				PRODUCT_NAME = SidebarFavoritesSync;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		19919CD8EBF16336A5CBD827 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SidebarFavoritesManager/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavoritesManager";
+				PRODUCT_NAME = "SidebarFavorites Manager";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		485592DA01287D757F7B7EBA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SidebarFavoritesManager/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavoritesManager";
+				PRODUCT_NAME = "SidebarFavorites Manager";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
 		};
@@ -286,8 +618,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7S422NVLUK;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -342,8 +676,10 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7S422NVLUK;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -372,20 +708,61 @@
 			};
 			name = Debug;
 		};
+		6BF1F34C5DAF26F979354981 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IconAppTemplate/IconApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.IconAppTemplate";
+				PRODUCT_NAME = IconAppTemplate;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		8CEA4AED9EA3DC4CB01E1CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IconAppTemplate/FinderSync/FinderSync.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IconAppTemplate/FinderSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.IconAppTemplate.Sync";
+				PRODUCT_MODULE_NAME = IconAppSync;
+				PRODUCT_NAME = IconAppSync;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
 		99FA1DAA4C1640D3026AF4E7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7S422NVLUK;
 				INFOPLIST_FILE = SidebarFavorites/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites";
+				PRODUCT_NAME = SidebarFavorites;
 				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
 		};
@@ -393,20 +770,62 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = SidebarFavoritesSync/SidebarFavoritesSync.entitlements;
-				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 7S422NVLUK;
 				INFOPLIST_FILE = SidebarFavoritesSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.Sync";
+				PRODUCT_MODULE_NAME = SidebarFavoritesSync;
+				PRODUCT_NAME = SidebarFavoritesSync;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
+		};
+		D9D3D2F210BAB3CF35BAAA66 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IconAppTemplate/IconApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.IconAppTemplate";
+				PRODUCT_NAME = IconAppTemplate;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		E394D864A6DCBFE355A483BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = IconAppTemplate/FinderSync/FinderSync.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = IconAppTemplate/FinderSync/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.ivg-design.SidebarFavorites.IconAppTemplate.Sync";
+				PRODUCT_MODULE_NAME = IconAppSync;
+				PRODUCT_NAME = IconAppSync;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -416,6 +835,15 @@
 			buildConfigurations = (
 				15841792A4CC93EF576A158D /* Debug */,
 				9CC2EA89F419920EF35A21D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		30F19B92D94E30958952091E /* Build configuration list for PBXNativeTarget "IconAppTemplate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6BF1F34C5DAF26F979354981 /* Debug */,
+				D9D3D2F210BAB3CF35BAAA66 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -434,6 +862,24 @@
 			buildConfigurations = (
 				99FA1DAA4C1640D3026AF4E7 /* Debug */,
 				10262ECE15ABDB6BA704E043 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C00C403C961C73FC910D5CC7 /* Build configuration list for PBXNativeTarget "SidebarFavoritesManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				485592DA01287D757F7B7EBA /* Debug */,
+				19919CD8EBF16336A5CBD827 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DE8A989A65B407C9405C5688 /* Build configuration list for PBXNativeTarget "IconAppTemplateSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E394D864A6DCBFE355A483BC /* Debug */,
+				8CEA4AED9EA3DC4CB01E1CAD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -5,7 +5,75 @@ options:
     macOS: "13.0"
   createIntermediateGroups: true
 
+settings:
+  base:
+    DEVELOPMENT_TEAM: 7S422NVLUK
+    CODE_SIGN_STYLE: Automatic
+
 targets:
+  # Main Manager App
+  SidebarFavoritesManager:
+    type: application
+    platform: macOS
+    sources:
+      - path: SidebarFavoritesManager
+        excludes:
+          - "Resources/IconAppTemplate.app"
+    settings:
+      base:
+        INFOPLIST_FILE: SidebarFavoritesManager/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavoritesManager
+        PRODUCT_NAME: SidebarFavorites Manager
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+    dependencies:
+      - target: IconAppTemplate
+        copy:
+          destination: resources
+          subpath: ""
+
+  # Icon App Template (becomes IconAppTemplate.app)
+  IconAppTemplate:
+    type: application
+    platform: macOS
+    sources:
+      - path: IconAppTemplate/IconApp
+    settings:
+      base:
+        INFOPLIST_FILE: IconAppTemplate/IconApp/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites.IconAppTemplate
+        PRODUCT_NAME: IconAppTemplate
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+        SKIP_INSTALL: YES
+    dependencies:
+      - target: IconAppTemplateSync
+        embed: true
+        codeSign: true
+
+  # Finder Sync Extension for IconAppTemplate
+  IconAppTemplateSync:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: IconAppTemplate/FinderSync
+        excludes:
+          - "URLs"
+      - path: IconAppTemplate/FinderSync/URLs
+        type: file
+        buildPhase: resources
+    settings:
+      base:
+        INFOPLIST_FILE: IconAppTemplate/FinderSync/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites.IconAppTemplate.Sync
+        PRODUCT_NAME: IconAppSync
+        PRODUCT_MODULE_NAME: IconAppSync
+        CODE_SIGN_ENTITLEMENTS: IconAppTemplate/FinderSync/FinderSync.entitlements
+        SKIP_INSTALL: YES
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+
+  # Original Prototype (for testing)
   SidebarFavorites:
     type: application
     platform: macOS
@@ -15,8 +83,9 @@ targets:
       base:
         INFOPLIST_FILE: SidebarFavorites/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites
-        CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 7S422NVLUK
+        PRODUCT_NAME: SidebarFavorites
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
     dependencies:
       - target: SidebarFavoritesSync
         embed: true
@@ -36,7 +105,28 @@ targets:
       base:
         INFOPLIST_FILE: SidebarFavoritesSync/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.ivg-design.SidebarFavorites.Sync
-        CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: 7S422NVLUK
+        PRODUCT_NAME: SidebarFavoritesSync
+        PRODUCT_MODULE_NAME: SidebarFavoritesSync
         CODE_SIGN_ENTITLEMENTS: SidebarFavoritesSync/SidebarFavoritesSync.entitlements
         SKIP_INSTALL: YES
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        SWIFT_VERSION: "5.9"
+
+schemes:
+  SidebarFavoritesManager:
+    build:
+      targets:
+        SidebarFavoritesManager: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release
+
+  SidebarFavorites:
+    build:
+      targets:
+        SidebarFavorites: all
+    run:
+      config: Debug
