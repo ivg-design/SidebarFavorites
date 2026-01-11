@@ -26,6 +26,11 @@ targets:
         PRODUCT_NAME: SidebarFavorites Manager
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         SWIFT_VERSION: "5.9"
+    preBuildScripts:
+      - name: Increment Build Number
+        script: |
+          "${SRCROOT}/scripts/increment_build.sh"
+        basedOnDependencyAnalysis: false
     dependencies:
       - target: IconAppTemplate
         copy:

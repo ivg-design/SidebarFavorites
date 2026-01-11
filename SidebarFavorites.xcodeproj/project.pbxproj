@@ -24,6 +24,7 @@
 		9F2551B574084477E0003FC0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4182B79F6FBC4556EECCB96 /* SettingsView.swift */; };
 		A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94654D92B069C68956C0342E /* Favorite.swift */; };
 		B06924040AB9DD750BF9F782 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */; };
+		B9B874399B16B9BD73D5627D /* FolderPath.txt in Resources */ = {isa = PBXBuildFile; fileRef = FD9F965C2E33C6A4C33078AE /* FolderPath.txt */; };
 		C70C37B997D4EFFF61A53C37 /* IconAppGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 692364F82536C38D6D9534FC /* IconAppGenerator.swift */; };
 		C85394EFED462C5D27D19FF3 /* URLs in Resources */ = {isa = PBXBuildFile; fileRef = 744CEC6FE1A1C90159B6C2E4 /* URLs */; };
 		D76C5DEADF4EF55FB3E7F752 /* IconAppTemplate.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = B5C9C32A7D0BACF2357DCBDB /* IconAppTemplate.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -123,6 +124,7 @@
 		E9F2075CFC11865CB52659FA /* IconAppTemplateSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IconAppTemplateSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigManager.swift; sourceTree = "<group>"; };
 		F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEditFavoriteSheet.swift; sourceTree = "<group>"; };
+		FD9F965C2E33C6A4C33078AE /* FolderPath.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = FolderPath.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -141,6 +143,7 @@
 				BB0A8B1303A6C684E9FD5A5C /* FinderSync.swift */,
 				74F0DE28CC2C8BCD9C03FC5F /* Info.plist */,
 				744CEC6FE1A1C90159B6C2E4 /* URLs */,
+				77AC15C75909C9F072653B78 /* Resources */,
 			);
 			path = FinderSync;
 			sourceTree = "<group>";
@@ -186,6 +189,14 @@
 				B0CAC9FF2BEECCEED8D44D51 /* IconApp */,
 			);
 			path = IconAppTemplate;
+			sourceTree = "<group>";
+		};
+		77AC15C75909C9F072653B78 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FD9F965C2E33C6A4C33078AE /* FolderPath.txt */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		8DE6F1E485FE3BE773EB5C5B /* Models */ = {
@@ -258,6 +269,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C00C403C961C73FC910D5CC7 /* Build configuration list for PBXNativeTarget "SidebarFavoritesManager" */;
 			buildPhases = (
+				A9A75BFFD0DF6263973369A5 /* Increment Build Number */,
 				2E4185B4F0771FAD898F941E /* Sources */,
 				3D4B1976198A7B5BEDEFBF48 /* Resources */,
 				70A0F1E760A167353A06D349 /* Embed Dependencies */,
@@ -408,6 +420,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9B874399B16B9BD73D5627D /* FolderPath.txt in Resources */,
 				C85394EFED462C5D27D19FF3 /* URLs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -437,6 +450,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A9A75BFFD0DF6263973369A5 /* Increment Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Increment Build Number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/increment_build.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2C63D7491036B20130E1F6D6 /* Sources */ = {

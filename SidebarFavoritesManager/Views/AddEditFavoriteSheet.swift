@@ -180,7 +180,7 @@ struct AddEditFavoriteSheet: View {
         HStack {
             Spacer()
             HStack(spacing: 8) {
-                Image(systemName: iconValue)
+                previewIcon
                     .font(.system(size: 16))
                     .foregroundColor(.accentColor)
                 Text(name.isEmpty ? "Folder Name" : name)
@@ -193,6 +193,23 @@ struct AddEditFavoriteSheet: View {
             Spacer()
         }
         .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private var previewIcon: some View {
+        if iconType == .custom, let svgPath = customSVGPath {
+            let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
+            if let nsImage = SymbolValidator.renderPreview(from: url) {
+                Image(nsImage: nsImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+            } else {
+                Image(systemName: "square.on.square")
+            }
+        } else {
+            Image(systemName: iconValue)
+        }
     }
 
     private var commonSymbols: [String] {
@@ -233,6 +250,7 @@ struct AddEditFavoriteSheet: View {
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
+        panel.resolvesAliases = false  // Preserve symlink paths, don't resolve to target
         panel.message = "Select a folder to add to Finder sidebar"
         panel.prompt = "Select"
 

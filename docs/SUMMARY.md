@@ -54,19 +54,30 @@ Debug builds link to `@rpath/*.debug.dylib` which breaks when the app is moved.
 
 ---
 
-## Manager App Issues to Fix
+## SF Symbol Icons
 
-The `IconAppGenerator.swift` has these problems:
+### System SF Symbols (Built-in)
+System SF Symbols like `star.fill`, `hammer.fill`, `waveform` work with just `CFBundleSymbolName` in Info.plist - **no Assets.car compilation needed**.
 
-| Issue | Line | Problem | Fix |
-|-------|------|---------|-----|
-| Re-signs extension | 237-242 | Breaks pluginkit registration | Remove extension re-signing |
-| Removes ext signature | 211-212 | Breaks pluginkit registration | Only remove main app signature |
-| Wrong symbol name | 45 | Uses user input, not SVG | Extract from SVG's descriptive-name |
-| Incomplete lsregister | 274-278 | Missing `-R -trusted` | Add full flags |
-| No Finder restart | N/A | Icons remain cached | Add Finder restart |
+### Custom SF Symbol SVGs
+Custom SVGs (like the GitHub icon) require:
+1. A properly formatted SF Symbol template SVG with `descriptive-name` field
+2. Compilation to Assets.car via actool
+3. `CFBundleSymbolName` set to match the SVG's `descriptive-name`
 
-See `MANAGER_FIXES_NEEDED.md` for detailed code changes.
+---
+
+## Known Limitations
+
+### CloudStorage Paths Not Supported
+Finder sidebar icons **do not work** for paths in `~/Library/CloudStorage/` (Google Drive, iCloud, Dropbox, OneDrive, etc.).
+
+**Why?** CloudStorage folders are FileProvider virtual mounts managed by the cloud provider's own extension. FinderSync extensions cannot provide sidebar icons for these paths.
+
+**Workaround:**
+1. Create a symlink to the CloudStorage folder: `ln -s ~/Library/CloudStorage/Provider/folder ~/Desktop/MyLink`
+2. Use the symlink path as the favorite in the Manager app
+3. The Browse button now preserves symlink paths (doesn't resolve to target)
 
 ---
 

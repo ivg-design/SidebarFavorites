@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-11
+
+### Added
+- Proper extension cleanup when favorites are deleted (disables via pluginkit, unregisters from Launch Services)
+- Auto build number increment via Xcode build phase script
+
+### Fixed
+- **SF Symbol icons now work correctly** - Uses `CFBundleSymbolName` directly without requiring Assets.car compilation for system SF Symbols
+- **Tilde expansion in SidebarFolderPaths** - Extension Info.plist now uses expanded paths for proper FinderSync registration
+- **Browse button preserves symlinks** - File picker no longer resolves symlinks to their targets
+
+### Known Limitations
+- **CloudStorage paths (FileProvider mounts) are not supported** - Finder sidebar icons don't work for paths in `~/Library/CloudStorage/` (Google Drive, iCloud, Dropbox, etc.)
+  - **Workaround**: Create a symlink to the CloudStorage folder and use the symlink path as the favorite
+
+### Technical Notes
+- System SF Symbols (e.g., `star.fill`, `hammer.fill`) only need `CFBundleSymbolName` set in Info.plist
+- Custom SVG symbols still require compilation to Assets.car via actool
+- CloudStorage folders are FileProvider virtual mounts that don't support FinderSync sidebar icons
+
 ## [0.2.0] - 2025-01-10
 
 ### Added
