@@ -89,6 +89,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XcodeGen project configuration
 - Basic documentation
 
-### Known Issues
-- Manager app extension registration needs fixes (see docs/MANAGER_FIXES_NEEDED.md)
-- Each custom icon requires enabling in System Settings manually
+### Notes
+- Initial prototype release
+- Extension registration issues were fixed in v0.2.0

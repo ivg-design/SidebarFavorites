@@ -6,6 +6,12 @@ Add custom folders to macOS Finder's sidebar with custom designed and/or SF Symb
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Demo
+
+<video src="https://github.com/ivg-design/SidebarFavorites/raw/main/docs/assets/demo.mp4" controls width="100%"></video>
+
+[View demo video](docs/assets/demo.mp4) if video doesn't load above.
+
 ## Overview
 
 SidebarFavorites lets you customize the Finder sidebar with your own icons. Instead of seeing generic folder icons, you can display any SF Symbol (including custom ones) for your favorite folders.
