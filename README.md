@@ -8,9 +8,7 @@ Add custom folders to macOS Finder's sidebar with custom designed and/or SF Symb
 
 ## Demo
 
-<video src="https://github.com/ivg-design/SidebarFavorites/raw/main/docs/assets/demo.mp4" controls width="100%"></video>
-
-[View demo video](docs/assets/demo.mp4) if video doesn't load above.
+https://github.com/user-attachments/assets/227c2f6d-0cd1-40fa-88e5-d5e66bb2aad7
 
 ## Overview
 
