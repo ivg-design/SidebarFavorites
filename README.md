@@ -147,7 +147,12 @@ SidebarFavorites/
 
 ### Important Notes
 
-1. **Extension Registration**: Extensions must be properly code-signed to appear in System Settings. The Manager app signs generated apps with your Apple Development certificate.
+1. **Code Signing**: The Manager app automatically signs generated icon apps. You can configure the signing method in Settings:
+   - **Automatic (recommended)**: Uses your Apple Development certificate if available, otherwise falls back to ad-hoc signing
+   - **Ad-hoc**: Works without any certificate, but extensions may not appear in System Settings on some machines
+   - **Apple Development / Developer ID**: Requires an Apple Developer Program membership
+
+   ![Code Signing Settings](docs/assets/new-settings.png)
 
 2. **Finder Cache**: Finder caches sidebar icons aggressively. After changing an icon, restart Finder: `killall Finder`
 
