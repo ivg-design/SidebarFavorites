@@ -57,6 +57,7 @@ You can close the Manager app. The sidebar icons will:
 ### Requirements
 
 - macOS 13.0 (Ventura) or later
+- **No Apple Developer certificate required** - The app uses ad-hoc signing by default. For best results (extensions appearing in System Settings), an Apple Developer certificate is recommended but optional.
 
 ### Option 1: Download Pre-built DMG (Recommended)
 
