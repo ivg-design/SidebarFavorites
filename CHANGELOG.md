@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-16
+
+### Added
+- **Automatic signing identity detection** - App now detects available code signing certificates from keychain
+- **Ad-hoc signing fallback** - Users without Apple Developer certificates can now use the app (ad-hoc signing is used automatically)
+- **Signing Identity settings** - New settings section to view/configure code signing preferences
+  - Automatic (recommended) - tries certificates first, falls back to ad-hoc
+  - Ad-hoc - no certificate required
+  - Apple Development - requires Apple Developer Program membership
+  - Developer ID Application - requires Apple Developer Program membership
+
+### Fixed
+- **"no identity found" error** - Users without developer certificates no longer see signing errors
+- **"item could not be found in keychain" error** - Resolved by automatic fallback to ad-hoc signing
+
+### Technical Notes
+- Ad-hoc signed apps work for local use but extensions may not appear in System Settings on some machines
+- For full functionality, an Apple Developer certificate is recommended but no longer required
+
 ## [0.4.1] - 2026-01-11
 
 ### Added

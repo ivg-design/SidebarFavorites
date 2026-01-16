@@ -5,6 +5,8 @@ struct SettingsView: View {
     @EnvironmentObject var configManager: ConfigManager
     @State private var launchAtLogin: Bool = false
     @State private var showInMenuBar: Bool = true
+    @State private var signingIdentity: SigningIdentity = .automatic
+    @State private var availableIdentities: [String] = []
 
     var body: some View {
         Form {
@@ -18,6 +20,31 @@ struct SettingsView: View {
                     .onChange(of: showInMenuBar) { _ in
                         updateSettings()
                     }
+            }
+
+            Section("Code Signing") {
+                Picker("Signing Identity", selection: $signingIdentity) {
+                    ForEach(SigningIdentity.allCases, id: \.self) { identity in
+                        Text(identity.displayName).tag(identity)
+                    }
+                }
+                .onChange(of: signingIdentity) { _ in
+                    updateSettings()
+                }
+
+                if availableIdentities.isEmpty {
+                    Text("No certificates found. Using ad-hoc signing.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Available: \(availableIdentities.joined(separator: ", "))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Text("Ad-hoc signing works without a developer certificate but extensions may not appear in System Settings on some machines.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Section("About") {
@@ -52,10 +79,12 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 350)
+        .frame(width: 400, height: 420)
         .onAppear {
             launchAtLogin = configManager.config.settings.launchAtLogin
             showInMenuBar = configManager.config.settings.showInMenuBar
+            signingIdentity = configManager.config.settings.signingIdentity
+            availableIdentities = IconAppGenerator.shared.getAvailableSigningIdentities()
         }
     }
 
@@ -79,6 +108,7 @@ struct SettingsView: View {
         do {
             var settings = configManager.config.settings
             settings.showInMenuBar = showInMenuBar
+            settings.signingIdentity = signingIdentity
             try configManager.updateSettings(settings)
         } catch {
             // Ignore

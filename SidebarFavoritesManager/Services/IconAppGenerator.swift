@@ -1,12 +1,32 @@
 import Foundation
 import AppKit
 
+/// Signing identity options for code signing
+enum SigningIdentity: String, Codable, CaseIterable {
+    case automatic = "automatic"
+    case adHoc = "-"
+    case appleDevelopment = "Apple Development"
+    case developerID = "Developer ID Application"
+
+    var displayName: String {
+        switch self {
+        case .automatic: return "Automatic (recommended)"
+        case .adHoc: return "Ad-hoc (no certificate)"
+        case .appleDevelopment: return "Apple Development"
+        case .developerID: return "Developer ID Application"
+        }
+    }
+}
+
 /// Generates icon apps from template for each favorite
 final class IconAppGenerator {
     static let shared = IconAppGenerator()
 
     private let fileManager = FileManager.default
     private let configManager = ConfigManager.shared
+
+    /// Cached list of available signing identities
+    private var cachedIdentities: [String]?
 
     /// URL to the template app bundle inside our Resources
     private var templateURL: URL? {
@@ -583,10 +603,91 @@ final class IconAppGenerator {
         return symbolName
     }
 
+    /// Detect available code signing identities from the keychain
+    func getAvailableSigningIdentities() -> [String] {
+        if let cached = cachedIdentities {
+            return cached
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
+        process.arguments = ["find-identity", "-v", "-p", "codesigning"]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
+
+            // Parse identities from output like:
+            // 1) ABC123... "Apple Development: Name (TEAM)"
+            // 2) DEF456... "Developer ID Application: Name (TEAM)"
+            var identities: [String] = []
+            let lines = output.components(separatedBy: "\n")
+            for line in lines {
+                if line.contains("Apple Development") {
+                    identities.append("Apple Development")
+                } else if line.contains("Developer ID Application") {
+                    identities.append("Developer ID Application")
+                }
+            }
+
+            // Remove duplicates while preserving order
+            var seen = Set<String>()
+            let unique = identities.filter { seen.insert($0).inserted }
+
+            cachedIdentities = unique
+            return unique
+        } catch {
+            cachedIdentities = []
+            return []
+        }
+    }
+
+    /// Get the best available signing identity based on user preference
+    func resolveSigningIdentity(_ preference: SigningIdentity) -> String {
+        switch preference {
+        case .automatic:
+            // Try Apple Development first, then Developer ID, then ad-hoc
+            let available = getAvailableSigningIdentities()
+            if available.contains("Apple Development") {
+                return "Apple Development"
+            } else if available.contains("Developer ID Application") {
+                return "Developer ID Application"
+            } else {
+                return "-"  // Ad-hoc signing
+            }
+
+        case .adHoc:
+            return "-"
+
+        case .appleDevelopment, .developerID:
+            // Check if the requested identity is actually available
+            let available = getAvailableSigningIdentities()
+            if available.contains(preference.rawValue) {
+                return preference.rawValue
+            } else {
+                // Fall back to ad-hoc if requested identity not available
+                NSLog("IconAppGenerator: Requested identity '\(preference.rawValue)' not found, falling back to ad-hoc signing")
+                return "-"
+            }
+        }
+    }
+
     /// Sign the entire app bundle (extension first, then main app)
     /// This is required because we change the extension's bundle identifier
     private func signAppBundle(at appURL: URL) throws {
         let extensionURL = appURL.appendingPathComponent("Contents/PlugIns/IconAppSync.appex")
+
+        // Get the configured signing identity (or resolve automatic)
+        let signingPreference = configManager.config.settings.signingIdentity
+        let identity = resolveSigningIdentity(signingPreference)
+
+        NSLog("IconAppGenerator: Signing with identity: \(identity)")
 
         // Create entitlements file for the extension
         // These match what Xcode uses for Finder Sync extensions
@@ -614,7 +715,7 @@ final class IconAppGenerator {
         extProcess.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
         extProcess.arguments = [
             "--force",
-            "--sign", "Apple Development",
+            "--sign", identity,
             "--entitlements", entitlementsURL.path,
             extensionURL.path
         ]
@@ -636,7 +737,7 @@ final class IconAppGenerator {
         appProcess.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
         appProcess.arguments = [
             "--force",
-            "--sign", "Apple Development",
+            "--sign", identity,
             appURL.path
         ]
 
@@ -650,6 +751,13 @@ final class IconAppGenerator {
         guard appProcess.terminationStatus == 0 else {
             let output = String(data: appPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
             throw GeneratorError.codesignFailed("Main app: \(output)")
+        }
+
+        // Log success with identity used
+        if identity == "-" {
+            NSLog("IconAppGenerator: Successfully signed with ad-hoc signature")
+        } else {
+            NSLog("IconAppGenerator: Successfully signed with '\(identity)'")
         }
     }
 
