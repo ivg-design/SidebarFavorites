@@ -94,6 +94,25 @@ To create a distributable DMG:
 ./scripts/build-release.sh
 ```
 
+### Option 3: Nix (Flakes)
+
+For [Nix](https://nixos.org/) users on macOS:
+
+```bash
+# Run directly
+nix run github:ivg-design/SidebarFavorites
+
+# Or install to your profile
+nix profile install github:ivg-design/SidebarFavorites
+
+# Or add to your flake.nix inputs
+{
+  inputs.sidebarfavorites.url = "github:ivg-design/SidebarFavorites";
+}
+```
+
+*Thanks to [@rohanp2051](https://github.com/rohanp2051) for the initial Nix package!*
+
 ## Usage
 
 ### Using the Manager App
