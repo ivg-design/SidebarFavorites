@@ -207,6 +207,17 @@ Configuration is stored in:
 
 The SF Symbol name must match the `descriptive-name` field in the SVG exactly. The Manager app extracts this automatically, but if using manual methods, verify the name matches.
 
+### Folders whose contents are managed by a background process
+
+**Problem**: If you point a sidebar entry at a folder whose contents are written or updated by a background process (e.g. a `launchd` agent that maintains symlinks, a sync script, etc.), the process may silently fail with `Operation not permitted` when the target lives under `~/Documents`, `~/Desktop`, or `~/Downloads`.
+
+**Cause**: macOS TCC. A `python3` (or shell, or any) process spawned by `launchd` does **not** inherit Terminal's Full Disk Access. The sidebar icon itself works fine — the background writer just can't write.
+
+**Fix**: Grant the executable Full Disk Access:
+**System Settings → Privacy & Security → Full Disk Access** → add `/usr/bin/python3` (or whichever interpreter/binary your agent runs) and enable the checkbox.
+
+*Example use-case: a sidebar entry pointing at an auto-rotating "Recently Used" folder ([macos-finder-recent-folders](https://github.com/Timihawk2021/macos-finder-recent-folders)).*
+
 ### Cloud Storage Folders (Google Drive, iCloud, Dropbox, etc.)
 
 **Problem**: Folders in `~/Library/CloudStorage/` (FileProvider mounts) don't support FinderSync sidebar icons. This is a macOS limitation, not a bug.
