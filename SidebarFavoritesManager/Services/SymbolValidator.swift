@@ -25,6 +25,7 @@ struct SymbolValidator {
         case missingRegularVariant
         case missingUltralightVariant
         case missingBlackVariant
+        case conversionFailed(String)
 
         var errorDescription: String? {
             switch self {
@@ -44,6 +45,8 @@ struct SymbolValidator {
                 return "Missing Ultralight-S weight variant"
             case .missingBlackVariant:
                 return "Missing Black-S weight variant"
+            case .conversionFailed(let message):
+                return message
             }
         }
     }
@@ -114,23 +117,51 @@ struct SymbolValidator {
         let relativePath = "\(name).svg"
         let destinationURL = configManager.iconsDirectoryURL.appendingPathComponent(relativePath)
 
-        // Validate first
-        let result = validate(at: sourceURL)
-        guard result.isValid else {
-            throw ImportError.validationFailed(result.errors)
+        guard let source = try? String(contentsOf: sourceURL, encoding: .utf8) else {
+            throw ImportError.validationFailed([.fileNotReadable])
         }
-
-        // Copy to Icons directory
-        if FileManager.default.fileExists(atPath: destinationURL.path) {
-            try FileManager.default.removeItem(at: destinationURL)
+        let result = validate(content: source)
+        if result.isValid {
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                try FileManager.default.removeItem(at: destinationURL)
+            }
+            try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+        } else {
+            guard !source.contains("id=\"Symbols\"") else {
+                throw ImportError.validationFailed(result.errors)
+            }
+            guard let templateURL = Bundle.main.url(forResource: "custom-icon-template", withExtension: "svg") else {
+                throw ImportError.validationFailed([.conversionFailed("The bundled custom symbol template could not be loaded.")])
+            }
+            do {
+                let converted = try CustomSVGConverter.convert(
+                    sourceURL: sourceURL,
+                    templateURL: templateURL,
+                    symbolName: name
+                )
+                let convertedResult = validate(content: converted)
+                guard convertedResult.isValid else {
+                    throw ImportError.validationFailed(convertedResult.errors)
+                }
+                try converted.write(to: destinationURL, atomically: true, encoding: .utf8)
+            } catch let error as ImportError {
+                throw error
+            } catch {
+                throw ImportError.validationFailed([.conversionFailed(error.localizedDescription)])
+            }
         }
-        try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
 
         return relativePath
     }
 
     enum ImportError: LocalizedError {
         case validationFailed([ValidationError])
+
+        var errors: [ValidationError] {
+            switch self {
+            case .validationFailed(let errors): return errors
+            }
+        }
 
         var errorDescription: String? {
             switch self {
