@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0D3A11E0000000000000002 /* CustomSVGConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D3A11E0000000000000001 /* CustomSVGConverter.swift */; };
 		052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */; };
 		0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E62EDE72F4C95ED46D7AD2E /* Config.swift */; };
 		07BA8A489C7EA8A5B7B03893 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0BD2B23709F81767F72E8B18 /* AppIcon.icns */; };
@@ -80,6 +81,7 @@
 		3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4DF501B60A6EFDEE8A296225 /* LifecycleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleManager.swift; sourceTree = "<group>"; };
 		52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolValidator.swift; sourceTree = "<group>"; };
+		C0D3A11E0000000000000001 /* CustomSVGConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSVGConverter.swift; sourceTree = "<group>"; };
 		56994A0E52942D4D13A9956B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGThumbnailView.swift; sourceTree = "<group>"; };
 		62A8E5D947DF6094E78DAC1B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -187,6 +189,7 @@
 		EC6B0ACA83F7A825C9E3CA98 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C0D3A11E0000000000000001 /* CustomSVGConverter.swift */,
 				EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */,
 				692364F82536C38D6D9534FC /* IconAppGenerator.swift */,
 				4DF501B60A6EFDEE8A296225 /* LifecycleManager.swift */,
@@ -372,6 +375,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */,
+				C0D3A11E0000000000000002 /* CustomSVGConverter.swift in Sources */,
 				0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */,
 				F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */,
 				2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */,

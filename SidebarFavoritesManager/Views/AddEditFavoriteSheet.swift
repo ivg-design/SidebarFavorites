@@ -18,6 +18,7 @@ struct AddEditFavoriteSheet: View {
     @State private var showingTemplateGuidelines = false
     @State private var validationErrors: [SymbolValidator.ValidationError] = []
     @State private var showingValidationError = false
+    @State private var previewRevision = UUID()
 
     private var isEditing: Bool { existingFavorite != nil }
 
@@ -183,7 +184,7 @@ struct AddEditFavoriteSheet: View {
             } else {
                 HStack(spacing: 12) {
                     Button(action: { showingSVGPicker = true }) {
-                        Label("Import Custom SVG...", systemImage: "square.and.arrow.down")
+                        Label("Import SVG...", systemImage: "square.and.arrow.down")
                     }
 
                     Button(action: { saveBlankTemplate() }) {
@@ -192,7 +193,7 @@ struct AddEditFavoriteSheet: View {
                 }
             }
 
-            Text("Import an existing SVG or save a blank template to create your own")
+            Text("Choose any vector SVG. Regular logos are converted automatically.")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -222,6 +223,7 @@ struct AddEditFavoriteSheet: View {
         if iconType == .custom, let svgPath = customSVGPath {
             let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
             SVGThumbnailView(url: url, size: 16)
+                .id(previewRevision)
         } else {
             Image(systemName: iconValue)
         }
@@ -278,19 +280,21 @@ struct AddEditFavoriteSheet: View {
     }
 
     private func importCustomSVG(from url: URL) {
-        let result = SymbolValidator.validate(at: url)
-        if result.isValid {
-            do {
-                let symbolName = url.deletingPathExtension().lastPathComponent
-                let relativePath = try SymbolValidator.importSymbol(from: url, named: symbolName)
-                customSVGPath = relativePath
-                iconValue = symbolName
-            } catch {
-                validationErrors = []
-                showingValidationError = true
+        do {
+            let symbolName = url.deletingPathExtension().lastPathComponent
+            let relativePath = try SymbolValidator.importSymbol(from: url, named: symbolName)
+            customSVGPath = relativePath
+            iconValue = symbolName
+            let importedURL = ConfigManager.shared.customIconURL(relativePath: relativePath)
+            Task {
+                await SVGThumbnailCache.shared.invalidate(for: importedURL)
+                await MainActor.run { previewRevision = UUID() }
             }
-        } else {
-            validationErrors = result.errors
+        } catch let error as SymbolValidator.ImportError {
+            validationErrors = error.errors
+            showingValidationError = true
+        } catch {
+            validationErrors = [.conversionFailed(error.localizedDescription)]
             showingValidationError = true
         }
     }
