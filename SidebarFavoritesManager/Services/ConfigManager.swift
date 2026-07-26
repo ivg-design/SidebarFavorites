@@ -7,6 +7,12 @@ final class ConfigManager: ObservableObject {
 
     @Published private(set) var config: Config
 
+    /// Human-readable description of a problem encountered while loading config.json, if any.
+    @Published private(set) var loadDiagnostic: String?
+
+    /// Location the corrupt config was backed up to, if a corrupt-config recovery occurred.
+    private(set) var corruptBackupURL: URL?
+
     private let fileManager = FileManager.default
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -19,11 +25,17 @@ final class ConfigManager: ObservableObject {
         return url
     }
 
-    /// Directory for generated icon apps
-    var appsDirectoryURL: URL {
-        let url = appSupportURL.appendingPathComponent("Apps")
-        try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
-        return url
+    /// The single code-free helper bundle that declares one UTI per favorite.
+    /// Not created here - `IconHelperBundle` owns its lifecycle.
+    var helperAppURL: URL {
+        appSupportURL.appendingPathComponent("SidebarFavoritesIcons.app")
+    }
+
+    /// Directory the 0.6.0 build generated one FinderSync-hosting app per favorite into.
+    /// Deliberately does NOT create the directory: migration relies on its absence
+    /// to know there is nothing to tear down.
+    var legacyAppsDirectoryURL: URL {
+        appSupportURL.appendingPathComponent("Apps")
     }
 
     /// Directory for custom icon SVGs
@@ -34,8 +46,35 @@ final class ConfigManager: ObservableObject {
     }
 
     /// Path to config.json
-    private var configFileURL: URL {
+    var configFileURL: URL {
         appSupportURL.appendingPathComponent("config.json")
+    }
+
+    /// Where `config.json` is copied before the 1.0 migration makes its first
+    /// change. Named in the consent sheet, so the user knows the file exists
+    /// before authorising anything.
+    var migrationBackupURL: URL {
+        appSupportURL.appendingPathComponent("config.pre-1.0.json")
+    }
+
+    /// Copy `config.json` aside before the 1.0 migration mutates anything.
+    ///
+    /// Returns the backup's location, or `nil` when there is no config.json yet.
+    ///
+    /// An existing backup is never overwritten: the first one holds the true
+    /// pre-1.0 state, and a second run - after a partial migration, or after the
+    /// user declined and came back - must not clobber it with an already-migrated
+    /// copy. The original is copied, not moved, so the live config keeps working
+    /// even if the upgrade is interrupted.
+    @discardableResult
+    func backupConfigForMigration() throws -> URL? {
+        guard fileManager.fileExists(atPath: configFileURL.path) else { return nil }
+
+        let backupURL = migrationBackupURL
+        guard !fileManager.fileExists(atPath: backupURL.path) else { return backupURL }
+
+        try fileManager.copyItem(at: configFileURL, to: backupURL)
+        return backupURL
     }
 
     private init() {
@@ -46,17 +85,40 @@ final class ConfigManager: ObservableObject {
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
 
-        // Load existing config if available
-        if let data = try? Data(contentsOf: configFileURL),
-           let loaded = try? decoder.decode(Config.self, from: data) {
-            self.config = loaded
+        // Load existing config if available; distinguish "no config yet" from "corrupt config"
+        // so a decode failure never silently wipes the user's favorites.
+        if fileManager.fileExists(atPath: configFileURL.path) {
+            do {
+                let data = try Data(contentsOf: configFileURL)
+                self.config = try decoder.decode(Config.self, from: data)
+            } catch {
+                NSLog("ConfigManager: failed to load config.json (\(error.localizedDescription)); backing up and starting fresh")
+                let backupURL = configFileURL.deletingLastPathComponent()
+                    .appendingPathComponent("config.corrupt-\(Self.backupTimestamp()).json")
+                do {
+                    try fileManager.moveItem(at: configFileURL, to: backupURL)
+                    self.corruptBackupURL = backupURL
+                    self.loadDiagnostic = "Your configuration file could not be read and was moved aside. A fresh, empty configuration was created. (\(error.localizedDescription))"
+                } catch let moveError {
+                    // Couldn't even move the corrupt file aside (e.g. permissions) — leave it in
+                    // place and just report the diagnostic so nothing is silently destroyed.
+                    NSLog("ConfigManager: failed to back up corrupt config.json: \(moveError.localizedDescription)")
+                    self.loadDiagnostic = "Your configuration file could not be read. (\(error.localizedDescription))"
+                }
+            }
         }
+    }
+
+    private static func backupTimestamp() -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: Date()).replacingOccurrences(of: ":", with: "-")
     }
 
     /// Save current configuration to disk
     func save() throws {
         let data = try encoder.encode(config)
-        try data.write(to: configFileURL)
+        try data.write(to: configFileURL, options: [.atomic])
     }
 
     /// Add a new favorite
@@ -93,14 +155,73 @@ final class ConfigManager: ObservableObject {
         try save()
     }
 
-    /// Returns the app bundle path for a favorite
-    func iconAppURL(for favorite: Favorite) -> URL {
-        appsDirectoryURL.appendingPathComponent(favorite.appFileName)
-    }
-
     /// Returns the full path for a custom icon SVG
     func customIconURL(relativePath: String) -> URL {
         iconsDirectoryURL.appendingPathComponent(relativePath)
+    }
+
+    // MARK: - Reconcile bookkeeping
+    //
+    // These mutators are called by FavoriteSyncCoordinator from background work,
+    // so they hop to the main thread for the `@Published` write and persist
+    // immediately. None of them call `markUpdated()`: they record what the
+    // reconcile already did, and bumping `updatedAt` would retrigger a reconcile.
+
+    /// Record the OSType code allocated for a favorite
+    func setOSType(_ code: String, for id: UUID) throws {
+        try mutateFavorite(id: id) { $0.osType = code }
+    }
+
+    /// Record (or clear) the sidebar row a favorite is bound to
+    func bindSidebarItem(id: UUID, itemID: UInt32?, provenance: Favorite.SidebarProvenance) throws {
+        try mutateFavorite(id: id) {
+            $0.sidebarItemID = itemID
+            $0.sidebarProvenance = provenance
+        }
+    }
+
+    /// Record the helper bundle state produced by the last rebuild
+    func setHelperState(digest: String, generation: Int) throws {
+        try onMain {
+            config.helperDigest = digest
+            config.helperGeneration = generation
+            try save()
+        }
+    }
+
+    /// Record the schema version after a migration
+    func setConfigVersion(_ version: Int) throws {
+        try onMain {
+            config.version = version
+            try save()
+        }
+    }
+
+    /// Replace the whole favorites array in one write
+    func replaceFavorites(_ favorites: [Favorite]) throws {
+        try onMain {
+            config.favorites = favorites
+            try save()
+        }
+    }
+
+    private func mutateFavorite(id: UUID, _ body: (inout Favorite) -> Void) throws {
+        try onMain {
+            guard let index = config.favorites.firstIndex(where: { $0.id == id }) else {
+                throw ConfigError.favoriteNotFound
+            }
+            body(&config.favorites[index])
+            try save()
+        }
+    }
+
+    /// Runs `body` on the main thread. `@Published` writes must happen there, and
+    /// callers arrive from detached reconcile work as well as from the UI.
+    private func onMain<T>(_ body: () throws -> T) rethrows -> T {
+        if Thread.isMainThread {
+            return try body()
+        }
+        return try DispatchQueue.main.sync(execute: body)
     }
 
     enum ConfigError: LocalizedError {

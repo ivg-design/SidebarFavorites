@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-26
+
+Version 1.0 replaces the mechanism behind sidebar icons entirely. Everything else in this release follows from that.
+
+### Changed
+
+- **New icon mechanism: no Finder extensions, no per-favorite apps, no background processes.** Previously each favorite needed its own generated app bundle containing a Finder Sync extension that you had to find and switch on in System Settings, and you had to drag the folder into Finder's sidebar yourself. Now the app sets a per-row icon override on Finder's Favorites list directly and ships **one** small helper bundle that maps each favorite's icon to a symbol. Finder resolves the icon through Launch Services. What this means in practice:
+  - **iCloud Drive and `~/Library/CloudStorage` folders finally work.** Google Drive, Dropbox, OneDrive, iCloud - custom icons now behave exactly the same as for local folders. This was the single biggest limitation of every previous version, and it was unfixable with Finder Sync extensions.
+  - **Nothing to enable anywhere.** There are no Finder extensions any more, so there is nothing in System Settings → Login Items & Extensions to switch on, and nothing to go missing or show up mislabelled as "File Provider".
+  - **Nothing runs in the background.** The helper bundle is never launched - its executable is a 17-byte no-op shell script that exists only so the bundle registers.
+  - **The app manages the sidebar row for you.** Adding a favorite adds the row; removing or disabling it takes the row away again. Rows you added yourself are adopted rather than replaced (see Upgrade Notes).
+  - The helper lives at `~/Library/Application Support/SidebarFavorites/SidebarFavoritesIcons.app`, carries its own badged icon and a one-line description of what it is for, and is linked from Settings so it is never an unexplained bundle sitting in Application Support.
+- **Custom icons: import any SVG.** The old flow required exporting a blank SF Symbols template, editing it inside guide boxes in Illustrator, keeping its `descriptive-name` element correct, and re-importing - anything else was rejected. Now you import an ordinary SVG - a logo, an exported icon, anything made of vector shapes - and the app builds the SF Symbols template around it. A real SVG parser handles the full path command set (including elliptical arcs), basic shapes, nested groups with composed transforms, `<style>` cascades, `<use>`/`<defs>`, and converts strokes to outlines.
+- **Finder is never restarted automatically.** Earlier versions ran `killall Finder` as a side effect of ordinary work, which aborts in-flight copies and loses open windows and tabs. When icons change and Finder is still showing stale artwork, a banner offers a **Restart Finder** button instead.
+- **Destructive actions now confirm, and say what they will do.** Removing a favorite names it and states whether the sidebar row goes away or only its icon; "Remove All Sidebar Icons" spells out exactly how many rows are removed and how many only lose their icon; disabling a favorite whose row the app added warns that the row is removed and that re-enabling puts it back at the bottom of the list.
+- Menu bar Preferences uses `SettingsLink` on macOS 14+ instead of a private selector; macOS 13 keeps the previous fallback.
+- Releases are Developer ID signed, notarized and stapled - both the app and the DMG - so the download opens normally with no Gatekeeper detour. The DMG uses the app icon as its volume icon.
+
+### Added
+
+- **Per-icon size slider (50-150%, default 100%)** for custom icons. 100% puts your artwork at exactly the size of a system SF Symbol, which is the correct measurement but not always the right look - a wide or dense mark reads heavier than a sparse one at the same size. The live preview follows the slider as you drag.
+- **An Apply button** in the Add/Edit sheet: saves, rebuilds the icon and restarts Finder in one click while leaving the sheet open, so tuning size does not mean save/close/restart/reopen on every attempt.
+- **Live preview of the real icon.** Both an enlarged silhouette and a mock sidebar row at the actual 16 pt drawing size, rendered from the same parsed geometry that gets compiled - so the preview cannot show something Finder will not draw.
+- **Import diagnostics.** Raster content embedded in an SVG is detected and reported (the symbol rasterizer drops it silently); so are live text, gradients and colours that flatten, artwork far off square, and silhouettes too sparse, too dense or too fine to read at sidebar size. All are warnings - the import still succeeds.
+- **Warnings banner** in the main window, surfacing per-icon failures - an icon that could not be compiled, a folder that no longer exists, a sidebar row that could not be updated - instead of silently falling back to a plain folder icon.
+- **Corrupt `config.json` recovery.** A settings file that cannot be read is moved aside to `config.corrupt-<timestamp>.json` instead of being replaced silently, with a "Configuration Issue" banner in Settings and a **Reveal Backup** button.
+- **Custom icons in the menu bar.** The menu bar list shows each favorite's actual artwork rather than a generic folder glyph.
+- **About section in Settings**: app icon, "by IVG-Design", a link to the MIT license, and the version with its build number so a bug report can name the exact build.
+
+### Fixed
+
+- **The app can no longer rename or delete a sidebar row you created yourself.** Rows the app did not add are only ever given an icon; their name and position are left alone, and removing the favorite restores the original icon rather than deleting the row.
+- **Icons no longer drop out of the sidebar repeatedly.** Previous versions regenerated every icon app and force-restarted them on *every* launch; now an unchanged configuration does no work at all.
+- **Renaming a favorite no longer silently switches its icon off.** The rename used to invalidate the favorite's extension registration, leaving a plain folder icon with no indication why.
+- **Several multi-second UI freezes are gone.** Icon compilation, signing, Launch Services registration and every Finder sidebar call now run off the main thread.
+- **Cmd-N (Add Favorite) works** even when the main window has been closed - it opens the window first.
+- **"Open SidebarFavorites" in the menu bar reliably focuses the main window.**
+- **Launch at Login reflects the real system state.** The toggle reads the authoritative `SMAppService` status on appear and whenever the app becomes active, shows a caption while approval is still pending in System Settings, and reports an error if the change cannot be saved.
+
+### Removed
+
+- **The Code Signing section in Settings.** Signing choices were only ever relevant because each favorite shipped executable code in an extension. The helper bundle contains no code, so there is nothing to configure.
+- **The "Save Blank Template..." export** and the whole SF Symbols template workflow it existed for. Import your SVG directly.
+- The per-favorite generated apps and their Finder Sync extensions (see Upgrade Notes).
+- The `~/Library/CloudStorage` symlink workaround documented for 0.3.0-0.5.0. Cloud folders are supported directly now; existing favorites pointing at such symlinks keep working.
+
+### Known Limitations
+
+- **Sidebar icons are always monochrome silhouettes.** Finder flattens them and tints them to match the sidebar - colour is not possible there. This is a macOS rule, not a choice this app makes, and the preview shows the true silhouette so there are no surprises.
+- **Dense or wide artwork reads heavier than sparse artwork at the same size.** Apple's own symbols are hand-tuned individually; arbitrary artwork cannot be. That is what the size slider is for.
+
+### Upgrade Notes
+
+Upgrading from 0.4.1 or 0.5.0:
+
+- **Nothing happens until you approve it.** On first launch a consent sheet lists the old helper apps found on your Mac - by the name and bundle identifier they actually have on disk - together with what will be removed, what will change, and what is kept. Choosing **Not Now** leaves everything exactly as it was and offers the upgrade again next time you open the app.
+- **Your settings are copied first.** `config.json` is backed up to `config.pre-1.0.json` in `~/Library/Application Support/SidebarFavorites/` before anything is changed. An existing backup is never overwritten.
+- **Everything carries over.** Favorites, names, folders, imported custom artwork and timestamps are all preserved. No favorite is added or removed.
+- **Sidebar rows you added yourself are adopted, not replaced.** The upgrade never removes a row from Finder's sidebar. A row you dragged in keeps its name and its position and simply gains its icon; the app will not delete it later either.
+- **The old per-favorite apps are terminated, their extensions unregistered, and the bundles deleted.** Anything under `Apps/` that does not identify itself as one of ours is left alone, and the sheet says so.
+- **Stale entries can linger in System Settings until it is reopened.** If System Settings → Login Items & Extensions was open during the upgrade, the removed Finder extensions may still be listed. Close and reopen System Settings and they will be gone.
+
 ## [0.5.0] - 2026-01-16
 
 ### Added
