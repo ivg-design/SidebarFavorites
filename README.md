@@ -29,6 +29,10 @@ brew trust ivg-design/tap
 brew install --cask sidebarfavorites
 ```
 
+`brew trust` is required once - Homebrew asks you to explicitly trust a
+third-party tap before it will load casks from it.
+
+### Direct download
 
 1. Download the latest DMG from [Releases](https://github.com/ivg-design/SidebarFavorites/releases).
 2. Drag **SidebarFavorites Manager** to Applications.
