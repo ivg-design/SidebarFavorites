@@ -21,6 +21,15 @@ The app is only needed when you want to add, edit or remove a favorite. Quit it 
 
 ## Install
 
+### Homebrew
+
+```sh
+brew tap ivg-design/tap
+brew trust ivg-design/tap
+brew install --cask sidebarfavorites
+```
+
+
 1. Download the latest DMG from [Releases](https://github.com/ivg-design/SidebarFavorites/releases).
 2. Drag **SidebarFavorites Manager** to Applications.
 3. Open it.
