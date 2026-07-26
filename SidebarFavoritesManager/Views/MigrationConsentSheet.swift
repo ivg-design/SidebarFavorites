@@ -5,8 +5,14 @@ import SwiftUI
 /// Every fact on this sheet comes from `MigrationService.preflight()`, which only
 /// reads: the apps are named because they were actually found on disk and
 /// identified themselves as ours, not because they were guessed from config.json.
-/// If the list is empty, that is because nothing was found - not because the scan
-/// was skipped.
+///
+/// `plan.legacyApps` being empty does NOT by itself mean the scan came back
+/// clean - `MigrationService.MigrationPlan` currently has no dedicated bit for
+/// "the scan was refused or failed" versus "the scan ran and found nothing", so
+/// this view treats a non-empty `entriesLeftInPlace` alongside an empty
+/// `legacyApps` as "can't promise this is clean" rather than asserting a false
+/// all-clear. See the FIXME in `removalSection` for the field that would let
+/// this be precise instead of conservative.
 struct MigrationConsentSheet: View {
     let plan: MigrationService.MigrationPlan
 
@@ -17,8 +23,24 @@ struct MigrationConsentSheet: View {
     /// "Not Now". Nothing is written, and the upgrade is offered again next launch.
     let onDecline: () -> Void
 
-    @State private var showingDetails = false
+    @State private var showingDetails: Bool
     @State private var isUpgrading = false
+
+    init(
+        plan: MigrationService.MigrationPlan,
+        onUpgrade: @escaping () async -> Void,
+        onDecline: @escaping () -> Void
+    ) {
+        self.plan = plan
+        self.onUpgrade = onUpgrade
+        self.onDecline = onDecline
+        // Open the details by default whenever there is something in
+        // `entriesLeftInPlace` to explain - see the comment in `removalSection`
+        // for why that can mean either "found and intentionally skipped" or
+        // "couldn't be scanned at all". Either way, don't make the user go
+        // looking for the reason.
+        _showingDetails = State(initialValue: !plan.legacyApps.isEmpty ? false : !plan.entriesLeftInPlace.isEmpty)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -69,7 +91,34 @@ struct MigrationConsentSheet: View {
             tint: .red
         ) {
             if plan.legacyApps.isEmpty {
-                bullet("No old helper apps were found on this Mac, so nothing will be deleted.")
+                if plan.entriesLeftInPlace.isEmpty {
+                    bullet("No old helper apps were found on this Mac, so nothing will be deleted.")
+                } else {
+                    // FIXME(MigrationService): `legacyApps` is empty here for two
+                    // reasons that look identical from this view - Apps/ was scanned
+                    // and everything in it was intentionally left alone, or Apps/
+                    // could not be scanned at all (a refused/relocated root, or an
+                    // unreadable directory - see scanLegacyApps() in
+                    // MigrationService.swift). A dedicated
+                    // `MigrationPlan.legacyScanBlocked: Bool` field would let this
+                    // branch say which one happened; until then, don't assert a false
+                    // all-clear, and show the reason directly instead of leaving it
+                    // to a collapsed disclosure the user may never open.
+                    bullet("Nothing will be deleted automatically. Sidebar Favorites couldn't confirm your Apps folder is clear:")
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(plan.entriesLeftInPlace, id: \.self) { reason in
+                            Text(reason)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding(.leading, 18)
+                    .padding(.top, 2)
+
+                    bullet("If old helper apps are still installed there, you may need to remove them yourself, and switch off their Finder extension in System Settings > Extensions.")
+                }
             } else {
                 bullet("\(countPhrase(plan.legacyApps.count, "old helper app", "old helper apps")) in your Application Support folder:")
 

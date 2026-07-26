@@ -76,15 +76,42 @@ final class FavoriteSyncCoordinator: ObservableObject {
     private let configManager = ConfigManager.shared
 
     private var hasBootstrapped = false
-    private var reconcileInFlight = false
+
+    /// The task draining `pendingReconcile`, while one is running.
+    ///
+    /// A handle rather than a flag because callers depend on `requestReconcile`
+    /// having done the work when it returns - the Add/Edit sheet's Apply restarts
+    /// Finder on the next line - so a request that arrives mid-pass waits for the
+    /// pass that will service it instead of returning early.
+    private var reconcileDriver: Task<Void, Never>?
     private var pendingReconcile = false
     private var pendingForce = false
+
+    /// How many "Remove All Sidebar Icons" runs currently own the pipeline.
+    ///
+    /// Everything a teardown undoes would be re-applied by a reconcile that ran
+    /// alongside it, so while this is non-zero no pass may start and a pass already
+    /// suspended mid-flight abandons. A count rather than a flag so two runs - the
+    /// Settings button is clickable again the moment the confirmation is dismissed -
+    /// cannot have the first to finish clear the second's claim.
+    private var activeTeardowns = 0
+    private var teardownInFlight: Bool { activeTeardowns > 0 }
+
+    /// Bumped by each teardown. A pass captures it before suspending and compares
+    /// afterwards: a different value means a teardown took the pipeline over while
+    /// the helper was building, and this pass's conclusions are all stale.
+    private var teardownEpoch = 0
 
     /// Favorites whose rows have just been released by an explicit delete. The
     /// caller drops them from the config the moment `favoriteRemoved` returns, but
     /// the reconcile that follows may still observe them - and it must not
     /// re-insert a row for a favorite that is on its way out.
     private var releasedFavorites: Set<UUID> = []
+
+    /// Ids owned by a `favoriteRemoved` that has not returned yet. The favorite is
+    /// still in the config until it does, so its suppression has to survive a
+    /// forced refresh - dropping it re-inserts the row the delete just released.
+    private var releasesInFlight: Set<UUID> = []
 
     /// Warnings a reconcile does not recompute (migration teardown, path-change
     /// cleanup). Reconcile warnings are published on top of these rather than
@@ -194,7 +221,12 @@ final class FavoriteSyncCoordinator: ObservableObject {
     /// changed, and re-probes every OSType code for third-party claimants.
     func syncAll(force: Bool = false) async {
         if force {
-            releasedFavorites.removeAll()
+            // Drop stale suppressions - one leaked by a `release` that bailed at the
+            // migration gate, say - but never one whose delete is still running:
+            // that favorite is still in the config (the caller removes it only once
+            // `favoriteRemoved` returns), so un-suppressing it here re-inserts the
+            // row the delete has just taken away.
+            releasedFavorites.formIntersection(releasesInFlight)
         }
         await requestReconcile(force: force)
     }
@@ -226,6 +258,12 @@ final class FavoriteSyncCoordinator: ObservableObject {
     func favoriteRemoved(_ favorite: Favorite) async {
         releasedFavorites.insert(favorite.id)
 
+        // Owned until this returns, which is exactly the window in which the
+        // favorite is still in the config - see `releasesInFlight`. The `defer`
+        // runs on the main actor immediately before the caller's `removeFavorite`.
+        releasesInFlight.insert(favorite.id)
+        defer { releasesInFlight.remove(favorite.id) }
+
         // Not routed through the coalescing window - the caller removes the
         // favorite as soon as this returns. Persisting the unbinding is pointless
         // for a favorite that is about to disappear.
@@ -248,10 +286,37 @@ final class FavoriteSyncCoordinator: ObservableObject {
     /// Does not restart Finder: rows that still need a redraw set
     /// `needsFinderRestart` so the UI can offer it.
     func removeAllSidebarIcons() async -> [String] {
+        // The same gate the other two mutating entry points use. Without it a
+        // pre-1.0 config - every favorite still `.unbound`, the legacy apps still
+        // installed - reports "All sidebar icons were removed" having done nothing.
+        guard !deferForMigrationConsent() else {
+            return ["The upgrade to version 1.0 hasn't finished, so nothing was removed. Finish the upgrade, then try again."]
+        }
+
+        // Claim the pipeline. A reconcile running alongside this would re-insert and
+        // re-override every row the release just gave up, and would do it AFTER the
+        // helper bundle had been unregistered and deleted - so the destructive
+        // action the user confirmed would silently undo itself and leave the rows
+        // pointing at Launch Services records that no longer exist.
+        activeTeardowns += 1
+        teardownEpoch += 1
+        // A queued pass must not start after the teardown either.
+        pendingReconcile = false
+        pendingForce = false
+        defer { activeTeardowns -= 1 }
+
         let favorites = configManager.config.favorites
 
         phase = .reconciling
-        let outcome = await enqueue { SidebarReconciler.release(favorites: favorites) }
+        // Release and teardown as ONE unit of pipeline work: nothing can be
+        // enqueued between them.
+        let (outcome, teardownWarnings) = await enqueue { () -> (RowOutcome, [String]) in
+            let released = SidebarReconciler.release(favorites: favorites)
+            // The helper is unregistered and deleted. `helperDigest` is deliberately
+            // left alone: the digest short-circuit also requires the bundle to exist
+            // on disk, so the next reconcile rebuilds it from scratch anyway.
+            return (released, IconHelperBundle.shared.teardown())
+        }
 
         var collected = outcome.warnings
         if let error = outcome.error {
@@ -260,12 +325,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
         }
         collected += applyBindings(outcome.bindings)
         boundItems = [:]
-
-        // The helper is unregistered and deleted. `helperDigest` is deliberately
-        // left alone: the digest short-circuit also requires the bundle to exist
-        // on disk, so the next reconcile rebuilds it from scratch anyway.
-        phase = .building
-        collected += await enqueue { IconHelperBundle.shared.teardown() }
+        collected += teardownWarnings
 
         // Adopted rows that just lost their override still draw the old icon until
         // Finder relaunches. Removed rows need no redraw at all, so this is only
@@ -327,30 +387,54 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
     // MARK: - Reconcile driver
 
-    /// Funnel for every entry point: an in-flight flag plus a coalescing window,
-    /// so concurrent requests collapse into one pass and a request that arrives
+    /// Funnel for every entry point: one driver task plus a coalescing window, so
+    /// concurrent requests collapse into one pass and a request that arrives
     /// mid-pass still gets a pass of its own afterwards.
+    ///
+    /// Returns only once a pass that INCLUDED this request has finished, whether
+    /// this call drove it or somebody else did. Callers depend on that: the sheet's
+    /// Apply awaits this and then restarts Finder, and a Finder that relaunches
+    /// before the edit has been applied redraws the old artwork and greys the
+    /// button out with no way to retry.
     private func requestReconcile(force: Bool) async {
         guard !deferForMigrationConsent() else { return }
+        // A teardown owns the pipeline; anything this pass did would be undone by
+        // it, or worse, would outlive it.
+        guard !teardownInFlight else { return }
 
         pendingReconcile = true
         pendingForce = pendingForce || force
 
-        guard !reconcileInFlight else { return }
-        reconcileInFlight = true
-        defer { reconcileInFlight = false }
-
-        try? await Task.sleep(nanoseconds: Self.coalescingWindowNanoseconds)
-
-        while pendingReconcile {
-            pendingReconcile = false
-            let forceThisPass = pendingForce
-            pendingForce = false
-            await performReconcile(force: forceThisPass)
+        // Somebody else owns the loop. It cannot exit while `pendingReconcile` is
+        // set, so waiting on it waits for a pass that services this request too.
+        if let driver = reconcileDriver {
+            await driver.value
+            return
         }
+
+        let driver = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: Self.coalescingWindowNanoseconds)
+
+            while self.pendingReconcile && !self.teardownInFlight {
+                self.pendingReconcile = false
+                let forceThisPass = self.pendingForce
+                self.pendingForce = false
+                await self.performReconcile(force: forceThisPass)
+            }
+
+            // Cleared in the same synchronous step as the loop's final check, so a
+            // request arriving between the two can never be dropped: it either sets
+            // `pendingReconcile` before the check and is served by this loop, or it
+            // finds no driver and starts one.
+            self.reconcileDriver = nil
+        }
+        reconcileDriver = driver
+        await driver.value
     }
 
     private func performReconcile(force: Bool) async {
+        // Captured before the first suspension - see the check after the build.
+        let epoch = teardownEpoch
         lastError = nil
 
         // 1. Every favorite needs a well-formed, unique OSType code before
@@ -402,6 +486,18 @@ final class FavoriteSyncCoordinator: ObservableObject {
             )
         }
 
+        guard epoch == teardownEpoch else {
+            // "Remove All Sidebar Icons" took the pipeline over while the helper was
+            // building. Touch no rows and publish nothing - not `phase`, not
+            // `boundItems`, not `lastError`: they belong to the teardown now, and
+            // every row this pass was about to write has just been given up on the
+            // user's explicit instruction. The bundle this build produced is deleted
+            // by the teardown's own step, and `helperDigest` is deliberately not
+            // recorded for it.
+            retireSuppressions(suppressed)
+            return
+        }
+
         collected += build.warnings
         if let digest = build.digest, let builtGeneration = build.generation {
             do {
@@ -418,7 +514,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
             lastError = error
             publishWarnings(collected)
             phase = .idle
-            releasedFavorites.subtract(suppressed)
+            retireSuppressions(suppressed)
             return
         }
 
@@ -436,9 +532,48 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         // 3. Reconcile the rows against one live snapshot. Bound to a `let` first:
         //    a `var` captured by a concurrently-executing closure is a Swift 6 error.
-        let reconciled = favorites
+        //
+        //    `favorites` was snapshotted before the build, and the build suspends
+        //    this actor for seconds - long enough for `favoriteRemoved` or
+        //    `favoriteUpdated` to run on it, release a row and rewrite config.json
+        //    underneath us. Re-derive against what is true NOW: a favorite deleted
+        //    mid-build must not have its row re-inserted (nothing could ever remove
+        //    it again - it is gone from the config, so no later pass and not even
+        //    "Remove All Sidebar Icons" will revisit it), and one whose folder moved
+        //    must be reconciled against its new path. The staged `osType` is carried
+        //    over because that is the code the helper was just built with.
+        //
+        //    Iterating the staged array rather than the live config means a favorite
+        //    ADDED during the build is still skipped here - correct, since the helper
+        //    does not declare it yet, and `favoriteAdded` has already set
+        //    `pendingReconcile`, so the driver gives it a pass of its own.
+        let live = Dictionary(
+            configManager.config.favorites.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        let reconciled: [Favorite] = favorites.compactMap { staged in
+            guard !releasedFavorites.contains(staged.id),
+                  var current = live[staged.id] else { return nil }
+            current.osType = staged.osType
+            return current
+        }
+
         phase = .reconciling
-        let rows = await enqueue { SidebarReconciler.reconcile(favorites: reconciled) }
+        let rows = await enqueue {
+            SidebarReconciler.reconcile(favorites: reconciled) { update in
+                // Checkpoint: a binding for a row we have just inserted reaches
+                // config.json before the next favorite is touched, so an interrupted
+                // pass cannot strand an app-created row as one we may never remove.
+                // `ConfigManager` hops to the main thread itself; this pass runs on
+                // the pipeline's detached task, with the main actor suspended at the
+                // `await` above.
+                try? ConfigManager.shared.bindSidebarItem(
+                    id: update.id,
+                    itemID: update.itemID,
+                    provenance: update.provenance
+                )
+            }
+        }
 
         collected += rows.warnings
         if let error = rows.error {
@@ -456,10 +591,12 @@ final class FavoriteSyncCoordinator: ObservableObject {
             needsFinderRestart = true
         }
 
-        // 5. Publish.
+        // 5. Publish. The phase is left alone when a teardown that started mid-pass
+        //    now owns the pipeline - reporting "Ready" while it is still unregistering
+        //    the helper would be the same clobber the epoch check above prevents.
         publishWarnings(collected)
-        phase = .idle
-        releasedFavorites.subtract(suppressed)
+        if !teardownInFlight { phase = .idle }
+        retireSuppressions(suppressed)
     }
 
     /// Give up the sidebar rows a set of favorites owns, without reconciling.
@@ -492,6 +629,16 @@ final class FavoriteSyncCoordinator: ObservableObject {
     }
 
     // MARK: - Bookkeeping
+
+    /// Retire the suppressions a finished pass honoured.
+    ///
+    /// All of them except any whose `favoriteRemoved` has not returned yet: until
+    /// it does, the favorite is still in config.json, so dropping its suppression
+    /// here lets the very next pass re-insert the row the delete just released -
+    /// an orphan no later pass could remove, because by then the favorite is gone.
+    private func retireSuppressions(_ suppressed: Set<UUID>) {
+        releasedFavorites.subtract(suppressed.subtracting(releasesInFlight))
+    }
 
     private func applyBindings(_ bindings: [BindingUpdate]) -> [String] {
         var warnings: [String] = []
@@ -651,10 +798,27 @@ private enum SidebarReconciler {
     // MARK: Passes
 
     /// Bring every row in line with the favorites, from one live snapshot.
-    static func reconcile(favorites: [Favorite]) -> RowOutcome {
+    ///
+    /// `checkpoint` is called with each binding the moment it is decided, so the
+    /// caller can persist it before the pass moves on; the same bindings are also
+    /// returned in `outcome` for the caller's own idempotent write at the end.
+    static func reconcile(
+        favorites: [Favorite],
+        checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
+    ) -> RowOutcome {
         var outcome = RowOutcome()
 
         guard var rows = snapshot(into: &outcome) else { return outcome }
+
+        // Finder's Favorites list de-duplicates by URL, so two favorites pointing at
+        // the same folder resolve to ONE row - while `assignMissingOSTypes`
+        // guarantees they hold DIFFERENT codes. Letting both write their override
+        // makes every pass a fight: the row flips artwork on each Finder relaunch and
+        // `needsFinderRestart` is re-armed for ever, so the banner can never be
+        // dismissed. First favorite in config order wins the row; the rest are
+        // reported and left alone. Config order is stable, so the same one wins every
+        // pass, and this also heals a config that already contains such a pair.
+        var claimedRows: Set<UInt32> = []
 
         for favorite in favorites {
             let match = match(favorite, in: rows)
@@ -665,7 +829,23 @@ private enum SidebarReconciler {
             // A favorite whose code could not be allocated has already been warned
             // about; it is left exactly as it is rather than half-applied.
             if favorite.enabled, let osType = favorite.osType {
-                apply(favorite: favorite, osType: osType, match: match, rows: &rows, outcome: &outcome)
+                if let row = match.row, claimedRows.contains(row.itemID) {
+                    outcome.warnings.append("'\(favorite.name)' points at the same folder as another favorite, which already owns that sidebar row. Only one icon can be shown there, so this favorite's icon was not applied.")
+                    // Unbound rather than left pointing at the winner's row: a later
+                    // delete of this favorite must not strip the winner's override.
+                    if favorite.sidebarItemID != nil || favorite.sidebarProvenance != .unbound {
+                        outcome.bindings.append(BindingUpdate(favorite, itemID: nil, provenance: .unbound))
+                    }
+                    continue
+                }
+
+                apply(favorite: favorite, osType: osType, match: match, rows: &rows, outcome: &outcome, checkpoint: checkpoint)
+
+                // Covers the insert path too, where `apply` lands on a row that was
+                // not in `match`. Every branch that touches a row records it here.
+                if let bound = outcome.boundItems[favorite.id] {
+                    claimedRows.insert(bound)
+                }
             } else if !favorite.enabled {
                 withdraw(favorite: favorite, row: match.row, rows: &rows, outcome: &outcome)
             }
@@ -705,7 +885,8 @@ private enum SidebarReconciler {
         osType: String,
         match: RowMatch,
         rows: inout [SidebarItem],
-        outcome: inout RowOutcome
+        outcome: inout RowOutcome,
+        checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
     ) {
         let manager = SidebarItemManager.shared
 
@@ -727,23 +908,40 @@ private enum SidebarReconciler {
             }
 
             do {
-                let inserted = try manager.upsert(
+                let result = try manager.upsert(
                     url: favorite.folderURL,
                     displayName: favorite.name,
                     osType: osType
                 )
+                let inserted = result.row
 
                 // BASE CASE of the ownership induction. Finder's Favorites list
                 // de-duplicates by URL, so this call is an insert only when the row
-                // it produced was not in the list a moment ago. If it WAS, path
-                // matching missed a row the user already had (a spelling the
-                // equivalence check does not cover) and the write landed on theirs -
-                // which is emphatically not a row we may ever delete.
-                let preexisting = rows.first { $0.itemID == inserted.itemID }
+                // it produced was not in the list a moment ago. If it WAS, either
+                // path matching missed a row the user already had (a spelling the
+                // equivalence check does not cover) or they added one WHILE this
+                // pass was running - and the write landed on theirs, which is
+                // emphatically not a row we may ever rename or delete.
+                //
+                // Asked of the insert's OWN snapshot, taken microseconds before it
+                // anchored, rather than of `rows`: that was read at the top of the
+                // pass and every upsert since is two XPC round-trips to
+                // sharedfilelistd, so a row dragged in mid-pass is missing from it.
+                // `withdraw` re-reads live for the same reason. The stale snapshot
+                // stays as a backstop, so nothing this used to catch is lost.
+                let preexisting = result.preexisting ?? rows.first { $0.itemID == inserted.itemID }
                 store(inserted, in: &rows)
 
                 guard let preexisting else {
-                    outcome.bindings.append(BindingUpdate(favorite, itemID: inserted.itemID, provenance: .managed))
+                    let update = BindingUpdate(favorite, itemID: inserted.itemID, provenance: .managed)
+                    // On disk before the next favorite is touched: this is the one
+                    // binding whose loss cannot be recovered from. Without it, a pass
+                    // interrupted after the insert leaves a row the app created that
+                    // the next launch can only adopt - and an adopted row is never
+                    // removed, so it would stay in the sidebar for good, under a name
+                    // the user never chose.
+                    checkpoint(update)
+                    outcome.bindings.append(update)
                     outcome.boundItems[favorite.id] = inserted.itemID
                     // Deliberately no Finder restart: a row inserted with the
                     // override already set draws with its custom icon immediately.
@@ -800,6 +998,10 @@ private enum SidebarReconciler {
         if row.osType != osType {
             do {
                 try manager.setOSType(osType, itemID: row.itemID)
+                // Keep the snapshot honest about what was just written, so a later
+                // favorite in this pass does not read the code as it was at the top.
+                current = SidebarItem(itemID: row.itemID, displayName: row.displayName, path: row.path, osType: osType)
+                store(current, in: &rows)
                 outcome.needsFinderRestart = true
             } catch {
                 outcome.warnings.append("Couldn't update the icon for '\(favorite.name)': \(error.localizedDescription)")
@@ -822,7 +1024,7 @@ private enum SidebarReconciler {
                         url: URL(fileURLWithPath: path),
                         displayName: favorite.name,
                         osType: osType
-                    )
+                    ).row
                     store(patched, in: &rows)
 
                     guard patched.itemID == row.itemID else {
@@ -877,7 +1079,7 @@ private enum SidebarReconciler {
                     url: favorite.folderURL,
                     displayName: restoringDisplayName,
                     osType: osType
-                )
+                ).row
                 store(restored, in: &rows)
                 current = restored
             } catch {
@@ -888,6 +1090,8 @@ private enum SidebarReconciler {
         if current.osType != osType {
             do {
                 try manager.setOSType(osType, itemID: current.itemID)
+                current = SidebarItem(itemID: current.itemID, displayName: current.displayName, path: current.path, osType: osType)
+                store(current, in: &rows)
                 // The row was already on screen, so Finder has to relaunch to redraw it.
                 outcome.needsFinderRestart = true
             } catch {

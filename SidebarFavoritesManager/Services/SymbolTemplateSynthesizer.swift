@@ -609,12 +609,28 @@ enum SymbolTemplateSynthesizer {
     static func uniqueSymbolName(_ raw: String, avoiding taken: Set<String>) -> String {
         let base = sanitizedSymbolName(raw)
         guard taken.contains(base) else { return base }
+
+        // `base` has already been truncated to the length cap, so the suffix has
+        // to be made room for rather than appended: a 66-character name is one
+        // `isAcceptableSymbolName` rejects, and the symbol is then dropped from
+        // the helper bundle and that favorite falls back to the folder icon. The
+        // usual way to hit this is one long-named artwork used at two icon
+        // scales, which always takes the ".2" suffix.
+        func suffixed(_ suffix: String) -> String {
+            var stem = base
+            let limit = max(1, maximumNameLength - suffix.count - 1)
+            if stem.count > limit { stem = String(stem.prefix(limit)) }
+            while stem.hasSuffix(".") { stem.removeLast() }   // never produce ".."
+            if stem.isEmpty { stem = String(namespacePrefix.dropLast()) }
+            return "\(stem).\(suffix)"
+        }
+
         var counter = 2
         while true {
-            let candidate = "\(base).\(counter)"
+            let candidate = suffixed(String(counter))
             if !taken.contains(candidate) { return candidate }
             counter += 1
-            if counter > 9999 { return "\(base).\(UUID().uuidString.prefix(8).lowercased())" }
+            if counter > 9999 { return suffixed(UUID().uuidString.prefix(8).lowercased()) }
         }
     }
 

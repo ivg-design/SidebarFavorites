@@ -22,6 +22,19 @@ final class MenuBarIconStore: ObservableObject {
     /// and clobber `icons` with stale data.
     private var renderTasks: [UUID: Task<Void, Never>] = [:]
 
+    /// What was last rendered for each favorite id: the relative SVG path, the
+    /// icon scale, and `updatedAt`. `refresh(for:)` runs on every config write -
+    /// including ones that only bookkeep sidebar bindings or OSType codes, which
+    /// deliberately do NOT bump `updatedAt` (see `ConfigManager.bindSidebarItem`,
+    /// `setOSType`, `setHelperState`) - so comparing against this lets an
+    /// unrelated write skip re-rendering icons that did not actually change,
+    /// instead of re-parsing and re-rasterizing every custom SVG every time.
+    private var renderKeys: [UUID: String] = [:]
+
+    private func renderKey(for favorite: Favorite, relativePath: String) -> String {
+        "\(relativePath)|\(favorite.effectiveIconScale)|\(favorite.updatedAt.timeIntervalSince1970)"
+    }
+
     private init() {
         ConfigManager.shared.$config
             .sink { [weak self] config in
@@ -39,7 +52,14 @@ final class MenuBarIconStore: ObservableObject {
         let customFavorites = favorites.filter { $0.iconType == .custom && $0.customSVGPath != nil }
         let customIds = Set(customFavorites.map(\.id))
 
-        icons = icons.filter { customIds.contains($0.key) }
+        let prunedIcons = icons.filter { customIds.contains($0.key) }
+        // Assigning `icons` unconditionally on every reconcile churns the
+        // MenuBarExtra even when nothing was actually pruned; only publish when
+        // the set of keys really changed.
+        if Set(prunedIcons.keys) != Set(icons.keys) {
+            icons = prunedIcons
+        }
+        renderKeys = renderKeys.filter { customIds.contains($0.key) }
         for (id, task) in renderTasks where !customIds.contains(id) {
             task.cancel()
             renderTasks.removeValue(forKey: id)
@@ -47,6 +67,18 @@ final class MenuBarIconStore: ObservableObject {
 
         for favorite in customFavorites {
             guard let relativePath = favorite.customSVGPath else { continue }
+
+            // Skip re-rendering when nothing that affects the rendered image has
+            // changed since the last pass. This is what keeps a config write that
+            // only touches sidebar-binding or OSType bookkeeping (which does not
+            // bump `updatedAt`) from re-parsing and re-rasterizing every custom
+            // icon in the config on every reconcile.
+            let key = renderKey(for: favorite, relativePath: relativePath)
+            if renderKeys[favorite.id] == key, icons[favorite.id] != nil {
+                continue
+            }
+            renderKeys[favorite.id] = key
+
             let url = ConfigManager.shared.customIconURL(relativePath: relativePath)
 
             // Cancel any still-running render for this favorite before starting a
@@ -54,6 +86,10 @@ final class MenuBarIconStore: ObservableObject {
             // overwrite it with stale art.
             renderTasks[favorite.id]?.cancel()
             renderTasks[favorite.id] = Task { [weak self] in
+                // Bail before doing any work at all if this task was already
+                // superseded (cancelled) before it got a chance to run.
+                guard !Task.isCancelled else { return }
+
                 // A re-import can overwrite the SVG file at this exact relative
                 // path (e.g. the destination name is derived from the favorite's
                 // name), which the URL-keyed thumbnail cache can't detect on its
