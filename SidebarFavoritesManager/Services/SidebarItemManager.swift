@@ -81,18 +81,35 @@ final class SidebarItemManager: @unchecked Sendable {
 
     // MARK: - Writing
 
+    /// What one `upsert` did.
+    struct UpsertResult: Sendable {
+        /// The row as it stands now, carrying the DURABLE item ID.
+        let row: SidebarItem
+
+        /// The row as it was immediately BEFORE the write, when the list already
+        /// held one for this URL - so nil means the write genuinely created the
+        /// row and non-nil means it patched somebody's existing one.
+        ///
+        /// Read inside the bridge from the very snapshot the insert anchors
+        /// against, which is what makes it usable as the ownership base case: a
+        /// row that appeared between the caller's own snapshot and this write is
+        /// still reported as pre-existing.
+        let preexisting: SidebarItem?
+    }
+
     /// Inserts the folder, or patches the existing row for it in place, then
     /// re-snapshots and returns the row carrying the DURABLE item ID.
     ///
     /// Re-reading is mandatory: the ID on the reference the insert returns is
     /// transient and can differ from the one the list persists.
     @discardableResult
-    func upsert(url: URL, displayName: String, osType: String) throws -> SidebarItem {
+    func upsert(url: URL, displayName: String, osType: String) throws -> UpsertResult {
         lock.lock()
         defer { lock.unlock() }
 
+        var previous: NSDictionary?
         do {
-            try SFLBridge.upsert(url: url, displayName: displayName, osType: osType)
+            try SFLBridge.upsert(url: url, displayName: displayName, osType: osType, preexisting: &previous)
         } catch {
             throw Self.sidebarError(from: error)
         }
@@ -100,7 +117,10 @@ final class SidebarItemManager: @unchecked Sendable {
         guard let row = try loadSnapshot().first(where: { $0.matches(anyOf: [url.path]) }) else {
             throw SidebarError.itemNotFound
         }
-        return row
+        return UpsertResult(
+            row: row,
+            preexisting: (previous as? [String: Any]).flatMap(Self.item(from:))
+        )
     }
 
     /// Applies the icon override to an existing row without touching its name.

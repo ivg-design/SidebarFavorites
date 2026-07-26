@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-07-26
+
+Fixes found by an adversarial review of the 1.0.0 release. 21 issues confirmed, 12 claims refuted.
+
+### Fixed
+
+- **Importing a malformed SVG could hang the app forever.** Three separate cases: an SVG using nested `<use>` references expanded exponentially (a 139-byte file was enough); a stray `.`, `-` or `+` in path data spun the number scanner in place; and a deeply nested document overflowed the stack and crashed. All three now finish in milliseconds or fail with a clear message. A very large `<style>` block and pathologically complex artwork are also bounded now instead of freezing the app for tens of seconds.
+- **A sidebar row you created could be renamed and later deleted.** If you dragged a folder into Finder's sidebar at the moment the app happened to be reconciling, the app could mistake that row for one of its own. Ownership is now decided against live state at the moment of insertion rather than a snapshot taken earlier in the pass.
+- **A failed icon build was remembered as a good one**, so custom icons stayed silently broken on every later launch. A partial build is no longer committed, and the next launch retries.
+- **No subprocess had a timeout** - a stuck `actool`, `codesign` or `lsregister` wedged the app with no way out. All external commands now time out and report it.
+- **Apply could restart Finder before your change had actually been applied**, so you saw the old icon and had to press it twice.
+- A migration that could not read the old helper directory reported "nothing found" and marked the upgrade complete, stranding the old apps. It now says so plainly.
+- Deleting a favorite mid-reconcile could leave an orphan row behind; "Remove All Sidebar Icons" could race a reconcile that immediately re-applied everything; and it had no re-entrancy guard.
+- Two favorites pointing at the same folder no longer fight over one row's icon and pin the Restart Finder banner on permanently.
+- Menu bar icons no longer re-render every custom icon on every configuration change.
+
 ## [1.0.0] - 2026-07-26
 
 Version 1.0 replaces the mechanism behind sidebar icons entirely. Everything else in this release follows from that.

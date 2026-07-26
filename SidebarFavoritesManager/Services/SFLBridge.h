@@ -74,11 +74,24 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
 ///
 /// `name` must never be empty: passing no display name resets the row's label to
 /// the folder's file-system name (measured).
+///
+/// `preexisting` reports whether this was a patch or a genuine insert, and it is
+/// the ONLY trustworthy answer to that question: it is read from the snapshot the
+/// insert itself anchors against, taken microseconds earlier under the same lock,
+/// rather than from a snapshot the caller took at some earlier point in its pass.
+/// On return it holds the row as it was immediately BEFORE the write (same keys as
+/// `snapshotWithError:`) when the list already had one for `url`, and nil when the
+/// row was genuinely created - or when the call failed, since nothing was written
+/// then. Pass NULL when the answer is not needed.
+///
+/// The caller's ownership rule - only a row this app actually created may later be
+/// renamed or deleted - rests on this value.
 + (BOOL)upsertURL:(NSURL *)url
       displayName:(NSString *)name
            osType:(NSString *)osType
+      preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error
-    NS_SWIFT_NAME(upsert(url:displayName:osType:));
+    NS_SWIFT_NAME(upsert(url:displayName:osType:preexisting:));
 
 /// Removes the OverrideIcon.OSType property while leaving the row otherwise intact.
 ///

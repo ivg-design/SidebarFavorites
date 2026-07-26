@@ -183,12 +183,30 @@ enum SVGGeometryParser {
         var root: Node?
         var failure: String?
         private var stack: [Node] = []
+        private var depth = 0
+
+        /// Hard ceiling on nesting, applied while the tree is built so a deep tree
+        /// never exists in the first place. `XMLParser` itself is iterative, so
+        /// without this the tree's depth is whatever the file declares - and every
+        /// *recursive* walk of the finished tree pays for it: stylesheet
+        /// collection, id indexing, and ARC tearing the tree down. A 21 KB file
+        /// nesting 3,000 `<g>` elements overflows the 512 KB stack a
+        /// Swift-concurrency cooperative thread gets (measured: SIGBUS), which is
+        /// how a file that passes import validation on the main thread can then
+        /// crash every subsequent launch from the thumbnail actor.
+        ///
+        /// Well above anything a drawing app nests, and far above `render`'s own
+        /// 64-level cap - nothing below this depth was ever going to be drawn.
+        private static let maximumDepth = 256
 
         func parser(_ parser: XMLParser,
                     didStartElement elementName: String,
                     namespaceURI: String?,
                     qualifiedName qName: String?,
                     attributes attributeDict: [String: String]) {
+            depth += 1
+            guard depth <= Self.maximumDepth else { return }
+
             // With namespace processing off, `elementName` still carries a prefix
             // ("svg:rect"); strip it so both parsing modes agree.
             let local = Self.localName(elementName)
@@ -211,6 +229,8 @@ enum SVGGeometryParser {
                     didEndElement elementName: String,
                     namespaceURI: String?,
                     qualifiedName qName: String?) {
+            defer { depth -= 1 }
+            guard depth <= Self.maximumDepth else { return }
             if !stack.isEmpty { stack.removeLast() }
         }
 
@@ -312,13 +332,32 @@ enum SVGGeometryParser {
         var droppedRaster = false
         var dropped: Set<String> = []
 
+        /// Total elements one render pass may visit.
+        ///
+        /// `depth` bounds how *deep* the recursion goes, not how *wide*: a `<g>`
+        /// holding two `<use>` elements that point back at that same `<g>` doubles
+        /// every two levels, so a 139-byte file expands to ~2^31 shapes without
+        /// ever exceeding the depth limit - and a cycle check would not catch it,
+        /// because the chained spelling of the same bomb is perfectly acyclic. A
+        /// total-work budget is what actually bounds it. Real icons visit a few
+        /// hundred nodes; the repo's own artwork visits fewer than 100.
+        private var remainingWork = 100_000
+
         init(stylesheet: Stylesheet) { self.stylesheet = stylesheet }
 
-        mutating func indexIdentifiers(in node: Node) {
-            if let id = node.attributes["id"], identifiers[id] == nil {
-                identifiers[id] = node
+        /// Iterative on purpose: the tree's depth comes from the file, and a
+        /// recursive walk of a deeply nested document overflows the stack - fatally
+        /// so on the 512 KB stack a cooperative-pool thread gets. Children are
+        /// pushed in reverse so the walk stays in document order, which is what
+        /// makes "first `id` wins" mean the same thing it did before.
+        mutating func indexIdentifiers(in root: Node) {
+            var pending: [Node] = [root]
+            while let node = pending.popLast() {
+                if let id = node.attributes["id"], identifiers[id] == nil {
+                    identifiers[id] = node
+                }
+                pending.append(contentsOf: node.children.reversed())
             }
-            for child in node.children { indexIdentifiers(in: child) }
         }
 
         /// Elements whose *content* is only drawn when a `<use>` points at it, or
@@ -338,6 +377,16 @@ enum SVGGeometryParser {
             // <use> cycle or a hostile file cannot run away with the stack.
             guard depth < 64 else { return }
             let tag = node.name.lowercased()
+
+            // ...and a budget for the breadth the depth cap does not bound. Report
+            // what got cut rather than silently handing back half an icon: the
+            // caller turns `dropped` into "some parts of this SVG can't be
+            // reproduced", which is exactly what happened.
+            guard remainingWork > 0 else {
+                if !tag.isEmpty { dropped.insert(tag) }
+                return
+            }
+            remainingWork -= 1
 
             if tag == "image" {
                 droppedRaster = true
@@ -663,19 +712,60 @@ enum SVGGeometryParser {
             for sheet in sheets { ingest(sheet) }
         }
 
-        private static func collect(from node: Node, into sheets: inout [String]) {
-            if node.name.lowercased() == "style", !node.text.isEmpty {
-                sheets.append(node.text)
+        /// Iterative, for the same reason `indexIdentifiers` is: the document's
+        /// nesting depth is attacker-controlled, and recursing it crashes.
+        private static func collect(from root: Node, into sheets: inout [String]) {
+            var pending: [Node] = [root]
+            while let node = pending.popLast() {
+                if node.name.lowercased() == "style", !node.text.isEmpty {
+                    sheets.append(node.text)
+                }
+                pending.append(contentsOf: node.children.reversed())
             }
-            for child in node.children { Self.collect(from: child, into: &sheets) }
         }
 
         private mutating func ingest(_ css: String) {
             // Strip comments, then split on rule blocks. Media queries and other
             // at-rules are skipped rather than mis-parsed.
-            var text = css
-            while let start = text.range(of: "/*"), let end = text.range(of: "*/", range: start.upperBound..<text.endIndex) {
-                text.removeSubrange(start.lowerBound..<end.upperBound)
+            //
+            // The strip is one left-to-right pass into a fresh buffer. Removing
+            // each comment in place instead restarts the search from the front of
+            // the string *and* shifts the whole remainder, which is quadratic - a
+            // 10 MB <style> block measured 8.6 s of blocked main thread, and
+            // validation runs inline from the import sheet.
+            //
+            // The one-character backtrack keeps that in-place loop's exact output:
+            // deleting a comment can join a "/" already emitted to a "*" that
+            // follows it, and re-scanning from the front would have found that new
+            // "/*" too. Nothing well-formed ever hits it - comments do not nest in
+            // CSS - but "byte-identical, only faster" is the useful property here.
+            let text: String
+            if css.contains("/*") {
+                var stripped = ""
+                stripped.reserveCapacity(css.count)
+                var cursor = css.startIndex
+                while true {
+                    if stripped.hasSuffix("/"), cursor < css.endIndex, css[cursor] == "*" {
+                        // "/*" straddling the seam. Its closer is searched for from
+                        // after the "*", exactly where the in-place loop looked.
+                        guard let close = css.range(of: "*/", range: css.index(after: cursor)..<css.endIndex) else { break }
+                        stripped.removeLast()
+                        cursor = close.upperBound
+                        continue
+                    }
+                    guard let open = css.range(of: "/*", range: cursor..<css.endIndex),
+                          let close = css.range(of: "*/", range: open.upperBound..<css.endIndex) else {
+                        // Nothing left to strip, or an unterminated "/*" - which the
+                        // in-place loop also left verbatim.
+                        break
+                    }
+                    stripped += css[cursor..<open.lowerBound]
+                    cursor = close.upperBound
+                }
+                stripped += css[cursor...]
+                text = stripped
+            } else {
+                text = css
             }
 
             var remainder = Substring(text)
@@ -1095,12 +1185,22 @@ struct SVGNumberScanner {
         if cursor < characters.count, characters[cursor] == "-" || characters[cursor] == "+" {
             cursor += 1
         }
-        while cursor < characters.count, characters[cursor].isASCIINumber { cursor += 1 }
+        var hasMantissaDigits = false
+        while cursor < characters.count, characters[cursor].isASCIINumber {
+            cursor += 1
+            hasMantissaDigits = true
+        }
         if cursor < characters.count, characters[cursor] == "." {
             cursor += 1
-            while cursor < characters.count, characters[cursor].isASCIINumber { cursor += 1 }
+            while cursor < characters.count, characters[cursor].isASCIINumber {
+                cursor += 1
+                hasMantissaDigits = true
+            }
         }
-        if cursor < characters.count, characters[cursor] == "e" || characters[cursor] == "E" {
+        // An exponent only belongs to a mantissa. Scanning a bare "e5" would make
+        // a token `Double` rejects, and the letter is a command as far as the path
+        // parser is concerned - which is how it already treats it today.
+        if hasMantissaDigits, cursor < characters.count, characters[cursor] == "e" || characters[cursor] == "E" {
             var exponent = cursor + 1
             if exponent < characters.count,
                characters[exponent] == "-" || characters[exponent] == "+" {
@@ -1111,9 +1211,16 @@ struct SVGNumberScanner {
                 cursor = exponent
             }
         }
-        guard cursor > index, let value = Double(String(characters[index..<cursor])) else { return nil }
+        guard cursor > index else { return nil }
+        let token = String(characters[index..<cursor])
+        // Consume the token even when it does not parse as a number. ".", "-",
+        // "+", "-." and "+." each advance `cursor` but are not numbers, and
+        // `hasNumber` calls all of them the start of one - so returning nil
+        // *without* consuming leaves the scanner in exactly the state it was
+        // asked in, and `SVGPathData.path` spins on it forever. Every path that
+        // reaches here now moves `index` strictly forward.
         index = cursor
-        return value
+        return Double(token)
     }
 }
 
@@ -1149,6 +1256,20 @@ enum SVGPathWinding {
     /// come close; a traced photograph would.
     private static let complexityLimit = 2048
 
+    /// ...and the same skip on total work, because the count alone does not bound
+    /// it: the nesting test costs subpathCount x totalSegments, and a subpath's
+    /// segment count is unbounded. 2,040 subpaths of 300 segments each stay under
+    /// `complexityLimit` and still cost seconds of blocked main thread (measured:
+    /// 2.8 s for one shape). At the limit the test costs about 0.2 s; the repo's
+    /// own artwork peaks at 711, four orders of magnitude below it.
+    private static let nestingWorkLimit = 20_000_000
+
+    private static func elementCount(of path: CGPath) -> Int {
+        var count = 0
+        path.applyWithBlock { _ in count += 1 }
+        return count
+    }
+
     /// Merges the painted shapes into the single nonzero path a symbol glyph has
     /// to be.
     ///
@@ -1173,6 +1294,10 @@ enum SVGPathWinding {
         // forced to the canonical direction, because that is what makes *separate*
         // shapes union instead of cancelling when they are merged later.
         guard !subpaths.isEmpty, subpaths.count <= complexityLimit else { return path }
+        // Bail before the flattening maps below, so the O(total-segments) prep is
+        // skipped too. Same "too complex to rewind" bucket the count cap already
+        // defines, so nothing that compiles today changes.
+        guard subpaths.count * elementCount(of: path) <= nestingWorkLimit else { return path }
 
         let boxes = subpaths.map { $0.boundingBoxOfPath }
         let polygons = subpaths.map { $0.svgFlattenedPoints() }

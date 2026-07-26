@@ -18,6 +18,13 @@ struct SettingsView: View {
     // "Remove All Sidebar Icons" alert (removeAllSidebarIconsMessage) is a report
     // shown *after* the work is done - this is the confirmation shown *before*.
     @State private var showingRemoveAllSidebarIconsConfirmation = false
+    // Re-entrancy guard, matching AddEditFavoriteSheet.isApplying and
+    // ContentView.deletingFavoriteIDs: without it, a repeat tap (or a second
+    // confirm) while a prior removeAllSidebarIcons() Task is still awaiting the
+    // coordinator starts an overlapping run. Both would write the single
+    // @State removeAllSidebarIconsMessage, so whichever finishes last silently
+    // overwrites the other's result text.
+    @State private var isRemovingAllSidebarIcons = false
 
     var body: some View {
         Form {
@@ -86,6 +93,7 @@ struct SettingsView: View {
                     showingRemoveAllSidebarIconsConfirmation = true
                 }
                 .foregroundColor(.red)
+                .disabled(isRemovingAllSidebarIcons)
             }
         }
         .formStyle(.grouped)
@@ -273,6 +281,12 @@ struct SettingsView: View {
     }
 
     private func removeAllSidebarIcons() {
+        // Ignore a repeat tap (or a second confirm reached some other way) while a
+        // prior run is still in flight, rather than starting an overlapping
+        // FavoriteSyncCoordinator.removeAllSidebarIcons() call that would race the
+        // first one to `removeAllSidebarIconsMessage`.
+        guard !isRemovingAllSidebarIcons else { return }
+        isRemovingAllSidebarIcons = true
         Task {
             // removeAllSidebarIcons() runs its blocking work (sidebar patches, helper
             // teardown, Finder restart) off the main actor internally and only
@@ -281,6 +295,7 @@ struct SettingsView: View {
             removeAllSidebarIconsMessage = warnings.isEmpty
                 ? "All sidebar icons were removed."
                 : "Some sidebar icons could not be fully removed:\n\n" + warnings.joined(separator: "\n")
+            isRemovingAllSidebarIcons = false
         }
     }
 }

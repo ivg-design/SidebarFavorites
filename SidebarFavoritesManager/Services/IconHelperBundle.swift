@@ -92,6 +92,9 @@ final class IconHelperBundle {
     }
 
     struct BuildResult {
+        /// What the bundle on disk IS, which is not always what was asked for -
+        /// see `rebuild`. Persisting this rather than the requested payload is
+        /// what stops a degraded build from being remembered as a good one.
         let digest: String
         let generation: Int
         let registered: Bool
@@ -183,6 +186,14 @@ final class IconHelperBundle {
     /// `codesign` and `lsregister` are all skipped in that case - and
     /// `contentChanged: true` when the artwork Finder has cached is no longer what
     /// this bundle declares.
+    ///
+    /// The returned `digest` describes the bundle that was actually produced, which
+    /// is not always the one that was asked for: a build that could not compile
+    /// every custom symbol reports a digest that no clean build can ever equal, so
+    /// storing it cannot short-circuit the next launch. That is what makes a
+    /// degraded build retry, and keep saying so, instead of being cemented.
+    ///
+    /// Throws `bundlePathRefused` when what sits at the helper's path is not ours.
     func rebuild(
         declarations: [Declaration],
         previousDigest: String?,
@@ -194,20 +205,16 @@ final class IconHelperBundle {
         defer { lock.unlock() }
 
         let bundleURL = configManager.helperAppURL
-        let payloadDigest = digest(for: declarations)
 
-        // What the sidebar draws changed if, and only if, the payload the bundle is
-        // built from changed - the artwork behind an OSType code is part of that
-        // payload by way of `customSVGPath` and `pipelineVersion`, which is exactly
-        // what a row property comparison cannot see.
-        //
-        // Two deliberate asymmetries. A helper that declares nothing has nothing
-        // Finder can be caching for us, so a first run on a machine with no
-        // favorites is not a change. And the description text is in the digest
-        // although nothing draws it, so a bare rename reports changed content and
-        // offers a restart that is not strictly needed - the conservative direction,
-        // since the failure being fixed here is a changed icon that offers nothing.
-        let contentChanged = payloadDigest != previousDigest && !declarations.isEmpty
+        // Before anything is written: whatever sits at that path has to be ours.
+        // Everything below creates directories through it, overwrites its
+        // Info.plist, deletes its `.icns` resources, re-signs it and re-registers
+        // it with Launch Services.
+        if let reason = refusalReason(forBundleAt: bundleURL) {
+            throw HelperError.bundlePathRefused(reason)
+        }
+
+        let payloadDigest = digest(for: declarations)
 
         // 1. Nothing changed and the bundle is intact: this is the common path on
         //    launch, and it must cost nothing.
@@ -294,9 +301,13 @@ final class IconHelperBundle {
             }
         }
 
-        // 4. One Assets.car for every custom symbol. actool ships with Xcode / the
-        //    Command Line Tools, so its absence degrades this favorite to the
-        //    folder icon rather than aborting the rebuild for all the others.
+        // 4. One Assets.car for every custom symbol. actool ships inside Xcode -
+        //    NOT with the Command Line Tools - so on a machine with no Xcode, or
+        //    one where Xcode is mid-update or `xcode-select` points somewhere
+        //    stale, this fails wholesale. That degrades the affected favorites to
+        //    the folder icon rather than aborting the rebuild for all the others,
+        //    and step 6a keeps the shortfall out of the recorded digest so the next
+        //    launch tries again.
         var compiledSymbols: Set<String> = []
         do {
             compiledSymbols = try SymbolCatalogBuilder.synchronize(symbols: symbols, inBundleAt: bundleURL)
@@ -317,9 +328,48 @@ final class IconHelperBundle {
         //    asks for, which is strictly better than showing the wrong artwork.
         removeSymbolICNS(in: resourcesURL)
 
-        for name in requestedSymbolNames.subtracting(compiledSymbols).sorted() {
+        let missingSymbols = requestedSymbolNames.subtracting(compiledSymbols).sorted()
+        for name in missingSymbols {
             warnings.append("Custom icon '\(name)' could not be compiled; that favorite falls back to the folder icon.")
         }
+
+        // 6a. The digest records what the bundle IS, not what was requested.
+        //
+        //     A build that could not compile every custom symbol produced a bundle
+        //     that does not match its payload: those declarations go out without
+        //     `UTTypeIcons` below and the rows fall back to folder icons. Recording
+        //     the clean payload digest for it would be a lie the skip check above
+        //     believes forever - every later launch would match, return no
+        //     warnings, and never re-run actool, so installing Xcode afterwards
+        //     would fix nothing and the user would never be told again.
+        //
+        //     Folding the shortfall in means the freshly computed clean digest can
+        //     never match a stored degraded one, so a degraded bundle is rebuilt on
+        //     every launch, the warnings are re-emitted every time, and the moment
+        //     actool works the clean digest is stored and the skip path resumes.
+        //     The cost while degraded is one plist write, codesign and lsregister
+        //     per launch - the honest price of a bundle that does not match what it
+        //     declares.
+        let effectiveDigest = missingSymbols.isEmpty
+            ? payloadDigest
+            : payloadDigest + "+missing." + Self.fingerprint(of: missingSymbols)
+
+        // What the sidebar draws changed if, and only if, the payload the bundle is
+        // built from changed - the artwork behind an OSType code is part of that
+        // payload by way of `customSVGPath` and `pipelineVersion`, which is exactly
+        // what a row property comparison cannot see.
+        //
+        // Compared on the effective digest, so an unchanged shortfall is not a
+        // change either: a machine stuck without actool rebuilds every launch but is
+        // not offered a pointless Finder restart every launch.
+        //
+        // Two deliberate asymmetries. A helper that declares nothing has nothing
+        // Finder can be caching for us, so a first run on a machine with no
+        // favorites is not a change. And the description text is in the digest
+        // although nothing draws it, so a bare rename reports changed content and
+        // offers a restart that is not strictly needed - the conservative direction,
+        // since the failure being fixed here is a changed icon that offers nothing.
+        let contentChanged = effectiveDigest != previousDigest && !declarations.isEmpty
 
         // 6. Info.plist.
         var typeDeclarations: [[String: Any]] = []
@@ -400,10 +450,15 @@ final class IconHelperBundle {
             throw HelperError.lsregisterFailed(failure)
         }
 
-        NSLog("IconHelperBundle: registered \(typeDeclarations.count) declaration(s), generation \(generation)")
+        if missingSymbols.isEmpty {
+            NSLog("IconHelperBundle: registered \(typeDeclarations.count) declaration(s), generation \(generation)")
+        } else {
+            NSLog("IconHelperBundle: registered \(typeDeclarations.count) declaration(s), generation \(generation), "
+                + "but \(missingSymbols.count) custom icon(s) did not compile - the build will be retried next launch")
+        }
 
         return BuildResult(
-            digest: payloadDigest,
+            digest: effectiveDigest,
             generation: generation,
             registered: true,
             contentChanged: contentChanged,
@@ -430,6 +485,14 @@ final class IconHelperBundle {
             warnings.append(message)
         }
 
+        // The same screening `rebuild` applies, for the same reason: `lsregister -u`
+        // resolves a symbolic link while `removeItem` does not, so unscreened these
+        // two calls act on different objects entirely.
+        if let reason = refusalReason(forBundleAt: bundleURL) {
+            warn("Refusing to remove the icon helper: \(reason)")
+            return warnings
+        }
+
         if let failure = ProcessRunner.failureDescription(
             ProcessRunner.lsregisterPath,
             ["-u", bundleURL.path]
@@ -444,6 +507,58 @@ final class IconHelperBundle {
         }
 
         return warnings
+    }
+
+    /// Why what sits at `helperAppURL` is not ours to write to and delete, or nil
+    /// when it is.
+    ///
+    /// The link check is the load-bearing one. `lsregister` RESOLVES a symbolic
+    /// link while `removeItem` does not, so an unscreened teardown would deregister
+    /// a third-party bundle from Launch Services - breaking its file associations
+    /// and Open With entries - delete only the link, and report success. An
+    /// unscreened `rebuild` is worse: it creates directories through the link,
+    /// overwrites the target's Info.plist, strips every `.icns` from its Resources,
+    /// re-signs it and re-registers it, all with no user action at all.
+    ///
+    /// Same guards as `MigrationService.screen()`, for the one path this service
+    /// owns. Containment needs no separate check: the path is a fixed single
+    /// component under `appSupportURL`, so refusing the link is sufficient - there
+    /// is no user-supplied name here that could carry a `..`.
+    ///
+    /// A refused path is left exactly as it is, which is the same posture
+    /// `MigrationService` takes: whatever is there was not put there by us, so
+    /// deleting it is not ours to do either.
+    private func refusalReason(forBundleAt url: URL) -> String? {
+        // 1 - symbolic links are never followed into a write or a delete.
+        if let values = try? url.resourceValues(forKeys: [.isSymbolicLinkKey]),
+           values.isSymbolicLink == true {
+            return "\(url.lastPathComponent) is a symbolic link, so it was left alone."
+        }
+
+        // 2 - must identify itself as ours, never by filename. Absent on a first
+        //     build, and absent for the whole of the first build's step 2 - there
+        //     is nothing to identify yet, and an unreadable plist inside a bundle
+        //     we are about to rewrite anyway is not evidence of somebody else's app.
+        let plistURL = url.appendingPathComponent("Contents/Info.plist")
+        guard fileManager.fileExists(atPath: plistURL.path),
+              let plist = NSDictionary(contentsOf: plistURL) as? [String: Any],
+              let identifier = plist["CFBundleIdentifier"] as? String else {
+            return nil
+        }
+
+        guard identifier == Self.bundleIdentifier else {
+            return "\(url.lastPathComponent) reports the identifier '\(identifier)' "
+                + "instead of \(Self.bundleIdentifier), so it was left alone."
+        }
+        return nil
+    }
+
+    /// SHA-256 over an ordered list of strings, for folding a build's shortfall
+    /// into its digest.
+    private static func fingerprint(of values: [String]) -> String {
+        SHA256.hash(data: Data(values.joined(separator: "\u{1F}").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
     }
 
     /// The symbolset a declaration needs compiled, or nil when it names a system
@@ -543,6 +658,7 @@ final class IconHelperBundle {
     enum HelperError: LocalizedError {
         case plistWriteFailed(String)
         case lsregisterFailed(String)
+        case bundlePathRefused(String)
 
         var errorDescription: String? {
             switch self {
@@ -550,6 +666,8 @@ final class IconHelperBundle {
                 return "Failed to write the icon helper's Info.plist: \(detail)"
             case .lsregisterFailed(let detail):
                 return "Failed to register the icon helper with Launch Services: \(detail)"
+            case .bundlePathRefused(let detail):
+                return "Refusing to build the icon helper: \(detail)"
             }
         }
     }

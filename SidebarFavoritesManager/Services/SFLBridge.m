@@ -193,7 +193,11 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
 + (BOOL)upsertURL:(NSURL *)url
       displayName:(NSString *)name
            osType:(NSString *)osType
+      preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error {
+    if (preexisting != NULL) {
+        *preexisting = nil;
+    }
     if (!SFLIsWellFormedOSType(osType)) {
         return SFLFail(error, SFLBridgeErrorCodeInvalidOSType,
                        [NSString stringWithFormat:@"'%@' is not a valid 4-character icon code.", osType]);
@@ -204,6 +208,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
                displayName:name
            propertiesToSet:@{ SFLOverrideIconOSTypeKey: osType }
          propertiesToClear:nil
+               preexisting:preexisting
                      error:error];
 }
 
@@ -214,6 +219,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
                displayName:name
            propertiesToSet:nil
          propertiesToClear:@[ SFLOverrideIconOSTypeKey ]
+               preexisting:NULL
                      error:error];
 }
 
@@ -223,11 +229,20 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
 /// LSSharedFileListInsertItemURL: that ID is transient and can differ from the one
 /// persisted for the row (measured 1421353828 vs the durable 2475624774). Callers
 /// re-snapshot to learn the durable ID.
+///
+/// `preexisting` (optional) is filled from the same snapshot the anchor is picked
+/// from, so it answers "was this a patch or a genuine insert?" for THIS write. The
+/// index is computed either way to place the anchor; reporting it costs nothing and
+/// is the only such answer that cannot have gone stale.
 + (BOOL)insertURL:(NSURL *)url
       displayName:(NSString *)name
   propertiesToSet:(nullable NSDictionary<NSString *, id> *)propertiesToSet
 propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
+      preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error {
+    if (preexisting != NULL) {
+        *preexisting = nil;
+    }
     if (name.length == 0) {
         // A nil/empty display name resets the row's label to the folder's
         // file-system name (measured), which would silently rename adopted rows.
@@ -250,6 +265,31 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
     CFIndex existingIndex = SFLIndexOfURL(snapshot, url);
     LSSharedFileListItemRef anchor = SFLAnchorForIndex(snapshot, existingIndex);
 
+    // Read the row we are about to overwrite BEFORE overwriting it. Same shape as
+    // a snapshotWithError: row, so the caller maps it with the same code.
+    if (preexisting != NULL && existingIndex >= 0) {
+        LSSharedFileListItemRef existing =
+            (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, existingIndex);
+
+        NSMutableDictionary<NSString *, id> *row = [NSMutableDictionary dictionaryWithCapacity:4];
+        row[SFLItemIDKey] = @(LSSharedFileListItemGetID(existing));
+
+        NSString *existingPath = SFLResolvedPath(existing);
+        if (existingPath != nil) {
+            row[SFLItemPathKey] = existingPath;
+        }
+
+        NSString *existingName = SFLDisplayName(existing);
+        row[SFLItemDisplayNameKey] = existingName ?: (existingPath.lastPathComponent ?: @"");
+
+        NSString *existingOSType = SFLOSType(existing);
+        if (existingOSType != nil) {
+            row[SFLItemOSTypeKey] = existingOSType;
+        }
+
+        *preexisting = row;
+    }
+
     LSSharedFileListItemRef inserted = LSSharedFileListInsertItemURL(list,
                                                                      anchor,
                                                                      (__bridge CFStringRef)name,
@@ -267,6 +307,11 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
     CFRelease(list);
 
     if (!succeeded) {
+        // Nothing was written, so there is no "row as it was before the write" to
+        // report: a failed call always leaves the out-parameter nil.
+        if (preexisting != NULL) {
+            *preexisting = nil;
+        }
         return SFLFail(error, SFLBridgeErrorCodeInsertFailed,
                        [NSString stringWithFormat:@"Couldn't add '%@' to Finder's sidebar.", name]);
     }

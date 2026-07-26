@@ -33,7 +33,13 @@ final class CodeSigner {
             return cached
         }
 
-        let result = ProcessRunner.run(Self.securityPath, ["find-identity", "-v", "-p", "codesigning"])
+        // Every argument here is a literal, and the deadline is the keychain one:
+        // `find-identity` reaches the login keychain, which can be locked.
+        let result = ProcessRunner.run(
+            Self.securityPath,
+            ["find-identity", "-v", "-p", "codesigning"],
+            timeout: ProcessRunner.keychainTimeout
+        )
 
         // Parse identities from output like:
         // 1) ABC123... "Apple Development: Name (TEAM)"
@@ -91,11 +97,24 @@ final class CodeSigner {
     /// so a signing failure is a warning, not an error.
     /// Returns nil on success, or a user-facing warning string.
     func signBundle(at url: URL, using preference: SigningIdentity) -> String? {
+        // `identity` is never user text: `resolve` returns one of exactly three
+        // literals ("-", "Apple Development", "Developer ID Application"), and the
+        // two named ones are only returned after `availableIdentities` - which
+        // itself only ever appends those same two literals - has confirmed them.
+        // `url` is the app's own fixed helper path. Nothing here is interpolated
+        // into a shell either: `ProcessRunner` execs the tool directly with an
+        // argument vector.
         let identity = resolve(preference)
 
+        // A short deadline, and specifically for the SecurityAgent prompt: signing
+        // with a real identity behind a locked keychain blocks on a dialog this app
+        // cannot see. Timing out degrades exactly the way a signing failure already
+        // does - an unsigned helper, which registers and renders icons fine, plus a
+        // warning - instead of wedging the whole sync pipeline.
         if let failure = ProcessRunner.failureDescription(
             Self.codesignPath,
-            ["--force", "--sign", identity, url.path]
+            ["--force", "--sign", identity, url.path],
+            timeout: ProcessRunner.keychainTimeout
         ) {
             let message = "Could not sign \(url.lastPathComponent) with '\(identity)': \(failure). "
                 + "Sidebar icons still work; the bundle is simply unsigned."
