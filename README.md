@@ -53,9 +53,13 @@ Requires macOS 13.0 (Ventura) or later.
    - **Custom SVG** - click *Import SVG…* and pick any SVG file.
 4. **Add**. The folder appears in Finder's sidebar with your icon.
 
+![Choosing an SF Symbol](docs/assets/sf-symbol-picker.png)
+
 If Finder is still showing an old icon, a banner appears with a **Restart Finder** button. The app never restarts Finder on its own.
 
 ## Custom icons
+
+![Importing an SVG](docs/assets/svg-import.png)
 
 Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector shapes. There is nothing to prepare: no SF Symbols template to export, no guide boxes to draw inside, no naming field to get right. The app parses the file, flattens it to a single outline and builds the SF Symbol around it.
 
@@ -63,6 +67,8 @@ Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector 
 - **Size slider (50-150%).** 100% is exactly the size of a system SF Symbol - the right measurement, not always the right look, since a wide or busy mark reads heavier than a sparse one at the same size. Nudge it until it sits comfortably next to the rest of the sidebar; the preview follows as you drag.
 - **Apply** saves, rebuilds the icon and restarts Finder in one click without closing the sheet, so you can tune the size against the real sidebar.
 - The app tells you what it had to drop or flatten: embedded photos and PNGs (a symbol cannot contain raster), live text that was never outlined, colours and gradients, and artwork too fine, too dense or too wide to read at sidebar size. These are warnings, not rejections.
+
+![Tuning a custom icon](docs/assets/custom-svg-settings.png)
 
 > **Sidebar icons are always monochrome.** Finder draws them as a flat silhouette tinted to match the sidebar. Colour is impossible there - that is a macOS rule, not a limitation of this app. The preview shows you the silhouette, so there are no surprises.
 
@@ -81,6 +87,8 @@ Every row in Finder's Favorites list can carry a private per-item property, `com
 That bundle declares one UTI per favorite, tagging it with the favorite's code and pointing it at an SF Symbol. It contains **no executable code of any kind** - its "executable" is a 17-byte `#!/bin/sh` no-op that exists only so macOS registers the bundle - and it is never launched. Custom SVGs are compiled into a symbol catalog inside it with `actool`. That is the whole mechanism: no extension, no daemon, no login item, no launch agent.
 
 Configuration lives in `~/Library/Application Support/SidebarFavorites/config.json`, and imported artwork in `Icons/` alongside it. Settings links straight to the helper bundle so you can see it for yourself.
+
+![Settings](docs/assets/settings.png)
 
 ## Uninstalling
 
