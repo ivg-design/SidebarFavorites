@@ -2,7 +2,9 @@ import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject var configManager: ConfigManager
-    @EnvironmentObject var lifecycleManager: LifecycleManager
+    @EnvironmentObject var coordinator: FavoriteSyncCoordinator
+    @ObservedObject private var iconStore = MenuBarIconStore.shared
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         // Show favorites
@@ -12,9 +14,18 @@ struct MenuBarView: View {
         } else {
             ForEach(configManager.config.favorites) { favorite in
                 Button(action: {
-                    lifecycleManager.revealInFinder(favorite.folderPath)
+                    coordinator.revealInFinder(favorite.folderPath)
                 }) {
-                    Label(favorite.name, systemImage: favorite.iconType == .sfSymbol ? favorite.iconValue : "folder")
+                    Label {
+                        Text(favorite.name)
+                    } icon: {
+                        if let image = iconStore.icons[favorite.id] {
+                            Image(nsImage: image)
+                                .renderingMode(.template)
+                        } else {
+                            Image(systemName: favorite.iconType == .sfSymbol ? favorite.iconValue : "folder")
+                        }
+                    }
                 }
             }
         }
@@ -23,33 +34,25 @@ struct MenuBarView: View {
 
         Button("Open SidebarFavorites...") {
             NSApp.activate(ignoringOtherApps: true)
-            if let window = NSApp.windows.first(where: { $0.title.contains("Sidebar") || $0.contentView != nil }) {
-                window.makeKeyAndOrderFront(nil)
-            } else {
-                // Open a new window if none exists
-                NSApp.windows.first?.makeKeyAndOrderFront(nil)
-            }
+            openWindow(id: "main")
         }
         .keyboardShortcut("o", modifiers: .command)
 
         Button("Refresh All") {
-            Task {
-                lifecycleManager.stopAll()
-                try? await lifecycleManager.startAllEnabled()
-                lifecycleManager.restartFinder()
+            Task { await coordinator.syncAll(force: true) }
+        }
+
+        if #available(macOS 14.0, *) {
+            SettingsLink {
+                Text("Preferences...")
             }
+            .keyboardShortcut(",", modifiers: .command)
+        } else {
+            Button("Preferences...") {
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+            .keyboardShortcut(",", modifiers: .command)
         }
-
-        Divider()
-
-        Button("Extensions Settings...") {
-            lifecycleManager.openExtensionsSettings()
-        }
-
-        Button("Preferences...") {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        }
-        .keyboardShortcut(",", modifiers: .command)
 
         Divider()
 
@@ -63,5 +66,5 @@ struct MenuBarView: View {
 #Preview {
     MenuBarView()
         .environmentObject(ConfigManager.shared)
-        .environmentObject(LifecycleManager.shared)
+        .environmentObject(FavoriteSyncCoordinator.shared)
 }

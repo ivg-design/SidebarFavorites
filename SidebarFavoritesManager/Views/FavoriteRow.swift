@@ -2,13 +2,12 @@ import SwiftUI
 
 struct FavoriteRow: View {
     let favorite: Favorite
-    let isRunning: Bool
-    let isExtensionEnabled: Bool
+    let inSidebar: Bool     // coordinator.boundItems[favorite.id] != nil
+    let isAdopted: Bool     // favorite.sidebarProvenance == .adopted
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onToggle: () -> Void
     let onReveal: () -> Void
-    let onOpenExtensions: () -> Void
 
     @State private var isHovering = false
 
@@ -62,30 +61,7 @@ struct FavoriteRow: View {
                     .help("Delete")
                 }
             } else {
-                // Status indicator
-                if !isExtensionEnabled && favorite.enabled {
-                    // Show clickable warning when extension is not enabled
-                    Button(action: onOpenExtensions) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("Enable Extension")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                    }
-                    .buttonStyle(.borderless)
-                    .help("Click to open System Settings and enable the extension")
-                } else {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(statusColor)
-                            .frame(width: 8, height: 8)
-                        Text(statusText)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                statusIndicator
             }
 
             // Enable/disable toggle
@@ -107,31 +83,47 @@ struct FavoriteRow: View {
         }
     }
 
+    @ViewBuilder
+    private var statusIndicator: some View {
+        let dot = HStack(spacing: 4) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+            Text(statusText)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+
+        if isAdopted {
+            dot.help("This row was already in your sidebar. Removing this favorite restores its normal icon but keeps the row.")
+        } else {
+            dot
+        }
+    }
+
     private var statusColor: Color {
         if !favorite.enabled {
             return .gray
         }
-        if !isExtensionEnabled {
-            return .red
-        }
-        return isRunning ? .green : .orange
+        return inSidebar ? .green : .orange
     }
 
     private var statusText: String {
         if !favorite.enabled {
             return "Disabled"
         }
-        if !isExtensionEnabled {
-            return "Extension Off"
-        }
-        return isRunning ? "Active" : "Starting..."
+        return inSidebar ? "In Sidebar" : "Not in Sidebar"
     }
 
     @ViewBuilder
     private var iconImage: some View {
         if favorite.iconType == .custom, let svgPath = favorite.customSVGPath {
             let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
-            SVGThumbnailView(url: url, size: 36)
+            SVGThumbnailView(
+                url: url,
+                size: 36,
+                iconScale: CGFloat(favorite.effectiveIconScale)
+            )
         } else {
             Image(systemName: favorite.iconValue)
         }
@@ -142,24 +134,32 @@ struct FavoriteRow: View {
     VStack(spacing: 0) {
         FavoriteRow(
             favorite: Favorite(name: "GitHub", folderPath: "~/github", iconValue: "folder.fill.badge.gearshape"),
-            isRunning: true,
-            isExtensionEnabled: true,
+            inSidebar: true,
+            isAdopted: false,
             onEdit: {},
             onDelete: {},
             onToggle: {},
-            onReveal: {},
-            onOpenExtensions: {}
+            onReveal: {}
+        )
+        Divider()
+        FavoriteRow(
+            favorite: Favorite(name: "Documents", folderPath: "~/Documents", iconValue: "doc.fill"),
+            inSidebar: true,
+            isAdopted: true,
+            onEdit: {},
+            onDelete: {},
+            onToggle: {},
+            onReveal: {}
         )
         Divider()
         FavoriteRow(
             favorite: Favorite(name: "Projects", folderPath: "~/Projects", iconValue: "star.fill", enabled: false),
-            isRunning: false,
-            isExtensionEnabled: false,
+            inSidebar: false,
+            isAdopted: false,
             onEdit: {},
             onDelete: {},
             onToggle: {},
-            onReveal: {},
-            onOpenExtensions: {}
+            onReveal: {}
         )
     }
     .frame(width: 400)

@@ -1,10 +1,21 @@
 import SwiftUI
 
-/// A SwiftUI view that renders an SF Symbol SVG file
-/// Extracts the Regular-S symbol variant and renders it using NSImage
+/// Draws a stored custom icon exactly the way the compiled symbol will be drawn.
+///
+/// "Exactly" is the whole point: the artwork goes through
+/// `SymbolValidator.glyphGeometry` and `SymbolTemplateSynthesizer.previewImage`,
+/// which is the same parse and the same fit `SymbolCatalogBuilder` compiles into
+/// the helper bundle. Up to 1.0 this view ran its own regex over the file looking
+/// for a `Regular-S` group, so an ordinary SVG - which has no such group - drew
+/// whatever the regex happened to land on, and a row could show a mark that was
+/// nowhere in the file.
 struct SVGThumbnailView: View {
     let url: URL
     let size: CGFloat
+
+    /// The favorite's optical size correction, so a row in the app's own list is
+    /// drawn at the size Finder will draw it and not at the uncorrected one.
+    var iconScale: CGFloat = CGFloat(Favorite.defaultIconScale)
 
     @State private var image: NSImage?
     @State private var isLoading = true
@@ -28,7 +39,9 @@ struct SVGThumbnailView: View {
             }
         }
         .frame(width: size, height: size)
-        .task(id: url) {
+        // Keyed on the scale as well as the file: rescaling a favorite changes what
+        // this has to draw without changing which file it draws.
+        .task(id: "\(url.absoluteString)|\(size)|\(iconScale)") {
             await loadThumbnail()
         }
     }
@@ -36,7 +49,7 @@ struct SVGThumbnailView: View {
     @MainActor
     private func loadThumbnail() async {
         isLoading = true
-        image = await SVGThumbnailCache.shared.thumbnail(for: url, size: size)
+        image = await SVGThumbnailCache.shared.thumbnail(for: url, size: size, iconScale: iconScale)
         isLoading = false
     }
 }
@@ -47,12 +60,18 @@ actor SVGThumbnailCache {
 
     private var cache: [String: NSImage] = [:]
 
-    private func cacheKey(url: URL, size: CGFloat) -> String {
-        "\(url.absoluteString)_\(Int(size))"
+    /// The URL stays the prefix so `invalidate(for:)` can still drop every
+    /// rendering of one file by matching on it.
+    private func cacheKey(url: URL, size: CGFloat, iconScale: CGFloat) -> String {
+        "\(url.absoluteString)_\(Int(size))_\(String(format: "%.3f", Double(iconScale)))"
     }
 
-    func thumbnail(for url: URL, size: CGFloat) async -> NSImage? {
-        let key = cacheKey(url: url, size: size)
+    func thumbnail(
+        for url: URL,
+        size: CGFloat,
+        iconScale: CGFloat = CGFloat(Favorite.defaultIconScale)
+    ) async -> NSImage? {
+        let key = cacheKey(url: url, size: size, iconScale: iconScale)
 
         // Check cache first
         if let cached = cache[key] {
@@ -60,7 +79,7 @@ actor SVGThumbnailCache {
         }
 
         // Generate thumbnail
-        let image = await generateThumbnail(for: url, size: size)
+        let image = generateThumbnail(for: url, size: size, iconScale: iconScale)
 
         // Cache it
         if let image {
@@ -80,166 +99,19 @@ actor SVGThumbnailCache {
         cache.removeAll()
     }
 
-    private func generateThumbnail(for url: URL, size: CGFloat) async -> NSImage? {
-        // Extract the Regular-S symbol region from the SF Symbol template SVG
-        guard let extractedSVG = extractSymbolSVG(from: url) else {
-            NSLog("SVGThumbnailCache: Failed to extract symbol from \(url.lastPathComponent)")
+    /// One parse, one fit - the same two calls `SymbolCatalogBuilder` makes when
+    /// it compiles this icon into the helper bundle's `Assets.car`.
+    private func generateThumbnail(for url: URL, size: CGFloat, iconScale: CGFloat) -> NSImage? {
+        do {
+            let geometry = try SymbolValidator.glyphGeometry(at: url)
+            return SymbolTemplateSynthesizer.previewImage(
+                for: geometry,
+                size: size,
+                iconScale: iconScale
+            )
+        } catch {
+            NSLog("SVGThumbnailCache: could not draw \(url.lastPathComponent): \(error.localizedDescription)")
             return nil
-        }
-
-        // Render using NSImage (supports SVG natively)
-        return renderSVGWithNSImage(svg: extractedSVG, size: size)
-    }
-
-    /// Extract just the Regular-S symbol variant from an SF Symbol template SVG
-    /// Creates a standalone SVG with proper viewBox for rendering
-    private func extractSymbolSVG(from url: URL) -> String? {
-        guard let content = try? String(contentsOf: url, encoding: .utf8) else {
-            return nil
-        }
-
-        // Find the Regular-S group boundaries from the Guides section
-        // Standard SF Symbol template coordinates for Regular-S (Small scale)
-        var baselineY: CGFloat = 696
-        var caplineY: CGFloat = 625.541
-        var leftMargin: CGFloat = 1394.79  // Default for Regular-S
-        var rightMargin: CGFloat = 1504.9  // Default for Regular-S
-
-        // Helper to extract number from attribute
-        func extractNumber(from text: String, attribute: String) -> CGFloat? {
-            let pattern = "\(attribute)=\"([0-9.]+)\""
-            guard let regex = try? NSRegularExpression(pattern: pattern),
-                  let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-                  let numRange = Range(match.range(at: 1), in: text) else {
-                return nil
-            }
-            return CGFloat(Double(text[numRange]) ?? 0)
-        }
-
-        // Parse Baseline-S (y coordinate)
-        if let range = content.range(of: "<line[^>]*id=\"Baseline-S\"[^>]*>", options: .regularExpression) {
-            let line = String(content[range])
-            if let y = extractNumber(from: line, attribute: "y1") {
-                baselineY = y
-            }
-        }
-
-        // Parse Capline-S (y coordinate)
-        if let range = content.range(of: "<line[^>]*id=\"Capline-S\"[^>]*>", options: .regularExpression) {
-            let line = String(content[range])
-            if let y = extractNumber(from: line, attribute: "y1") {
-                caplineY = y
-            }
-        }
-
-        // Parse left-margin-Regular-S (x coordinate)
-        if let range = content.range(of: "<line[^>]*id=\"left-margin-Regular-S\"[^>]*>", options: .regularExpression) {
-            let line = String(content[range])
-            if let x = extractNumber(from: line, attribute: "x1") {
-                leftMargin = x
-            }
-        }
-
-        // Parse right-margin-Regular-S (x coordinate)
-        if let range = content.range(of: "<line[^>]*id=\"right-margin-Regular-S\"[^>]*>", options: .regularExpression) {
-            let line = String(content[range])
-            if let x = extractNumber(from: line, attribute: "x1") {
-                rightMargin = x
-            }
-        }
-
-        // Calculate viewBox with padding
-        let padding: CGFloat = 5
-        let viewX = leftMargin - padding
-        let viewY = caplineY - padding
-        let viewWidth = (rightMargin - leftMargin) + (padding * 2)
-        let viewHeight = (baselineY - caplineY) + (padding * 2)
-
-        NSLog("SVGThumbnailCache: viewBox = \(viewX) \(viewY) \(viewWidth) \(viewHeight)")
-
-        // Extract the Regular-S group content
-        guard let regularSStart = content.range(of: "<g id=\"Regular-S\">"),
-              let regularSEnd = content.range(of: "</g>", range: regularSStart.upperBound..<content.endIndex) else {
-            NSLog("SVGThumbnailCache: Regular-S group not found")
-            // Fallback: try to find any path in Symbols group
-            guard let symbolsStart = content.range(of: "<g id=\"Symbols\">"),
-                  let symbolsEnd = content.range(of: "</g>", options: [], range: symbolsStart.upperBound..<content.endIndex) else {
-                return nil
-            }
-            let symbolsContent = String(content[symbolsStart.upperBound..<symbolsEnd.lowerBound])
-            return createStandaloneSVG(content: symbolsContent, viewBox: (viewX, viewY, viewWidth, viewHeight))
-        }
-
-        // Include the closing </g> tag
-        let groupContent = String(content[regularSStart.lowerBound...regularSEnd.upperBound])
-        NSLog("SVGThumbnailCache: Extracted Regular-S content, length: \(groupContent.count)")
-
-        return createStandaloneSVG(content: groupContent, viewBox: (viewX, viewY, viewWidth, viewHeight))
-    }
-
-    /// Create a standalone SVG string with the extracted symbol content
-    private func createStandaloneSVG(content: String, viewBox: (CGFloat, CGFloat, CGFloat, CGFloat)) -> String {
-        let (x, y, width, height) = viewBox
-        return """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="\(x) \(y) \(width) \(height)" width="\(width)" height="\(height)">
-            <style>
-                path, rect, circle, ellipse, polygon { fill: black; }
-            </style>
-            \(content)
-        </svg>
-        """
-    }
-
-    /// Render SVG string to NSImage
-    private func renderSVGWithNSImage(svg: String, size: CGFloat) -> NSImage? {
-        guard let svgData = svg.data(using: .utf8) else {
-            NSLog("SVGThumbnailCache: Failed to convert SVG to data")
-            return nil
-        }
-
-        guard let svgImage = NSImage(data: svgData) else {
-            NSLog("SVGThumbnailCache: NSImage failed to load SVG data")
-            return nil
-        }
-
-        // Create a new image at the target size
-        let targetSize = NSSize(width: size, height: size)
-        let scaledImage = NSImage(size: targetSize, flipped: false) { rect in
-            // Calculate aspect-fit rect
-            let svgSize = svgImage.size
-            let scale = min(rect.width / svgSize.width, rect.height / svgSize.height)
-            let scaledWidth = svgSize.width * scale
-            let scaledHeight = svgSize.height * scale
-            let x = (rect.width - scaledWidth) / 2
-            let y = (rect.height - scaledHeight) / 2
-
-            svgImage.draw(in: NSRect(x: x, y: y, width: scaledWidth, height: scaledHeight))
-            return true
-        }
-
-        scaledImage.isTemplate = true
-        return scaledImage
-    }
-}
-
-// MARK: - SymbolValidator extension for SVG rendering
-
-extension SymbolValidator {
-    /// Render a preview using NSImage (accurate SVG rendering)
-    /// This replaces the custom path parser with native SVG support
-    static func renderPreviewQL(from url: URL, size: CGFloat = 24) async -> NSImage? {
-        return await SVGThumbnailCache.shared.thumbnail(for: url, size: size)
-    }
-
-    /// Synchronous wrapper for places that can't use async
-    /// Uses a completion handler pattern
-    static func renderPreviewQL(from url: URL, size: CGFloat = 24, completion: @escaping (NSImage?) -> Void) {
-        Task {
-            let image = await SVGThumbnailCache.shared.thumbnail(for: url, size: size)
-            await MainActor.run {
-                completion(image)
-            }
         }
     }
 }

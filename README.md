@@ -1,246 +1,130 @@
 # SidebarFavorites
 
-Add custom folders to macOS Finder's sidebar with custom designed and/or SF Symbol icons.
+Give the folders in macOS Finder's sidebar the icons you want, instead of identical grey folders.
 
 ![macOS](https://img.shields.io/badge/macOS-13.0+-blue)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Demo
-
-https://github.com/user-attachments/assets/227c2f6d-0cd1-40fa-88e5-d5e66bb2aad7
-
-## Overview
-
-SidebarFavorites lets you customize the Finder sidebar with your own icons. Instead of seeing generic folder icons, you can display any SF Symbol (including custom ones) for your favorite folders.
-
 ![Finder Sidebar with Custom Icons](docs/assets/example.png)
 
-## Features
+## What it does
 
-- **Custom SF Symbol Icons**: Use any built-in SF Symbol or create your own
-- **Multiple Favorites**: Manage as many custom sidebar folders as you want
-- **Manager App**: Easy-to-use GUI for adding and managing favorites
-- **Automatic Generation**: The Manager app automatically creates and configures icon apps
-- **Persistent**: Icons survive restarts and Finder relaunches
+Pick a folder, pick an icon - any SF Symbol, or any SVG of your own - and SidebarFavorites puts the folder in Finder's sidebar with that icon on it.
+
+- Works for **local folders, iCloud Drive, and `~/Library/CloudStorage`** (Google Drive, Dropbox, OneDrive, …).
+- **Nothing to enable** in System Settings. No Finder extensions are involved.
+- **Nothing runs in the background.** Icons survive reboots and Finder restarts on their own.
+- The app adds and removes the sidebar row for you. Rows you added yourself are left where they are - it only puts an icon on them.
+
+The app is only needed when you want to add, edit or remove a favorite. Quit it and the icons stay.
+
+## Install
+
+1. Download the latest DMG from [Releases](https://github.com/ivg-design/SidebarFavorites/releases).
+2. Drag **SidebarFavorites Manager** to Applications.
+3. Open it.
+
+Releases are Developer ID signed, notarized and stapled, so it opens normally - there is no Gatekeeper detour and no "Open Anyway" step.
+
+Requires macOS 13.0 (Ventura) or later.
+
+## Quick start
 
 ![Manager App](docs/assets/main-screen.png)
 
-## How It Works
+1. Click **+** (or press ⌘N).
+2. Give it a **name** and pick the **folder** (Browse, or type a path - `~` works).
+3. Choose the icon:
+   - **SF Symbol** - type a name like `hammer.fill` or `star.circle`, or click one of the quick picks.
+   - **Custom SVG** - click *Import SVG…* and pick any SVG file.
+4. **Add**. The folder appears in Finder's sidebar with your icon.
 
-macOS Finder Sync extensions can provide custom icons for folders in the sidebar. This project leverages the `CFBundleSymbolName` property to display SF Symbols. Each favorite folder requires its own small app bundle with a Finder Sync extension.
+If Finder is still showing an old icon, a banner appears with a **Restart Finder** button. The app never restarts Finder on its own.
 
-The **SidebarFavorites Manager** app automates this process:
-1. You specify a folder path and choose an icon
-2. The Manager generates a dedicated icon app from a template
-3. The icon app's extension monitors your folder
-4. When you drag the folder to Favorites, it shows your custom icon
+## Custom icons
 
-### Do I Need to Keep the Manager Running?
+Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector shapes. There is nothing to prepare: no SF Symbols template to export, no guide boxes to draw inside, no naming field to get right. The app parses the file, flattens it to a single outline and builds the SF Symbol around it.
 
-**No!** The Manager app is only needed for setup and configuration. Once you've:
-1. Added your favorites
-2. Enabled the extensions in System Settings
+- **Live preview.** You see the exact silhouette that will ship, both enlarged and in a mock sidebar row at the real 16 pt size.
+- **Size slider (50-150%).** 100% is exactly the size of a system SF Symbol - the right measurement, not always the right look, since a wide or busy mark reads heavier than a sparse one at the same size. Nudge it until it sits comfortably next to the rest of the sidebar; the preview follows as you drag.
+- **Apply** saves, rebuilds the icon and restarts Finder in one click without closing the sheet, so you can tune the size against the real sidebar.
+- The app tells you what it had to drop or flatten: embedded photos and PNGs (a symbol cannot contain raster), live text that was never outlined, colours and gradients, and artwork too fine, too dense or too wide to read at sidebar size. These are warnings, not rejections.
 
-You can close the Manager app. The sidebar icons will:
-- **Persist across reboots** - macOS automatically restarts FinderSync extensions
-- **Work independently** - The icon apps run as separate processes managed by the system
-- **Survive Finder restarts** - Icons reappear automatically
+> **Sidebar icons are always monochrome.** Finder draws them as a flat silhouette tinted to match the sidebar. Colour is impossible there - that is a macOS rule, not a limitation of this app. The preview shows you the silhouette, so there are no surprises.
 
-**The Manager app is only needed when you want to:**
-- Add, edit, or delete favorites
-- Troubleshoot extension issues
-- Export custom icon templates
+## Cloud folders
 
-## Installation
+Folders in iCloud Drive and `~/Library/CloudStorage` work exactly like local ones. **This did not work in any version before 1.0** - those paths are virtual FileProvider mounts that Finder Sync extensions cannot see, and the old mechanism depended on such an extension. The symlink workaround the old README described is no longer needed; if you set one up, the favorite pointing at it keeps working, and you can also just point it at the real folder now.
 
-### Requirements
+## How it works
 
-- macOS 13.0 (Ventura) or later
-- **No Apple Developer certificate required** - The app uses ad-hoc signing by default. For best results (extensions appearing in System Settings), an Apple Developer certificate is recommended but optional.
+Every row in Finder's Favorites list can carry a private per-item property, `com.apple.LSSharedFileList.OverrideIcon.OSType`, holding a four-character code. Finder resolves that code to an icon through Launch Services. SidebarFavorites allocates one such code per favorite, sets it on the row, and installs a single small helper bundle at:
 
-### Option 1: Download Pre-built DMG (Recommended)
+```
+~/Library/Application Support/SidebarFavorites/SidebarFavoritesIcons.app
+```
 
-1. Download the latest DMG from [Releases](https://github.com/ivg-design/SidebarFavorites/releases)
-2. Open the DMG and drag **SidebarFavorites Manager** to Applications
-3. **First run**: Right-click the app → Open → Click "Open" in the dialog (required once for unsigned apps)
+That bundle declares one UTI per favorite, tagging it with the favorite's code and pointing it at an SF Symbol. It contains **no executable code of any kind** - its "executable" is a 17-byte `#!/bin/sh` no-op that exists only so macOS registers the bundle - and it is never launched. Custom SVGs are compiled into a symbol catalog inside it with `actool`. That is the whole mechanism: no extension, no daemon, no login item, no launch agent.
 
-No Xcode or developer tools needed!
+Configuration lives in `~/Library/Application Support/SidebarFavorites/config.json`, and imported artwork in `Icons/` alongside it. Settings links straight to the helper bundle so you can see it for yourself.
 
-### Option 2: Build from Source
+## Uninstalling
+
+1. In the app, delete your favorites. This removes the sidebar rows the app added and restores the original icon on rows you added yourself. (Settings → **Remove All Sidebar Icons** does the same in one step and also deletes the helper bundle; it tells you exactly what it will do first.)
+2. Drag **SidebarFavorites Manager** to the Trash.
+3. Optionally delete `~/Library/Application Support/SidebarFavorites`.
+
+## Building from source
 
 Requires Xcode 15+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
-# Clone the repository
 git clone https://github.com/ivg-design/SidebarFavorites.git
 cd SidebarFavorites
-
-# Install XcodeGen if needed
-brew install xcodegen
-
-# Generate Xcode project
+brew install xcodegen        # if needed
 xcodegen generate
-
-# Build the Manager app (Release configuration)
 xcodebuild -scheme SidebarFavoritesManager -configuration Release
-
-# The built app is at:
-# ~/Library/Developer/Xcode/DerivedData/SidebarFavorites-*/Build/Products/Release/SidebarFavorites Manager.app
 ```
 
-To create a distributable DMG:
+To produce a distributable DMG:
+
 ```bash
 ./scripts/build-release.sh
 ```
 
-### Option 3: Nix (Flakes)
+The script finds a **Developer ID Application** identity in your keychain and signs with it (hardened runtime, timestamped), falling back to ad-hoc signing with a warning if there is none. Override it with `SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)"`.
 
-For [Nix](https://nixos.org/) users on macOS:
+Notarization runs automatically when a Developer ID identity *and* a notarization keychain profile are both available; set `NOTARIZE=0` to skip it. The profile defaults to `SidebarFavoritesNotary` (override with `NOTARY_PROFILE`) and is created once per machine - run this yourself in Terminal, it stores an app-specific password in your keychain:
 
 ```bash
-# Run directly
+xcrun notarytool store-credentials SidebarFavoritesNotary \
+    --apple-id "you@example.com" \
+    --team-id "TEAMID" \
+    --password "app-specific-password"
+```
+
+### Nix (flakes)
+
+```bash
 nix run github:ivg-design/SidebarFavorites
-
-# Or install to your profile
-nix profile install github:ivg-design/SidebarFavorites
-
-# Or add to your flake.nix inputs
-{
-  inputs.sidebarfavorites.url = "github:ivg-design/SidebarFavorites";
-}
 ```
 
-*Thanks to [@rohanp2051](https://github.com/rohanp2051) for the initial Nix package!*
-
-## Usage
-
-### Using the Manager App
-
-1. **Launch** SidebarFavorites Manager
-2. **Add a Favorite**: Click the `+` button
-3. **Configure**:
-   - **Name**: Display name for the favorite
-   - **Folder Path**: Click Browse or enter path (supports `~`)
-   - **Icon**: Choose an SF Symbol or import a custom SVG
-4. **Save**: The Manager generates the icon app automatically
-5. **Enable Extension**: Go to System Settings → Login Items & Extensions → Extensions → Finder and enable your new favorite
-6. **Add to Sidebar**: Drag the folder to Finder's Favorites section
-
-![Add Favorite Dialog](docs/assets/add-favorites.png)
-
-### Using Custom SF Symbol Icons
-
-1. Create your symbol using the [SF Symbols app](https://developer.apple.com/sf-symbols/)
-2. Export as SVG template (File → Export Symbol)
-3. Edit the SVG in your preferred editor
-4. Import via the Manager app's "Custom SVG" option
-
-**Important**: The symbol name is defined inside the SVG file in the `descriptive-name` field. This name is automatically extracted during import.
-
-## Project Structure
-
-```
-SidebarFavorites/
-├── SidebarFavoritesManager/    # Main GUI application
-│   ├── Models/                 # Data models (Favorite, etc.)
-│   ├── Views/                  # SwiftUI views
-│   └── Services/               # Icon generation, lifecycle management
-├── IconAppTemplate/            # Template for generated icon apps
-│   ├── IconApp/                # Main app bundle template
-│   └── FinderSync/             # Finder Sync extension template
-├── SidebarFavorites/           # Standalone prototype app
-├── SidebarFavoritesSync/       # Prototype's Finder Sync extension
-├── scripts/                    # Utility scripts
-├── icons/                      # Example SF Symbol SVGs
-└── docs/                       # Technical documentation
-```
-
-## Technical Details
-
-### Key Concepts
-
-- **CFBundleSymbolName**: The `Info.plist` key that specifies the SF Symbol to use as the app icon (and sidebar icon)
-- **Finder Sync Extension**: An app extension type (`com.apple.FinderSync`) that can monitor folders and provide UI integration
-- **Assets.car**: Compiled asset catalog containing custom SF Symbols
-
-### Important Notes
-
-1. **Code Signing**: The Manager app automatically signs generated icon apps. You can configure the signing method in Settings:
-   - **Automatic (recommended)**: Uses your Apple Development certificate if available, otherwise falls back to ad-hoc signing
-   - **Ad-hoc**: Works without any certificate, but extensions may not appear in System Settings on some machines
-   - **Apple Development / Developer ID**: Requires an Apple Developer Program membership
-
-   ![Code Signing Settings](docs/assets/new-settings.png)
-
-2. **Finder Cache**: Finder caches sidebar icons aggressively. After changing an icon, restart Finder: `killall Finder`
-
-3. **One App Per Icon**: Each unique sidebar icon requires its own app bundle. The Manager app handles this automatically.
-
-### Generated App Location
-
-Icon apps are stored in:
-```
-~/Library/Application Support/SidebarFavorites/Apps/
-```
-
-Configuration is stored in:
-```
-~/Library/Application Support/SidebarFavorites/config.json
-```
-
-## Troubleshooting
-
-### Icon Not Appearing
-
-1. Ensure the extension is enabled in System Settings → Privacy & Security → Extensions → Finder Extensions
-2. Restart Finder: `killall Finder`
-3. Remove the folder from sidebar and re-add it
-
-### Extension Not Showing in System Settings
-
-1. Check that the app is properly signed: `codesign -dv /path/to/app`
-2. Re-register with Launch Services: `lsregister -f -R -trusted /path/to/app`
-3. Try rebuilding the app
-
-### Blank Square Instead of Icon
-
-The SF Symbol name must match the `descriptive-name` field in the SVG exactly. The Manager app extracts this automatically, but if using manual methods, verify the name matches.
-
-### Cloud Storage Folders (Google Drive, iCloud, Dropbox, etc.)
-
-**Problem**: Folders in `~/Library/CloudStorage/` (FileProvider mounts) don't support FinderSync sidebar icons. This is a macOS limitation, not a bug.
-
-**Workaround**: Create a symlink to the cloud folder and use the symlink as your favorite:
-
-```bash
-# Example for Google Drive
-ln -s ~/Library/CloudStorage/GoogleDrive-you@gmail.com/My\ Drive/Projects ~/Projects-gdrive
-
-# Then add ~/Projects-gdrive as your favorite in the Manager app
-```
-
-The symlink will appear in Finder's sidebar with your custom icon, and clicking it will open the actual cloud folder.
-
-**Why this works**: Symlinks are regular filesystem objects that FinderSync can monitor, while CloudStorage paths are virtual FileProvider mounts that bypass FinderSync entirely.
+This installs the released DMG rather than building from source, and `nix/default.nix` is currently pinned to an older release. *Thanks to [@rohanp2051](https://github.com/rohanp2051) for the initial Nix package.*
 
 ## Documentation
 
-- [Technical Setup Guide](docs/PROTOTYPE_SETUP.md) - Detailed manual setup instructions
-- [Manager App Architecture](docs/SUMMARY.md) - Overview of how components work together
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues and pull requests.
+- [Architecture](docs/ARCHITECTURE.md) - how the icon mechanism, the SVG pipeline and the migration work, for contributors.
+- [Changelog](CHANGELOG.md)
 
 ## Credits
 
 - Inspired by [rknightuk/custom-finder-sidebar-icons](https://github.com/rknightuk/custom-finder-sidebar-icons)
-- Uses Apple's SF Symbols framework
+- Uses Apple's SF Symbols
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE).
 
 ---
 
