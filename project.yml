@@ -11,7 +11,10 @@ settings:
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "-"
     DEAD_CODE_STRIPPING: YES
-    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    # NO is load-bearing: the Increment Build Number script writes CFBundleVersion
+    # back into the source Info.plist, and the script sandbox blocks writes to
+    # SRCROOT - with sandboxing on, every build silently stays at the same number.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:
   # Main Manager App
@@ -37,8 +40,11 @@ targets:
             BUILD_NUM=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST_PATH" 2>&1 | grep -E '^[0-9]+$' || echo "0")
             if [ -z "$BUILD_NUM" ]; then BUILD_NUM=0; fi
             NEW_BUILD_NUM=$((BUILD_NUM + 1))
-            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD_NUM" "$PLIST_PATH" 2>/dev/null
-            echo "Build number: $NEW_BUILD_NUM"
+            if /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEW_BUILD_NUM" "$PLIST_PATH"; then
+              echo "Build number: $NEW_BUILD_NUM"
+            else
+              echo "warning: Increment Build Number could not write $PLIST_PATH (still at $BUILD_NUM)" >&2
+            fi
           fi
         basedOnDependencyAnalysis: false
 

@@ -163,6 +163,18 @@ struct Favorite: Identifiable, Codable, Equatable {
         iconType == .custom ? iconScale : Favorite.defaultIconScale
     }
 
+    /// The only name a favorite may carry: its folder's actual name.
+    ///
+    /// Finder always paints a Favorites row with the folder's real name - a
+    /// custom label stored on the row is kept in the list database but never
+    /// displayed (measured), and rows pointing at symlinks or aliases show their
+    /// name but stop accepting drops. So a freely editable name could never be
+    /// more than an in-app label that contradicts what the sidebar shows, and
+    /// `name` is pinned to this instead: derived on load, on add and on edit.
+    static func canonicalName(forFolderPath path: String) -> String {
+        URL(fileURLWithPath: (path as NSString).expandingTildeInPath).lastPathComponent
+    }
+
     /// Returns the expanded folder path (resolving ~)
     var expandedFolderPath: String {
         (folderPath as NSString).expandingTildeInPath

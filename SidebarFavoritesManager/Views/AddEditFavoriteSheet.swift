@@ -149,8 +149,10 @@ struct AddEditFavoriteSheet: View {
             // Form
             Form {
                 Section {
-                    TextField("Name", text: $name)
-                        .textFieldStyle(.roundedBorder)
+                    LabeledContent("Name") {
+                        Text(name.isEmpty ? "Choose a folder" : name)
+                            .foregroundColor(name.isEmpty ? .secondary : .primary)
+                    }
 
                     HStack {
                         TextField("Folder Path", text: $folderPath)
@@ -160,9 +162,12 @@ struct AddEditFavoriteSheet: View {
                         }
                     }
 
-                    Text("This folder will be added to Finder's sidebar automatically.")
+                    Text("This folder will be added to Finder's sidebar automatically. The row is named after the folder - Finder always shows a favorite under its folder's real name.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+                .onChange(of: folderPath) { newPath in
+                    name = Favorite.canonicalName(forFolderPath: newPath)
                 }
 
                 Section("Icon") {
@@ -218,7 +223,9 @@ struct AddEditFavoriteSheet: View {
         .onAppear {
             if let favorite = existingFavorite {
                 favoriteID = favorite.id
-                name = favorite.name
+                // Derived, not read back: a config written by a build that let
+                // the name be edited may still carry a custom one.
+                name = Favorite.canonicalName(forFolderPath: favorite.folderPath)
                 folderPath = favorite.folderPath
                 iconType = favorite.iconType
                 iconValue = favorite.iconValue
@@ -695,10 +702,8 @@ struct AddEditFavoriteSheet: View {
         panel.prompt = "Select"
 
         if panel.runModal() == .OK, let url = panel.url {
+            // The name follows via the form's onChange(of: folderPath).
             folderPath = url.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")
-            if name.isEmpty {
-                name = url.lastPathComponent
-            }
         }
     }
 
