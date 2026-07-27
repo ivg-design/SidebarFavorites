@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-07-27
+
+### Removed
+
+- **The name field is no longer editable - a favorite is always named after its folder.** The editable name was a false promise: Finder always paints a Favorites row with the folder's real name. A custom label written to the row is stored in the list database but never displayed, and the two indirection mechanisms that do show a custom name - a row pointing at a symlink, or at a Finder alias - both stop accepting drag and drop and no longer spring open (all measured). Rather than ship a name that only exists inside the manager, or rows that break dropping, the name now tracks the folder: it is derived from the folder path when adding, editing and loading, and configs carrying old custom names are normalized on load. Renaming a sidebar favorite means renaming the folder, because that is the only rename Finder respects.
+
+### Fixed
+
+- The Increment Build Number build phase had been failing silently on every build since 1.0.1 (Xcode's script sandbox blocked its write to the source Info.plist, and the script discarded the error), so every build reported the same build number. The sandbox is now disabled for the script, and a failure to bump is reported loudly.
+
 ## [1.0.1] - 2026-07-26
 
 Fixes found by an adversarial review of the 1.0.0 release. 21 issues confirmed, 12 claims refuted.

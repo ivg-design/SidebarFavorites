@@ -90,7 +90,16 @@ final class ConfigManager: ObservableObject {
         if fileManager.fileExists(atPath: configFileURL.path) {
             do {
                 let data = try Data(contentsOf: configFileURL)
-                self.config = try decoder.decode(Config.self, from: data)
+                var loaded = try decoder.decode(Config.self, from: data)
+                // A favorite's name is always its folder's actual name (see
+                // `Favorite.canonicalName`). Configs written by builds that let
+                // the name be edited are normalized here; not saved back until
+                // something else saves, since the derivation is deterministic.
+                for index in loaded.favorites.indices {
+                    loaded.favorites[index].name =
+                        Favorite.canonicalName(forFolderPath: loaded.favorites[index].folderPath)
+                }
+                self.config = loaded
             } catch {
                 NSLog("ConfigManager: failed to load config.json (\(error.localizedDescription)); backing up and starting fresh")
                 let backupURL = configFileURL.deletingLastPathComponent()
@@ -123,7 +132,9 @@ final class ConfigManager: ObservableObject {
 
     /// Add a new favorite
     func addFavorite(_ favorite: Favorite) throws {
-        config.favorites.append(favorite)
+        var added = favorite
+        added.name = Favorite.canonicalName(forFolderPath: added.folderPath)
+        config.favorites.append(added)
         try save()
     }
 
@@ -133,6 +144,7 @@ final class ConfigManager: ObservableObject {
             throw ConfigError.favoriteNotFound
         }
         var updated = favorite
+        updated.name = Favorite.canonicalName(forFolderPath: updated.folderPath)
         updated.markUpdated()
         config.favorites[index] = updated
         try save()

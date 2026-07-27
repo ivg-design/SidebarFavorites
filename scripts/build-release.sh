@@ -97,6 +97,14 @@ else
     if xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" > /dev/null 2>&1; then
         DO_NOTARIZE=1
         echo "Found notarization profile. The app and DMG will be notarized and stapled."
+    elif [ -z "${NOTARY_PROFILE_EXPLICIT:-}" ] && xcrun notarytool history --keychain-profile "eXLib-notary" > /dev/null 2>&1; then
+        # The credentials on this machine were stored once, under the name used by
+        # the first project that needed them. Same Apple ID, same team - reuse it
+        # rather than silently shipping an un-notarized build (which is exactly
+        # what happened to the first 1.0.2 build attempt).
+        NOTARY_PROFILE="eXLib-notary"
+        DO_NOTARIZE=1
+        echo "Profile not found; falling back to keychain profile 'eXLib-notary'."
     else
         echo "NOTE: No notarization keychain profile named '$NOTARY_PROFILE' was found."
         echo "NOTE: To enable automatic notarization, create one with:"
