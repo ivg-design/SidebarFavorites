@@ -40,6 +40,16 @@ static LSSharedFileListRef SFLCreateFavoritesList(void) {
     return LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
 }
 
+/// The list behind Finder's **Locations** section.
+///
+/// Finder populates and prunes this itself as volumes mount and unmount - unlike
+/// Favorites, rows are never ours and must never be inserted or removed. The only
+/// safe operation is setting or clearing the icon override on a row that is
+/// already there, which is why this list has no upsert path anywhere below.
+static LSSharedFileListRef SFLCreateVolumesList(void) {
+    return LSSharedFileListCreate(NULL, CFSTR("com.apple.LSSharedFileList.FavoriteVolumes"), NULL);
+}
+
 /// Resolves a row to a file-system path, or nil when the bookmark is stale.
 ///
 /// kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes keeps a
@@ -367,6 +377,81 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
     }
     return YES;
 }
+
+#pragma mark - Locations (FavoriteVolumes)
+
+/// Row in Finder's Locations section matching `path`, or NULL.
+///
+/// Rows carrying a `SpecialItemIdentifier` are skipped: iCloud Drive, Computer,
+/// AirDrop and the File Provider entries store an override happily and never draw
+/// it (measured), so stamping one would report a success the user cannot see.
+static LSSharedFileListItemRef SFLVolumeRowForPath(CFArrayRef snapshot, NSString *path) {
+    CFIndex count = CFArrayGetCount(snapshot);
+    for (CFIndex index = 0; index < count; index++) {
+        LSSharedFileListItemRef item = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, index);
+
+        CFTypeRef special = LSSharedFileListItemCopyProperty(item, CFSTR("com.apple.LSSharedFileList.SpecialItemIdentifier"));
+        if (special != NULL) {
+            CFRelease(special);
+            continue;
+        }
+
+        NSString *resolved = SFLResolvedPath(item);
+        if (resolved != nil && [resolved isEqualToString:path]) {
+            return item;
+        }
+    }
+    return NULL;
+}
+
++ (BOOL)setOSType:(nullable NSString *)osType
+   forVolumePath:(NSString *)path
+            error:(NSError **)error {
+    if (osType != nil && !SFLIsWellFormedOSType(osType)) {
+        return SFLFail(error, SFLBridgeErrorCodeInvalidOSType,
+                       [NSString stringWithFormat:@"'%@' is not a valid 4-character icon code.", osType]);
+    }
+
+    LSSharedFileListRef list = SFLCreateVolumesList();
+    if (list == NULL) {
+        return SFLFail(error, SFLBridgeErrorCodeListUnavailable, @"Finder's Locations list is unavailable.");
+    }
+
+    UInt32 seed = 0;
+    CFArrayRef snapshot = LSSharedFileListCopySnapshot(list, &seed);
+    if (snapshot == NULL) {
+        CFRelease(list);
+        return SFLFail(error, SFLBridgeErrorCodeSnapshotFailed, @"Couldn't read Finder's Locations list.");
+    }
+
+    LSSharedFileListItemRef row = SFLVolumeRowForPath(snapshot, path);
+    OSStatus status = noErr;
+    if (row != NULL) {
+        // kCFNull is the documented "remove this" value here; passing NULL
+        // SIGSEGVs, and unlike Favorites this list must never be re-inserted into.
+        // Re-setting the SAME value is also what repaints a Locations row, so this
+        // one call covers apply, repair and clear.
+        status = LSSharedFileListItemSetProperty(row,
+                                                 (__bridge CFStringRef)SFLOverrideIconOSTypeKey,
+                                                 osType != nil ? (__bridge CFTypeRef)osType : (CFTypeRef)kCFNull);
+    }
+
+    CFRelease(snapshot);
+    CFRelease(list);
+
+    if (row == NULL) {
+        // Not an error: the volume simply is not mounted, or Finder is not showing
+        // it. Callers treat this as "nothing to do".
+        return YES;
+    }
+    if (status != noErr) {
+        return SFLFail(error, status,
+                       [NSString stringWithFormat:@"Couldn't set the Locations icon (error %d).", (int)status]);
+    }
+    return YES;
+}
+
+#pragma mark - Removing
 
 + (BOOL)removeItemID:(uint32_t)itemID error:(NSError **)error {
     LSSharedFileListRef list = SFLCreateFavoritesList();

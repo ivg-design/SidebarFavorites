@@ -15,6 +15,24 @@ struct AddEditFavoriteSheet: View {
 
     @State private var name: String = ""
     @State private var folderPath: String = ""
+    @State private var locationsOnly: Bool = false
+
+    /// Locations only makes sense for a mounted volume, so the toggle is offered
+    /// only when the chosen path is one.
+    private var targetIsVolume: Bool {
+        let expanded = (folderPath as NSString).expandingTildeInPath
+        guard !expanded.isEmpty else { return false }
+        return (try? URL(fileURLWithPath: expanded).resourceValues(forKeys: [.isVolumeKey]).isVolume) == true
+    }
+
+    /// The custom icon this target carries itself, when it has one. Present means
+    /// the sidebar icon will keep vanishing until it is dealt with.
+    @State private var iconAuthority: IconAuthority.Detection?
+
+    /// Where its icon was backed up to, once removed - shown so the user knows a
+    /// copy exists and where.
+    @State private var iconAuthorityBackup: URL?
+    @State private var iconAuthorityError: String?
     @State private var iconType: Favorite.IconType = .sfSymbol
     @State private var iconValue: String = "folder.fill"
     @State private var customSVGPath: String?
@@ -165,9 +183,21 @@ struct AddEditFavoriteSheet: View {
                     Text("This folder will be added to Finder's sidebar automatically. The row is named after the folder - Finder always shows a favorite under its folder's real name.")
                         .font(.caption)
                         .foregroundColor(.secondary)
+
+                    if targetIsVolume {
+                        Toggle("Show in Locations only", isOn: $locationsOnly)
+                        Text("Finder already lists mounted disks and servers under Locations. This icons that row instead of adding a second one under Favorites.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    if let detection = iconAuthority {
+                        ownIconWarning(detection)
+                    }
                 }
                 .onChange(of: folderPath) { newPath in
                     name = Favorite.canonicalName(forFolderPath: newPath)
+                    refreshIconAuthority(for: newPath)
                 }
 
                 Section("Icon") {
@@ -227,6 +257,10 @@ struct AddEditFavoriteSheet: View {
                 // the name be edited may still carry a custom one.
                 name = Favorite.canonicalName(forFolderPath: favorite.folderPath)
                 folderPath = favorite.folderPath
+                // Editing an existing favorite: the target may have acquired its
+                // own icon since it was added, which is worth saying here too.
+                locationsOnly = favorite.locationsOnly
+                refreshIconAuthority(for: favorite.folderPath)
                 iconType = favorite.iconType
                 iconValue = favorite.iconValue
                 customSVGPath = favorite.customSVGPath
@@ -692,6 +726,63 @@ struct AddEditFavoriteSheet: View {
 
     // MARK: - Actions
 
+    /// Warns that the target carries its own icon, and offers to remove it.
+    ///
+    /// Deliberately inline and non-blocking rather than an alert on save: it is a
+    /// real choice, not an error, and the favorite works either way - the icon
+    /// just needs re-applying whenever the target changes.
+    @ViewBuilder
+    private func ownIconWarning(_ detection: IconAuthority.Detection) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(detection.summary, systemImage: "exclamationmark.triangle.fill")
+                .foregroundColor(.orange)
+                .font(.callout)
+
+            Text(detection.explanation)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let backup = iconAuthorityBackup {
+                Text("Removed. A copy is in \(backup.deletingLastPathComponent().path).")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else if let error = iconAuthorityError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+            } else {
+                HStack {
+                    Button("Remove Its Icon") { removeOwnIcon(detection) }
+                    Button("Keep It") { iconAuthority = nil }
+                        .buttonStyle(.borderless)
+                }
+                .padding(.top, 2)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func refreshIconAuthority(for path: String) {
+        iconAuthorityBackup = nil
+        iconAuthorityError = nil
+        let expanded = (path as NSString).expandingTildeInPath
+        iconAuthority = expanded.isEmpty ? nil : IconAuthority.detect(atPath: expanded)
+    }
+
+    private func removeOwnIcon(_ detection: IconAuthority.Detection) {
+        do {
+            let backup = try IconAuthority.remove(
+                detection,
+                backupDirectory: ConfigManager.shared.appSupportURL.appendingPathComponent("IconBackups")
+            )
+            iconAuthorityBackup = backup
+            iconAuthorityError = nil
+        } catch {
+            iconAuthorityError = "Couldn't remove it: \(error.localizedDescription)"
+        }
+    }
+
     private func openFolderPicker() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
@@ -753,6 +844,9 @@ struct AddEditFavoriteSheet: View {
         favorite.iconValue = iconValue
         favorite.customSVGPath = customSVGPath
         favorite.iconScale = iconScale
+        // A folder can never live in Locations, so the flag is not allowed to
+        // survive re-pointing a favorite at one.
+        favorite.locationsOnly = locationsOnly && targetIsVolume
         favorite.markUpdated()
         return favorite
     }

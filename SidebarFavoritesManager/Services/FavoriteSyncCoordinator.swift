@@ -560,7 +560,13 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         phase = .reconciling
         let rows = await enqueue {
-            SidebarReconciler.reconcile(favorites: reconciled) { update in
+            // A forced pass is the user asking for repair (Refresh, or the first
+            // pass after launch). Rows whose stored state already looks right are
+            // rewritten anyway, because Finder can be drawing something else.
+            SidebarReconciler.reconcile(
+                favorites: reconciled,
+                restamp: force ? .forced : .none
+            ) { update in
                 // Checkpoint: a binding for a row we have just inserted reaches
                 // config.json before the next favorite is touched, so an interrupted
                 // pass cannot strand an app-created row as one we may never remove.
@@ -802,8 +808,25 @@ private enum SidebarReconciler {
     /// `checkpoint` is called with each binding the moment it is decided, so the
     /// caller can persist it before the pass moves on; the same bindings are also
     /// returned in `outcome` for the caller's own idempotent write at the end.
+    /// Rewrite every bound row's icon even when it already carries the right code.
+    ///
+    /// Finder can stop drawing a row's override while the property itself is
+    /// still on the row: measured on macOS 26, any metadata change on a target
+    /// that has an icon of its own (a folder with a custom Finder icon, a volume
+    /// with `.VolumeIcon.icns`) makes Finder repaint that target's own icon over
+    /// ours. Nothing about the stored state changed, so an ordinary reconcile
+    /// sees nothing to do and the user's Refresh appears to do nothing.
+    ///
+    /// Rewriting the row - not the property - is what makes Finder redraw it.
+    struct RestampPolicy: Sendable {
+        static let none = RestampPolicy(isForced: false)
+        static let forced = RestampPolicy(isForced: true)
+        let isForced: Bool
+    }
+
     static func reconcile(
         favorites: [Favorite],
+        restamp: RestampPolicy = .none,
         checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
     ) -> RowOutcome {
         var outcome = RowOutcome()
@@ -820,10 +843,17 @@ private enum SidebarReconciler {
         // pass, and this also heals a config that already contains such a pair.
         var claimedRows: Set<UInt32> = []
 
+        reportOwnIcons(favorites, outcome: &outcome)
+
         for favorite in favorites {
             let match = match(favorite, in: rows)
             if let warning = match.warning {
                 outcome.warnings.append(warning)
+            }
+
+            if favorite.locationsOnly {
+                applyLocationsOnly(favorite, match: match, rows: &rows, outcome: &outcome)
+                continue
             }
 
             // A favorite whose code could not be allocated has already been warned
@@ -839,7 +869,7 @@ private enum SidebarReconciler {
                     continue
                 }
 
-                apply(favorite: favorite, osType: osType, match: match, rows: &rows, outcome: &outcome, checkpoint: checkpoint)
+                apply(favorite: favorite, osType: osType, match: match, restamp: restamp, rows: &rows, outcome: &outcome, checkpoint: checkpoint)
 
                 // Covers the insert path too, where `apply` lands on a row that was
                 // not in `match`. Every branch that touches a row records it here.
@@ -864,6 +894,15 @@ private enum SidebarReconciler {
             // The match warning is noise here: the row is being given up either way.
             let match = match(favorite, in: rows)
             withdraw(favorite: favorite, row: match.row, rows: &rows, outcome: &outcome)
+
+            // A Locations-only favorite has no row to withdraw, so its override
+            // has to be cleared from Finder's row explicitly.
+            if favorite.locationsOnly {
+                mirrorToLocations(osType: nil,
+                                  path: favorite.expandedFolderPath,
+                                  favoriteName: favorite.name,
+                                  outcome: &outcome)
+            }
         }
 
         return outcome
@@ -884,6 +923,7 @@ private enum SidebarReconciler {
         favorite: Favorite,
         osType: String,
         match: RowMatch,
+        restamp: RestampPolicy = .none,
         rows: inout [SidebarItem],
         outcome: inout RowOutcome,
         checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
@@ -953,6 +993,7 @@ private enum SidebarReconciler {
                     osType: osType,
                     row: inserted,
                     restoringDisplayName: preexisting.displayName,
+                    restamp: restamp,
                     rows: &rows,
                     outcome: &outcome
                 )
@@ -989,7 +1030,7 @@ private enum SidebarReconciler {
             // The folder is already in the user's sidebar - adopt that row. Only the
             // icon override is set; the name the user gave it is never touched, and a
             // later delete restores the icon rather than removing the row.
-            adoptExisting(favorite: favorite, osType: osType, row: row, rows: &rows, outcome: &outcome)
+            adoptExisting(favorite: favorite, osType: osType, row: row, restamp: restamp, rows: &rows, outcome: &outcome)
             return
         }
 
@@ -1006,6 +1047,8 @@ private enum SidebarReconciler {
             } catch {
                 outcome.warnings.append("Couldn't update the icon for '\(favorite.name)': \(error.localizedDescription)")
             }
+        } else if restamp.isForced {
+            current = repaint(row: row, osType: osType, favoriteName: favorite.name, rows: &rows, outcome: &outcome)
         }
 
         if row.displayName != favorite.name {
@@ -1047,8 +1090,159 @@ private enum SidebarReconciler {
             }
         }
 
+        mirrorToLocations(osType: osType, path: current.path, favoriteName: favorite.name, outcome: &outcome)
+
         outcome.bindings.append(BindingUpdate(favorite, itemID: current.itemID, provenance: .managed))
         outcome.boundItems[favorite.id] = current.itemID
+    }
+
+    /// A favorite that styles Finder's Locations row and owns no row of its own.
+    ///
+    /// Finder lists every mounted volume under Locations already, so this mode
+    /// exists to icon that row instead of adding a second one under Favorites.
+    /// Nothing is inserted, nothing is removed: the row is patched while the
+    /// favorite is enabled and handed back untouched when it is not.
+    private static func applyLocationsOnly(
+        _ favorite: Favorite,
+        match: RowMatch,
+        rows: inout [SidebarItem],
+        outcome: inout RowOutcome
+    ) {
+        // Switching an existing favorite into this mode gives up the Favorites row
+        // it used to own, so the drive stops appearing twice.
+        if match.row != nil || favorite.sidebarItemID != nil {
+            withdraw(favorite: favorite, row: match.row, rows: &rows, outcome: &outcome)
+        }
+
+        let path = favorite.expandedFolderPath
+        guard isVolumeRoot(path) else {
+            outcome.warnings.append("'\(favorite.name)' is set to appear in Locations only, but Finder only lists mounted disks and servers there. Turn that option off to give it a row under Favorites.")
+            return
+        }
+
+        guard favorite.enabled, let osType = favorite.osType else {
+            mirrorToLocations(osType: nil, path: path, favoriteName: favorite.name, outcome: &outcome)
+            return
+        }
+
+        mirrorToLocations(osType: osType, path: path, favoriteName: favorite.name, outcome: &outcome)
+
+        // Finder owns the row, so there is no durable item ID to bind to. The
+        // sentinel only tells the UI this favorite is live on screen; nothing
+        // reads it as a row ID, and no binding is written for it.
+        outcome.boundItems[favorite.id] = Self.locationsRowSentinel
+    }
+
+    /// Stands in for "live, but in a row Finder owns". Never used as an item ID.
+    static let locationsRowSentinel: UInt32 = .max
+
+    /// Report favorites whose target carries an icon of its own.
+    ///
+    /// The Add/Edit sheet says this when a folder is chosen, but a favorite added
+    /// before this release - or a folder given an icon afterwards - never passes
+    /// through it, and the symptom (an icon that keeps reverting) gives the user
+    /// nothing to search for. Surfaced on every pass so it reaches the banner.
+    private static func reportOwnIcons(_ favorites: [Favorite], outcome: inout RowOutcome) {
+        for favorite in favorites where favorite.enabled {
+            guard let detection = IconAuthority.detect(atPath: favorite.expandedFolderPath) else { continue }
+            let subject = detection.isVolume ? "disk" : "folder"
+            outcome.warnings.append(
+                "'\(favorite.name)' keeps losing its sidebar icon because the \(subject) has a custom icon of its own. Open the favorite and choose Remove Its Icon to fix it permanently."
+            )
+        }
+    }
+
+    /// True when this path is the root of a mounted volume.
+    ///
+    /// Cheap and answered from the file system rather than the path's shape:
+    /// `/Volumes/…` is a convention, not a rule, and the boot volume is `/`.
+    private static func isVolumeRoot(_ path: String) -> Bool {
+        (try? URL(fileURLWithPath: path).resourceValues(forKeys: [.isVolumeKey]).isVolume) == true
+    }
+
+    /// Mirror a favorite's icon onto the Locations row for the same volume.
+    ///
+    /// Finder lists every mounted volume under Locations whether or not it is a
+    /// favorite, so a volume favorite is on screen twice; without this the two
+    /// rows disagree. Failure is a warning, never fatal - the Favorites row, which
+    /// is the one the user asked for, is already correct by the time this runs.
+    private static func mirrorToLocations(
+        osType: String?,
+        path: String?,
+        favoriteName: String,
+        outcome: inout RowOutcome
+    ) {
+        guard let path, isVolumeRoot(path) else { return }
+
+        do {
+            try SidebarItemManager.shared.setVolumeOSType(osType, path: path)
+        } catch {
+            outcome.warnings.append("Couldn't update the Locations icon for '\(favoriteName)': \(error.localizedDescription)")
+        }
+    }
+
+    /// Rewrite a row that already carries the right code, so Finder redraws it.
+    ///
+    /// The write has to be the in-place upsert: setting the property to the value
+    /// it already holds is accepted (it returns success) but does not always make
+    /// Finder repaint, while re-inserting the row does. The row's OWN path and its
+    /// CURRENT name are used, never the favorite's - this is a repair, and it must
+    /// not rename anything or move a row to a different spelling of its folder.
+    ///
+    /// Returns the row as it stands afterwards, or the row untouched when the
+    /// repair could not be attempted; failure here is never fatal, since the row
+    /// still carries the correct code either way.
+    private static func repaint(
+        row: SidebarItem,
+        osType: String,
+        favoriteName: String,
+        rows: inout [SidebarItem],
+        outcome: inout RowOutcome
+    ) -> SidebarItem {
+        guard let path = row.path, !row.displayName.isEmpty else { return row }
+
+        // Only targets that can actually lose their drawing are rewritten. A plain
+        // folder - including every cloud folder - never does, so re-inserting its
+        // row on each Refresh would be churn for nothing, and some of those rows
+        // cannot be re-inserted at all: a `~/Library/CloudStorage` path is a
+        // virtual FileProvider mount and the insert is refused, which surfaced as
+        // a repair failure on a favorite that was perfectly healthy.
+        guard needsRepainting(path: path) else { return row }
+
+        do {
+            let patched = try SidebarItemManager.shared.upsert(
+                url: URL(fileURLWithPath: path),
+                displayName: row.displayName,
+                osType: osType
+            ).row
+            store(patched, in: &rows)
+
+            guard patched.itemID == row.itemID else {
+                // The in-place upsert keeps the row's ID; a different one means the
+                // write landed on another row for the same location. Say so rather
+                // than silently re-binding from inside a repair.
+                outcome.warnings.append("Repairing the sidebar icon for '\(favoriteName)' landed on a different row for the same folder.")
+                return patched
+            }
+            return patched
+        } catch {
+            // A repair that could not run leaves the row exactly as it was, still
+            // carrying the right code. Rewriting the property is the weaker second
+            // attempt; if that fails too there is nothing to tell the user, because
+            // nothing is broken that they could act on.
+            try? SidebarItemManager.shared.setOSType(osType, itemID: row.itemID)
+            NSLog("SidebarFavorites: could not repaint '\(favoriteName)': \(error.localizedDescription)")
+            return row
+        }
+    }
+
+    /// Whether this target is one whose sidebar drawing macOS can discard.
+    ///
+    /// Measured on macOS 26: only a target with an icon of its own loses the
+    /// override when its metadata changes - a folder with a custom Finder icon, or
+    /// a mounted volume. Everything else keeps it indefinitely.
+    private static func needsRepainting(path: String) -> Bool {
+        isVolumeRoot(path) || IconAuthority.detect(atPath: path) != nil
     }
 
     /// Put our icon on a row we did not create, and record it as `.adopted`.
@@ -1061,6 +1255,7 @@ private enum SidebarReconciler {
         osType: String,
         row: SidebarItem,
         restoringDisplayName: String? = nil,
+        restamp: RestampPolicy = .none,
         rows: inout [SidebarItem],
         outcome: inout RowOutcome
     ) {
@@ -1097,7 +1292,11 @@ private enum SidebarReconciler {
             } catch {
                 outcome.warnings.append("Couldn't apply the icon for '\(favorite.name)' to its sidebar row: \(error.localizedDescription)")
             }
+        } else if restamp.isForced {
+            current = repaint(row: current, osType: osType, favoriteName: favorite.name, rows: &rows, outcome: &outcome)
         }
+
+        mirrorToLocations(osType: osType, path: current.path, favoriteName: favorite.name, outcome: &outcome)
 
         outcome.bindings.append(BindingUpdate(favorite, itemID: current.itemID, provenance: .adopted))
         outcome.boundItems[favorite.id] = current.itemID
@@ -1175,6 +1374,12 @@ private enum SidebarReconciler {
         }
 
         outcome.bindings.append(BindingUpdate(favorite, itemID: nil, provenance: .unbound))
+
+        // Give up the Locations row first. It is Finder's row, not ours, so it is
+        // cleared rather than removed - and it has to happen even when the
+        // Favorites row below turns out to carry an override we may not touch,
+        // otherwise a deleted favorite leaves its icon on screen under Locations.
+        mirrorToLocations(osType: nil, path: live.path, favoriteName: favorite.name, outcome: &outcome)
 
         guard let currentCode = live.osType else { return }
 

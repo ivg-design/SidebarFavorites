@@ -26,6 +26,18 @@ struct Favorite: Identifiable, Codable, Equatable {
     /// How the bound sidebar row came to exist - decides what happens on removal.
     var sidebarProvenance: SidebarProvenance
 
+    /// Style Finder's own **Locations** row and add no Favorites row at all.
+    ///
+    /// Only meaningful for a mounted volume, which Finder already lists under
+    /// Locations whether or not anybody asked. Without this, icon-ing a disk means
+    /// living with it on screen twice: once in Favorites carrying the icon, and
+    /// once in Locations where Finder put it.
+    ///
+    /// A favorite in this mode owns no row - Finder's row is patched in place and
+    /// given back untouched when the favorite is disabled or deleted - so it has
+    /// no sidebar binding either.
+    var locationsOnly: Bool = false
+
     /// Optical size correction for this favorite's custom artwork, as a multiple
     /// of the size the synthesizer would otherwise give it.
     ///
@@ -93,6 +105,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         case osType
         case sidebarItemID
         case sidebarProvenance
+        case locationsOnly
         case iconScale
     }
 
@@ -109,6 +122,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         osType: String? = nil,
         sidebarItemID: UInt32? = nil,
         sidebarProvenance: SidebarProvenance = .unbound,
+        locationsOnly: Bool = false,
         iconScale: Double = Favorite.defaultIconScale
     ) {
         self.id = id
@@ -123,6 +137,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         self.osType = osType
         self.sidebarItemID = sidebarItemID
         self.sidebarProvenance = sidebarProvenance
+        self.locationsOnly = locationsOnly
         // Property observers do not run during initialization, so the invariant
         // `iconScale` carries has to be established by hand in both initializers.
         self.iconScale = Favorite.clampedIconScale(iconScale)
@@ -144,6 +159,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         osType = try container.decodeIfPresent(String.self, forKey: .osType)
         sidebarItemID = try container.decodeIfPresent(UInt32.self, forKey: .sidebarItemID)
         sidebarProvenance = try container.decodeIfPresent(SidebarProvenance.self, forKey: .sidebarProvenance) ?? .unbound
+        locationsOnly = try container.decodeIfPresent(Bool.self, forKey: .locationsOnly) ?? false
         // Absent means 1.0, which is why adding this key needed no schema bump: a
         // config written before it existed describes exactly the same icons, and a
         // build that predates it simply ignores the key on the way back in.

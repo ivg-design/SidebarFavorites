@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-31
+
+macOS 26 changed how Finder draws sidebar rows, which broke custom icons in a way
+that looked random. This release fixes that, removes the Xcode requirement for
+custom SVG icons, and adds support for disks and network shares.
+
+### Added
+
+- **Custom SVG icons no longer need Xcode.** They were compiled with `actool`,
+  which ships only inside Xcode, so on a Mac without it every custom icon failed
+  with a message about a missing developer tool. `actool` turns out not to be the
+  compiler at all - it is a command-line front end for an engine that ships with
+  macOS itself - so the app now drives that engine directly. The catalog it
+  produces is byte-for-byte what `actool` produced. `actool` is still used if the
+  new route is ever unavailable.
+- **Disks and network shares can have custom icons**, in both the Favorites and
+  the Locations sections. Adding a mounted volume as a favorite icons the row it
+  creates and the row Finder already shows under Locations, so the two agree.
+- **"Show in Locations only"**, for a mounted volume. Finder lists every mounted
+  disk and server under Locations whether or not you asked, so this icons that
+  row and adds no second row under Favorites. Finder's row is only ever patched -
+  never inserted, moved or deleted - and it is handed back untouched when the
+  favorite is disabled or removed.
+- **A warning when a folder or disk carries a custom icon of its own**, with a
+  one-click **Remove Its Icon** that backs the icon up first (to
+  `~/Library/Application Support/SidebarFavorites/IconBackups/`). See below for
+  why this is the one thing that makes a sidebar icon permanent.
+
+### Fixed
+
+- **Sidebar icons disappearing after a copy, a save, or any change at all.** On
+  macOS 26, Finder redraws a sidebar row from its target's own icon whenever the
+  target's metadata changes - a copied file, or nothing more than a touched
+  modification date - and throws away the icon this app set. It only happens to a
+  target that has an icon of its own: a folder with a custom Finder icon, or a
+  disk with a `.VolumeIcon.icns`. A plain folder is unaffected and always was.
+  Removing the target's own icon fixes it permanently and costs nothing visible,
+  because Finder never draws those icons in the sidebar anyway.
+- **Refresh now actually repairs a row.** It previously skipped any row whose
+  stored state already looked correct, which is exactly the case above: the icon
+  was still recorded on the row while Finder drew something else, so Refresh
+  appeared to do nothing. It now rewrites every bound row, which makes Finder
+  redraw it immediately with no restart.
+- **A damaged helper bundle now rebuilds itself.** Upgrading to macOS 26.6 was
+  measured emptying the bundle out, leaving only its `Info.plist`. Because the
+  bundle directory still existed and nothing in the configuration had changed,
+  every launch skipped the rebuild that would have fixed it, and every custom
+  icon stayed blank. The check now looks for the parts, not the directory.
+
 ## [1.0.2] - 2026-07-27
 
 ### Removed
