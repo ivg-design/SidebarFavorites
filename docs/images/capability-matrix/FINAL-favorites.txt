@@ -1,0 +1,15 @@
+[0] 3463974163 | name='Desktop' | code=- | special=- | path=/Users/ivg/Desktop
+      com.apple.LSSharedFileList.ItemIsHidden = 0
+[1] 3887477030 | name='ivg' | code=- | special=com.apple.LSSharedFileList.IsHome | path=/Users/ivg
+      com.apple.LSSharedFileList.SpecialItemIdentifier = com.apple.LSSharedFileList.IsHome
+[2] 3378606962 | name='github' | code=S000 | special=- | path=/Users/ivg/github
+      com.apple.LSSharedFileList.OverrideIcon.OSType = S000
+[3] 3309083279 | name='23-03-P_Motion Graphics' | code=S001 | special=- | path=/Users/ivg/Library/CloudStorage/GoogleDrive-ilya@gusinski.us/My Drive/20-30 IVG/20_IVG/20-03_Projects/23-03-P_Motion Graphics
+      com.apple.LSSharedFileList.OverrideIcon.OSType = S001
+[4] 4077789774 | name='Projects' | code=S002 | special=- | path=/Users/ivg/Projects
+      com.apple.LSSharedFileList.OverrideIcon.OSType = S002
+[5] 790960064 | name='Documents' | code=- | special=- | path=/Users/ivg/Documents
+[6] 2039353602 | name='Downloads' | code=- | special=- | path=/Users/ivg/Downloads
+[7] 3745502738 | name='Applications' | code=- | special=- | path=/Applications
+[8] 667613435 | name='WORK2TBSSD' | code=S003 | special=- | path=/Volumes/WORK2TBSSD
+      com.apple.LSSharedFileList.OverrideIcon.OSType = S003

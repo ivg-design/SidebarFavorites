@@ -1,0 +1,11 @@
+[0] 1016149805 | name='Google Drive' | code=- | special=FileProvider | path=/Users/ivg/Library/CloudStorage/GoogleDrive-ilya@gusinski.us
+      com.apple.LSSharedFileList.SpecialItemIdentifier = FileProvider
+[1] 3063305473 | name='' | code=- | special=com.apple.LSSharedFileList.IsComputer | path=
+      com.apple.LSSharedFileList.SpecialItemIdentifier = com.apple.LSSharedFileList.IsComputer
+[2] 506727548 | name='Macintosh HD' | code=- | special=- | path=/
+[3] 2179885432 | name='WORK2TBSSD' | code=- | special=- | path=/Volumes/WORK2TBSSD
+[4] 2829615164 | name='iCloud' | code=- | special=com.apple.LSSharedFileList.IsICloudDrive | path=(unresolved)
+      com.apple.LSSharedFileList.SpecialItemIdentifier = com.apple.LSSharedFileList.IsICloudDrive
+[5] 3396824553 | name='' | code=- | special=com.apple.LSSharedFileList.IsMeetingRoom | path=
+      com.apple.LSSharedFileList.SpecialItemIdentifier = com.apple.LSSharedFileList.IsMeetingRoom
+[6] 246079822 | name='TMSSD' | code=- | special=- | path=/Volumes/TMSSD

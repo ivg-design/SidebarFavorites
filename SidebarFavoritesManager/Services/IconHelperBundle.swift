@@ -218,10 +218,19 @@ final class IconHelperBundle {
 
         // 1. Nothing changed and the bundle is intact: this is the common path on
         //    launch, and it must cost nothing.
+        //
+        // "Intact" is checked part by part rather than just asking whether the
+        // bundle directory exists. A macOS upgrade was measured leaving the
+        // bundle in place with only its Info.plist: no executable, no
+        // Assets.car. Every row still pointed at UTIs whose declaring bundle
+        // could no longer register, so the icons became blank documents - and
+        // because the directory was there and the digest still matched, this
+        // short-circuit skipped the rebuild that would have fixed it, on every
+        // launch, for ever.
         if !force,
            let previousDigest,
            payloadDigest == previousDigest,
-           fileManager.fileExists(atPath: bundleURL.path) {
+           isIntact(bundleAt: bundleURL, declarations: declarations) {
             return BuildResult(
                 digest: payloadDigest,
                 // Report what is actually installed, so a skipped build cannot
@@ -590,6 +599,36 @@ final class IconHelperBundle {
         // when CFBundleExecutable points at something executable, and a bundle
         // restored from a backup can easily have lost the bit.
         try? fileManager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+    }
+
+    /// Whether the installed bundle still has every part a rebuild would produce.
+    ///
+    /// The digest describes what the bundle should DECLARE; it says nothing about
+    /// whether the bundle on disk is still able to declare it. Something outside
+    /// this app can take pieces away - a macOS upgrade was measured leaving only
+    /// `Info.plist` behind - and a bundle missing its executable never registers,
+    /// so every icon silently falls back. Checked here so the short-circuit above
+    /// can treat a damaged bundle as no bundle at all and rebuild it.
+    ///
+    /// Deliberately structural, not a signature check: an unsigned or ad-hoc
+    /// signed helper renders icons perfectly well, and re-signing is best effort.
+    private func isIntact(bundleAt bundleURL: URL, declarations: [Declaration]) -> Bool {
+        let contents = bundleURL.appendingPathComponent("Contents")
+        let required = [
+            contents.appendingPathComponent("Info.plist"),
+            contents.appendingPathComponent("MacOS/\(Self.executableName)")
+        ]
+        guard required.allSatisfy({ fileManager.fileExists(atPath: $0.path) }) else { return false }
+
+        // The catalog only has to exist when something references a symbol from
+        // it. A configuration of system SF Symbols alone never produces one, and
+        // demanding it would rebuild for ever.
+        if declarations.contains(where: { $0.customSVGPath != nil }) {
+            let catalog = contents.appendingPathComponent("Resources/\(SymbolCatalogBuilder.catalogFileName)")
+            guard fileManager.fileExists(atPath: catalog.path) else { return false }
+        }
+
+        return true
     }
 
     /// `CFBundleVersion` of the bundle currently on disk, if it is readable.

@@ -12,7 +12,7 @@ Give the folders in macOS Finder's sidebar the icons you want, instead of identi
 
 Pick a folder, pick an icon - any SF Symbol, or any SVG of your own - and SidebarFavorites puts the folder in Finder's sidebar with that icon on it.
 
-- Works for **local folders, iCloud Drive, and `~/Library/CloudStorage`** (Google Drive, Dropbox, OneDrive, …).
+- Works for **local folders, iCloud Drive, and `~/Library/CloudStorage`** (Google Drive, Dropbox, OneDrive, …), and for **mounted disks and network shares**.
 - **Nothing to enable** in System Settings. No Finder extensions are involved.
 - **Nothing runs in the background.** Icons survive reboots and Finder restarts on their own.
 - The app adds and removes the sidebar row for you. Rows you added yourself are left where they are - it only puts an icon on them.
@@ -66,6 +66,7 @@ Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector 
 - **Live preview.** You see the exact silhouette that will ship, both enlarged and in a mock sidebar row at the real 16 pt size.
 - **Size slider (50-150%).** 100% is exactly the size of a system SF Symbol - the right measurement, not always the right look, since a wide or busy mark reads heavier than a sparse one at the same size. Nudge it until it sits comfortably next to the rest of the sidebar; the preview follows as you drag.
 - **Apply** saves, rebuilds the icon and restarts Finder in one click without closing the sheet, so you can tune the size against the real sidebar.
+- **No Xcode required.** Custom icons are compiled by the asset-catalog engine that ships with macOS itself. (Before 1.1 this needed `actool`, which only exists inside Xcode.)
 - The app tells you what it had to drop or flatten: embedded photos and PNGs (a symbol cannot contain raster), live text that was never outlined, colours and gradients, and artwork too fine, too dense or too wide to read at sidebar size. These are warnings, not rejections.
 
 ![Tuning a custom icon](docs/assets/custom-svg-settings.png)
@@ -75,6 +76,23 @@ Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector 
 ## Cloud folders
 
 Folders in iCloud Drive and `~/Library/CloudStorage` work exactly like local ones. **This did not work in any version before 1.0** - those paths are virtual FileProvider mounts that Finder Sync extensions cannot see, and the old mechanism depended on such an extension. The symlink workaround the old README described is no longer needed; if you set one up, the favorite pointing at it keeps working, and you can also just point it at the real folder now.
+
+## Disks and network shares
+
+A mounted disk or server can carry a custom icon too. Finder already lists every mounted volume under **Locations**, so a volume favorite offers a choice:
+
+- **Leave it off** and the app adds a row under Favorites and icons Finder's Locations row to match, so both agree.
+- **Show in Locations only** and no Favorites row is added at all - the app just icons the row Finder already shows.
+
+Finder owns the rows in Locations, so the app only ever patches one in place. It never inserts, moves or deletes a row there, and the row is handed back untouched when the favorite is disabled or removed. Finder's synthesised entries - iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows - cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.
+
+## When an icon keeps disappearing
+
+If a sidebar icon reverts every time you copy something into the folder, the folder (or disk) has **a custom icon of its own** - the kind you set by pasting into Get Info. On macOS 26, Finder redraws a sidebar row from its target's own icon whenever that target changes, and discards the icon this app set.
+
+The app detects this and offers to fix it: open the favorite and choose **Remove Its Icon**. The icon is copied to `~/Library/Application Support/SidebarFavorites/IconBackups/` first, so nothing is lost. This costs you nothing you can see in the sidebar, because Finder never draws those icons there.
+
+Pressing **Refresh** puts a wiped icon back immediately, but the folder's own icon has to go for it to stay.
 
 ## How it works
 

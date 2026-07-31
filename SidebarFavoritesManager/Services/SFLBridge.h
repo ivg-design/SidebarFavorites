@@ -115,6 +115,22 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
             error:(NSError **)error
     NS_SWIFT_NAME(setOSType(_:itemID:));
 
+/// Sets - or with a nil `osType`, clears - the icon override on the row for
+/// `path` in Finder's **Locations** section.
+///
+/// Locations rows belong to Finder: it adds them when a volume mounts and prunes
+/// them when it unmounts, so this only ever patches a row that is already there
+/// and never inserts, removes or renames one. A volume that is not mounted (or a
+/// row Finder marks as a special item, which stores an override but never draws
+/// it) is reported as success with nothing done.
+///
+/// Re-setting the value a row already holds is what makes Finder repaint it, so
+/// this is also the repair path for Locations.
++ (BOOL)setOSType:(nullable NSString *)osType
+    forVolumePath:(NSString *)path
+            error:(NSError **)error
+    NS_SWIFT_NAME(setOSType(_:volumePath:));
+
 /// Removes a row by its persistent item ID. There is deliberately no
 /// remove-by-path: the caller owns the decision about which rows may be deleted.
 + (BOOL)removeItemID:(uint32_t)itemID error:(NSError **)error

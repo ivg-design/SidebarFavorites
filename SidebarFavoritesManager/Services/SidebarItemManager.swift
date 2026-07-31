@@ -150,6 +150,27 @@ final class SidebarItemManager: @unchecked Sendable {
         }
     }
 
+    /// Applies, repairs or clears the icon override on the **Locations** row for
+    /// this path. Pass nil to clear.
+    ///
+    /// A volume appears in Favorites only if someone put it there, but Finder
+    /// always lists it under Locations - so a favorite pointing at a volume has
+    /// two rows on screen, and icon-ing only one of them looks like a bug. This
+    /// keeps the other in step.
+    ///
+    /// Silently does nothing when the volume is not mounted or Finder is not
+    /// showing it: those are ordinary states, not failures.
+    func setVolumeOSType(_ osType: String?, path: String) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
+        do {
+            try SFLBridge.setOSType(osType, volumePath: path)
+        } catch {
+            throw Self.sidebarError(from: error)
+        }
+    }
+
     /// Deletes a row. Only ever called for rows this app inserted itself — the
     /// coordinator owns that decision, which is why there is no remove-by-path.
     func remove(itemID: UInt32) throws {

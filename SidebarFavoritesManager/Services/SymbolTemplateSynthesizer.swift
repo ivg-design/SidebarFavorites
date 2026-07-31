@@ -457,9 +457,66 @@ enum SymbolTemplateSynthesizer {
     /// The catalog is compiled into a temporary directory first and only moved
     /// into place on success, so a failed run never leaves the helper bundle
     /// without the assets it had.
+    /// `compileSymbols` via the system's own engine, with no developer tools.
+    ///
+    /// The engine silently drops a template it cannot read - the compile reports
+    /// success and the symbol is simply absent, which would leave a favorite with
+    /// a plain folder and no explanation. Every template is pre-flighted, and a
+    /// template that fails throws with the engine's own message so the caller's
+    /// existing "find the survivors" path can drop just that one.
+    private static func compileSymbolsInProcess(
+        _ symbols: [(name: String, templateSVG: String)],
+        to destinationDirectory: URL
+    ) throws {
+        let fileManager = FileManager.default
+        let workDirectory = fileManager.temporaryDirectory
+            .appendingPathComponent("SymbolCTD-\(UUID().uuidString)")
+        try fileManager.createDirectory(at: workDirectory, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: workDirectory) }
+
+        var templates: [String: URL] = [:]
+        var staged: Set<String> = []
+        for symbol in symbols {
+            guard isAcceptableSymbolName(symbol.name) else {
+                throw SynthesisError.invalidSymbolName(symbol.name)
+            }
+            guard staged.insert(symbol.name).inserted else { continue }
+
+            let templateURL = workDirectory.appendingPathComponent("\(symbol.name).svg")
+            try symbol.templateSVG.write(to: templateURL, atomically: true, encoding: .utf8)
+
+            if let failure = CoreThemeCatalogWriter.validationFailure(forTemplateAt: templateURL) {
+                throw SynthesisError.actoolFailed(failure)
+            }
+            templates[symbol.name] = templateURL
+        }
+
+        guard !templates.isEmpty else { throw SynthesisError.noSymbols }
+
+        try fileManager.createDirectory(at: destinationDirectory, withIntermediateDirectories: true)
+        try CoreThemeCatalogWriter.writeCatalog(
+            at: destinationDirectory.appendingPathComponent("Assets.car"),
+            symbols: templates,
+            scratchDirectoryURL: workDirectory
+        )
+    }
+
     static func compileSymbols(_ symbols: [(name: String, templateSVG: String)],
                                to destinationDirectory: URL) throws {
         guard !symbols.isEmpty else { throw SynthesisError.noSymbols }
+
+        // Preferred path: the asset-catalog engine that ships with macOS. `actool`
+        // is only a front end for it and lives inside Xcode, so this is what lets
+        // custom icons work on a machine that has never had Xcode installed.
+        // Falls through to `actool` if the engine is missing or refuses.
+        if CoreThemeCatalogWriter.isAvailable {
+            do {
+                try compileSymbolsInProcess(symbols, to: destinationDirectory)
+                return
+            } catch {
+                NSLog("SymbolTemplateSynthesizer: in-process compile failed (\(error.localizedDescription)); falling back to actool")
+            }
+        }
 
         let fileManager = FileManager.default
         let workDirectory = fileManager.temporaryDirectory

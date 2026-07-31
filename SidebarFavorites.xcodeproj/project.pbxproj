@@ -14,8 +14,10 @@
 		0F8876DFC17A4748651D0F9E /* SFLBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FE2A878EB571297FCD1F44 /* SFLBridge.m */; };
 		25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */; };
 		2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33EDF718268412B7F826DEC /* ContentView.swift */; };
+		2AA92A2970C9BD177BA88272 /* IconAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C0596EA28980B7E1FB021CA /* IconAuthority.swift */; };
 		3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */; };
 		38474C65792EE4C852E90268 /* SVGGeometryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */; };
+		439029DFB0848F9B8C785302 /* CoreThemeCatalogWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */; };
 		448B1B61CA3435ADA48BB96F /* MenuBarIconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BD9736476A052F2A50161D /* MenuBarIconStore.swift */; };
 		4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */; };
 		4BAB0D71C84DB2038A79BE40 /* OSTypeAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B275483C4FD4F33A8C20C /* OSTypeAllocator.swift */; };
@@ -43,6 +45,7 @@
 /* Begin PBXFileReference section */
 		0BD2B23709F81767F72E8B18 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		147636508548FA032461B12F /* SidebarFavoritesManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SidebarFavoritesManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C0596EA28980B7E1FB021CA /* IconAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconAuthority.swift; sourceTree = "<group>"; };
 		1E62EDE72F4C95ED46D7AD2E /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		22FE2A878EB571297FCD1F44 /* SFLBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SFLBridge.m; sourceTree = "<group>"; };
 		3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -61,9 +64,11 @@
 		A4182B79F6FBC4556EECCB96 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarFavoritesManagerApp.swift; sourceTree = "<group>"; };
 		B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGGeometryParser.swift; sourceTree = "<group>"; };
+		BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoreThemeCatalogWriter.m; sourceTree = "<group>"; };
 		C675A7C722D7988D48C49A11 /* SFLBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFLBridge.h; sourceTree = "<group>"; };
 		C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationConsentSheet.swift; sourceTree = "<group>"; };
 		D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconHelperBundle.swift; sourceTree = "<group>"; };
+		D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreThemeCatalogWriter.h; sourceTree = "<group>"; };
 		D78EB6AA1AB975B77E369ECE /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
 		D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolCatalogBuilder.swift; sourceTree = "<group>"; };
 		E33EDF718268412B7F826DEC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -128,8 +133,11 @@
 			children = (
 				E3439D15842AECAE640371AE /* CodeSigner.swift */,
 				EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */,
+				D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */,
+				BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */,
 				3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */,
 				D78EB6AA1AB975B77E369ECE /* FinderService.swift */,
+				1C0596EA28980B7E1FB021CA /* IconAuthority.swift */,
 				D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */,
 				46B2A2855190B236E1340ABA /* MigrationService.swift */,
 				F66B275483C4FD4F33A8C20C /* OSTypeAllocator.swift */,
@@ -271,10 +279,12 @@
 				0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */,
 				F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */,
 				2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */,
+				439029DFB0848F9B8C785302 /* CoreThemeCatalogWriter.m in Sources */,
 				A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */,
 				25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */,
 				9C00E53E5D16EA48775FEBCF /* FavoriteSyncCoordinator.swift in Sources */,
 				A14BFDE748D5355D2A2265EE /* FinderService.swift in Sources */,
+				2AA92A2970C9BD177BA88272 /* IconAuthority.swift in Sources */,
 				8F458EA83BA78A498AD2BFDA /* IconHelperBundle.swift in Sources */,
 				448B1B61CA3435ADA48BB96F /* MenuBarIconStore.swift in Sources */,
 				C304D82537E34BE413811D41 /* MenuBarView.swift in Sources */,

@@ -63,11 +63,15 @@ enum SymbolCatalogBuilder {
     /// "no Xcode / no Command Line Tools installed" case, so callers are expected
     /// to degrade to a warning. The previously compiled catalog is left untouched
     /// on failure.
+    /// The compiled catalog's name inside `Contents/Resources`. Shared so the
+    /// helper's intactness check looks for the same file this writes.
+    static let catalogFileName = "Assets.car"
+
     @discardableResult
     static func synchronize(symbols: [Symbol], inBundleAt bundleURL: URL) throws -> Set<String> {
         let fileManager = FileManager.default
         let resourcesURL = bundleURL.appendingPathComponent("Contents/Resources")
-        let assetsCarURL = resourcesURL.appendingPathComponent("Assets.car")
+        let assetsCarURL = resourcesURL.appendingPathComponent(Self.catalogFileName)
 
         func discardCatalog() throws {
             if fileManager.fileExists(atPath: assetsCarURL.path) {

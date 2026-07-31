@@ -8,3 +8,4 @@
 //
 
 #import "Services/SFLBridge.h"
+#import "Services/CoreThemeCatalogWriter.h"
