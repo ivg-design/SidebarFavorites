@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-01
+
+Fixes to the flow 1.2.0 introduced, and a way to reach every SF Symbol.
+
+### Added
+
+- **Browse the whole SF Symbols catalog.** The editor showed 24 common symbols
+  and otherwise expected the name to be typed from memory. **Browse All…** now
+  opens a searchable grid of every symbol this Mac can actually draw - about
+  8,300 of them - matched on name and on the same keywords the SF Symbols app
+  searches, so "bin" finds `trash`. The list comes from macOS itself rather than
+  a copy baked into the app, so it grows with the OS.
+
+### Fixed
+
+- **Choosing what to do about a folder's own icon is now a choice you can
+  change.** The three options were buttons that acted immediately: picking
+  "Remove its icon" deleted the icon on the spot and left no way back to the
+  other two. They are radio buttons now, nothing happens until you press Save or
+  Apply, and Cancel leaves the folder untouched.
+- **The mode picker no longer contradicts the choice above it.** "Keep both
+  icons" was drawn as though it were already selected while Mode still read
+  "Sidebar icon only". The choice and the mode are now one piece of state, so
+  they cannot disagree.
+- **The same folder can no longer be added twice.** Two favorites on one folder
+  fight over a single sidebar row: whichever the reconcile reaches first wins,
+  the other reports itself unbound, and deleting either takes the row away. Add
+  is refused with a note naming the favorite that already uses the folder.
+
 ## [1.2.0] - 2026-08-01
 
 Folders that carry their own icon - the kind people set so the folder is

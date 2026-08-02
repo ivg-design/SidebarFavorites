@@ -10,6 +10,7 @@
 		00E0690C8E32A6E3F92E3BA7 /* MigrationConsentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */; };
 		052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */; };
 		0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E62EDE72F4C95ED46D7AD2E /* Config.swift */; };
+		05E0B44F360252FE90D8BF35 /* SymbolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F407FE40E5EF3E23C47326 /* SymbolCatalog.swift */; };
 		07BA8A489C7EA8A5B7B03893 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0BD2B23709F81767F72E8B18 /* AppIcon.icns */; };
 		0F8876DFC17A4748651D0F9E /* SFLBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FE2A878EB571297FCD1F44 /* SFLBridge.m */; };
 		25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */; };
@@ -40,6 +41,7 @@
 		BC8588899C9973FA08B935D4 /* SVGThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */; };
 		C270B44ABC83B25D248FE504 /* HelperIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 8BE2C6190D205670F5798516 /* HelperIcon.icns */; };
 		C304D82537E34BE413811D41 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCCCF6C1FEB4B5E963E2DC81 /* MenuBarView.swift */; };
+		D1CE144B2D1020278777A481 /* SymbolBrowserSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB28CC7CA854D6E918A1DDB4 /* SymbolBrowserSheet.swift */; };
 		DA5D5EF17A7593BD90F16600 /* CodeSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3439D15842AECAE640371AE /* CodeSigner.swift */; };
 		DC88BBF64B4600FB0386C0B4 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F286900734F6179352EEA4 /* UpdateChecker.swift */; };
 		F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */; };
@@ -68,11 +70,13 @@
 		A4182B79F6FBC4556EECCB96 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarFavoritesManagerApp.swift; sourceTree = "<group>"; };
 		A9F286900734F6179352EEA4 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		B2F407FE40E5EF3E23C47326 /* SymbolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolCatalog.swift; sourceTree = "<group>"; };
 		B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGGeometryParser.swift; sourceTree = "<group>"; };
 		BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoreThemeCatalogWriter.m; sourceTree = "<group>"; };
 		C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSyncAppGenerator.swift; sourceTree = "<group>"; };
 		C675A7C722D7988D48C49A11 /* SFLBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFLBridge.h; sourceTree = "<group>"; };
 		C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationConsentSheet.swift; sourceTree = "<group>"; };
+		CB28CC7CA854D6E918A1DDB4 /* SymbolBrowserSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolBrowserSheet.swift; sourceTree = "<group>"; };
 		D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconHelperBundle.swift; sourceTree = "<group>"; };
 		D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreThemeCatalogWriter.h; sourceTree = "<group>"; };
 		D78EB6AA1AB975B77E369ECE /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
@@ -154,6 +158,7 @@
 				22FE2A878EB571297FCD1F44 /* SFLBridge.m */,
 				7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */,
 				B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */,
+				B2F407FE40E5EF3E23C47326 /* SymbolCatalog.swift */,
 				D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */,
 				3D28DC8439D24236E5A6D298 /* SymbolTemplateSynthesizer.swift */,
 				52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */,
@@ -181,6 +186,7 @@
 				C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */,
 				A4182B79F6FBC4556EECCB96 /* SettingsView.swift */,
 				57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */,
+				CB28CC7CA854D6E918A1DDB4 /* SymbolBrowserSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -330,6 +336,8 @@
 				916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */,
 				4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */,
 				673744E11E88C626D10983E1 /* SigningIdentity.swift in Sources */,
+				D1CE144B2D1020278777A481 /* SymbolBrowserSheet.swift in Sources */,
+				05E0B44F360252FE90D8BF35 /* SymbolCatalog.swift in Sources */,
 				7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */,
 				92788DB54714ABFFF4DDD9BD /* SymbolTemplateSynthesizer.swift in Sources */,
 				052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */,

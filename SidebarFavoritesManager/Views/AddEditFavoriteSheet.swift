@@ -21,6 +21,13 @@ struct AddEditFavoriteSheet: View {
     /// a per-favorite Finder Sync helper so the folder may keep its own icon.
     @State private var mode: Favorite.Mode = .regular
 
+    @State private var showingSymbolBrowser = false
+
+    /// The target's own icon is removed when the sheet is saved, not when the
+    /// button is pressed - deleting a user's artwork on a click they might
+    /// still cancel out of is not a thing to do.
+    @State private var iconRemovalRequested = false
+
     /// Locations only makes sense for a mounted volume, so the toggle is offered
     /// only when the chosen path is one.
     private var targetIsVolume: Bool {
@@ -208,7 +215,15 @@ struct AddEditFavoriteSheet: View {
                             .foregroundColor(.secondary)
                     }
 
-                    if let detection = iconAuthority {
+                    if let conflict = conflictingFavorite {
+                        Label("“\(conflict.name)” already uses this folder.", systemImage: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.callout)
+                        Text("A folder can only have one favorite - two would fight over the same sidebar row. Edit “\(conflict.name)” instead, or choose a different folder.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else if let detection = iconAuthority {
                         ownIconWarning(detection)
                     }
                 }
@@ -335,6 +350,12 @@ struct AddEditFavoriteSheet: View {
                 operationError = error.localizedDescription
             }
         }
+        .sheet(isPresented: $showingSymbolBrowser) {
+            SymbolBrowserSheet(currentSymbol: iconValue) { picked in
+                iconValue = picked
+                refreshArtwork()
+            }
+        }
         .alert("Can't Use This SVG", isPresented: $showingValidationError) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -384,6 +405,8 @@ struct AddEditFavoriteSheet: View {
         guard canApply, let onApply else { return }
 
         isApplying = true
+        // Apply commits, so a pending removal is part of what it commits.
+        performRequestedIconRemoval()
         // Built once, before the await: this exact value is what gets written and
         // what is recorded as applied, so moving the slider during the rebuild
         // cannot leave the form looking clean when it is not.
@@ -402,10 +425,16 @@ struct AddEditFavoriteSheet: View {
 
     private var sfSymbolPicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            TextField("Symbol Name", text: $iconValue)
-                .textFieldStyle(.roundedBorder)
+            HStack(spacing: 8) {
+                TextField("Symbol Name", text: $iconValue)
+                    .textFieldStyle(.roundedBorder)
+                if SymbolCatalog.isAvailable {
+                    Button("Browse All…") { showingSymbolBrowser = true }
+                        .help("Search every SF Symbol this Mac can draw")
+                }
+            }
 
-            Text("Enter an SF Symbol name (e.g., folder.fill, star.circle)")
+            Text("Enter an SF Symbol name (e.g., folder.fill, star.circle), or browse the full catalog.")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -756,9 +785,27 @@ struct AddEditFavoriteSheet: View {
         return lines.isEmpty ? "This SVG can't be used as an icon." : lines.joined(separator: "\n\n")
     }
 
+    /// The favorite already pointing at this folder, if there is one.
+    ///
+    /// Two favorites on one folder means two rows fighting over the same
+    /// sidebar entry: the reconcile binds whichever it reaches first, the other
+    /// reports itself unbound, and deleting either takes the shared row away.
+    /// Comparing standardized paths, so `~/x`, `/Users/me/x` and `/Users/me/x/`
+    /// are recognised as the same place.
+    private var conflictingFavorite: Favorite? {
+        let expanded = (folderPath as NSString).expandingTildeInPath
+        guard !expanded.isEmpty else { return nil }
+        let target = URL(fileURLWithPath: expanded).standardizedFileURL.path
+        return ConfigManager.shared.config.favorites.first { other in
+            other.id != favoriteID
+                && URL(fileURLWithPath: other.expandedFolderPath).standardizedFileURL.path == target
+        }
+    }
+
     private var isValid: Bool {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty,
-              !folderPath.trimmingCharacters(in: .whitespaces).isEmpty else {
+              !folderPath.trimmingCharacters(in: .whitespaces).isEmpty,
+              conflictingFavorite == nil else {
             return false
         }
         switch iconType {
@@ -804,72 +851,103 @@ struct AddEditFavoriteSheet: View {
                         .font(.caption)
                         .foregroundColor(.red)
                 } else {
-                    // One row per choice, each with the consequence written next
-                    // to it: three buttons in a line with a shared paragraph
-                    // above them made the paragraph read as advice for whichever
-                    // button the eye landed on first.
-                    VStack(alignment: .leading, spacing: 8) {
-                        choiceRow(
-                            title: "Keep Both Icons",
-                            detail: "Keeps this \(detection.isVolume ? "disk" : "folder")'s icon and the sidebar glyph. Adds a helper (~6 MB) listed in System Settings.",
-                            prominent: true
-                        ) { mode = .advanced }
-
-                        choiceRow(
-                            title: "Remove Its Icon",
-                            detail: "The sidebar glyph stays put. This \(detection.isVolume ? "disk" : "folder") goes back to a plain icon everywhere; a copy is kept so you can put it back.",
-                            prominent: false
-                        ) { removeOwnIcon(detection) }
-
-                        choiceRow(
-                            title: "Leave As Is",
-                            detail: "Change nothing. The sidebar glyph will keep disappearing until you press Refresh.",
-                            prominent: false
-                        ) { iconAuthority = nil }
+                    // A selection, not three one-way actions. Nothing here takes
+                    // effect until Save, so every option stays reachable:
+                    // choosing "Remove its icon" and changing your mind was
+                    // impossible when the click removed the icon on the spot.
+                    // The selection is derived from the state it sets rather
+                    // than stored beside it, so it can never disagree with the
+                    // Mode control below.
+                    Picker("", selection: iconChoiceBinding) {
+                        Text("Keep both icons").tag(IconChoice.keepBoth)
+                        Text("Remove its icon").tag(IconChoice.removeIcon)
+                        Text("Leave as is").tag(IconChoice.leaveAsIs)
                     }
-                    .padding(.top, 4)
+                    .pickerStyle(.radioGroup)
+                    .labelsHidden()
+
+                    Text(iconChoiceDetail(subject: detection.isVolume ? "disk" : "folder"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .padding(.vertical, 4)
     }
 
-    /// One choice in the custom-icon block: what it is called, and what happens.
-    @ViewBuilder
-    private func choiceRow(title: String,
-                           detail: String,
-                           prominent: Bool,
-                           action: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            if prominent {
-                Button(title, action: action).buttonStyle(.borderedProminent)
-            } else {
-                Button(title, action: action).buttonStyle(.bordered)
-            }
-            Text(detail)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
     private func refreshIconAuthority(for path: String) {
         iconAuthorityBackup = nil
         iconAuthorityError = nil
+        // A request to remove belongs to the target it was made about.
+        iconRemovalRequested = false
         let expanded = (path as NSString).expandingTildeInPath
         iconAuthority = expanded.isEmpty ? nil : IconAuthority.detect(atPath: expanded)
     }
 
-    private func removeOwnIcon(_ detection: IconAuthority.Detection) {
+    /// What to do about a target that carries its own icon.
+    private enum IconChoice: Hashable {
+        case keepBoth
+        case removeIcon
+        case leaveAsIs
+    }
+
+    /// Derived from the state each option sets, never stored alongside it - two
+    /// copies of the same answer is how the picker and the Mode control came to
+    /// disagree in the first place.
+    private var iconChoiceBinding: Binding<IconChoice> {
+        Binding(
+            get: {
+                if mode == .advanced { return .keepBoth }
+                return iconRemovalRequested ? .removeIcon : .leaveAsIs
+            },
+            set: { choice in
+                switch choice {
+                case .keepBoth:
+                    mode = .advanced
+                    iconRemovalRequested = false
+                case .removeIcon:
+                    mode = .regular
+                    iconRemovalRequested = true
+                case .leaveAsIs:
+                    mode = .regular
+                    iconRemovalRequested = false
+                }
+            }
+        )
+    }
+
+    private func iconChoiceDetail(subject: String) -> String {
+        switch iconChoiceBinding.wrappedValue {
+        case .keepBoth:
+            return "Keeps this \(subject)'s icon and the sidebar glyph. Mode below switches to Both icons, which adds a helper (~6 MB) listed in System Settings."
+        case .removeIcon:
+            return "The sidebar glyph stays put. This \(subject) goes back to a plain icon everywhere. Removed when you save; a copy is kept, so you can put it back."
+        case .leaveAsIs:
+            return "Changes nothing. The sidebar glyph will keep disappearing whenever this \(subject) changes, until you press Refresh."
+        }
+    }
+
+    /// Carries out a removal the user asked for earlier, at save time.
+    ///
+    /// Re-detects rather than trusting the detection captured when the sheet was
+    /// drawn: the target may have changed since, and removing based on a stale
+    /// reading would delete the wrong thing.
+    private func performRequestedIconRemoval() {
+        guard iconRemovalRequested else { return }
+        iconRemovalRequested = false
+        let expanded = (folderPath as NSString).expandingTildeInPath
+        guard let detection = IconAuthority.detect(atPath: expanded) else { return }
         do {
-            let backup = try IconAuthority.remove(
+            iconAuthorityBackup = try IconAuthority.remove(
                 detection,
                 backupDirectory: ConfigManager.shared.appSupportURL.appendingPathComponent("IconBackups")
             )
-            iconAuthorityBackup = backup
             iconAuthorityError = nil
+            iconAuthority = nil
         } catch {
             iconAuthorityError = "Couldn't remove it: \(error.localizedDescription)"
+            operationError = "Couldn't remove the folder's own icon: \(error.localizedDescription)"
         }
     }
 
@@ -943,6 +1021,9 @@ struct AddEditFavoriteSheet: View {
     }
 
     private func save() {
+        // Before the favorite is written, so the reconcile that follows sees the
+        // target as it will be rather than as it was.
+        performRequestedIconRemoval()
         onSave(buildFavorite())
         dismiss()
     }
