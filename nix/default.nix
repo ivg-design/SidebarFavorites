@@ -8,7 +8,7 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "sidebarfavorites";
-  version = "1.2.1";
+  version = "1.2.2";
 
   src = fetchurl {
     url = "https://github.com/ivg-design/SidebarFavorites/releases/download/v${finalAttrs.version}/SidebarFavorites-${finalAttrs.version}.dmg";

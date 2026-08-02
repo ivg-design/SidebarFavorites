@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-01
+
+### Changed
+
+- **The favorite editor is its own window.** It was a sheet: fixed size, stuck
+  to the middle of the app, and covering the list it was describing. It can now
+  be moved, resized and left open beside the list, and ⌘N opens it whether or
+  not the main window is up. Editing the same favorite twice brings its window
+  forward instead of opening a second copy.
+- **The main window resizes.** It was pinned to its content, so a list longer
+  than the window could be scrolled but never given more room. It now has a
+  minimum size rather than a fixed one.
+- Documentation screenshots replaced with a set that walks the whole flow, and
+  three claims they contradicted corrected - notably the front-page line saying
+  no Finder extension is ever involved, which stopped being true for favorites
+  using Both-icons mode.
+
 ## [1.2.1] - 2026-08-01
 
 Fixes to the flow 1.2.0 introduced, and a way to reach every SF Symbol.
