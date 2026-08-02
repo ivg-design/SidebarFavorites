@@ -110,9 +110,7 @@ Each Both-icons favorite runs one helper - about 6 MB, no window, nothing at log
 
 You can switch a favorite between modes at any time in its editor; switching back removes the helper, and the row falls straight back to the normal sidebar icon. SF Symbols and custom SVGs work the same in both modes.
 
-The result - the folder's own icon in the window, your glyph on the row:
-
-![Both icons: result](docs/assets/both-icons-finder-result.png)
+The result: the folder keeps its own icon in Finder windows and the Dock, while its sidebar row shows your glyph.
 
 ## How it works
 
