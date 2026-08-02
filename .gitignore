@@ -35,3 +35,7 @@ icons/*
 
 # Archived prototype (kept for reference but not built)
 _archive/
+
+# Superseded screenshots, kept locally for reference only.
+# Some show real favorites and paths, so they are deliberately not published.
+docs/assets/archive/
