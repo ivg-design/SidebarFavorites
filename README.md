@@ -13,8 +13,8 @@ Give the folders in macOS Finder's sidebar the icons you want, instead of identi
 Pick a folder, pick an icon - any SF Symbol, or any SVG of your own - and SidebarFavorites puts the folder in Finder's sidebar with that icon on it.
 
 - Works for **local folders, iCloud Drive, and `~/Library/CloudStorage`** (Google Drive, Dropbox, OneDrive, …), and for **mounted disks and network shares**.
-- **Nothing to enable** in System Settings. No Finder extensions are involved.
-- **Nothing runs in the background.** Icons survive reboots and Finder restarts on their own.
+- **Nothing to enable** in System Settings, and **nothing runs in the background** - icons survive reboots and Finder restarts on their own.
+- Folders that carry **an icon of their own** can keep it *and* a sidebar glyph. That one mode is opt-in per favorite and does add a small helper - see [Keeping both icons](#keeping-both-icons).
 - The app adds and removes the sidebar row for you. Rows you added yourself are left where they are - it only puts an icon on them.
 
 The app is only needed when you want to add, edit or remove a favorite. Quit it and the icons stay.
@@ -44,16 +44,22 @@ Requires macOS 13.0 (Ventura) or later.
 
 ## Quick start
 
-![Manager App](docs/assets/main-screen.png)
+![The manager window](docs/assets/SBFMainWindow.webp)
 
 1. Click **+** (or press ⌘N).
-2. Give it a **name** and pick the **folder** (Browse, or type a path - `~` works).
+2. Pick the **folder** (Browse, or type a path - `~` works). The name follows the folder, because Finder always labels a favorite with its folder's real name.
 3. Choose the icon:
    - **SF Symbol** - type a name like `hammer.fill` or `star.circle`, or click one of the quick picks.
    - **Custom SVG** - click *Import SVG…* and pick any SVG file.
 4. **Add**. The folder appears in Finder's sidebar with your icon.
 
-![Choosing an SF Symbol](docs/assets/sf-symbol-picker.png)
+The editor is its own window - move it, resize it, leave it open beside the list.
+
+![Adding a favorite](docs/assets/SBFAddFavoriteWindow.webp)
+
+**Browse All…** searches every SF Symbol this Mac can draw - about 8,300 of them - by name or by keyword, so "bin" finds `trash`.
+
+![Browsing the SF Symbols catalog](docs/assets/SFSymbolBrowser.webp)
 
 If Finder is still showing an old icon, a banner appears with a **Restart Finder** button. The app never restarts Finder on its own.
 
@@ -92,21 +98,25 @@ Some folders already have **an icon of their own** - the kind you paste into Get
 
 When you add such a folder, the app says so and offers three ways out:
 
-![Both icons: detection](docs/assets/both-icons-detection.png)
+![The choice offered for a folder with its own icon](docs/assets/SBFAddFavoriteWithExistingIcon.webp)
 
-- **Keep Both Icons** - the folder keeps its icon everywhere (Desktop, Finder windows, the Dock) *and* the row keeps your glyph. This switches the favorite to **Both icons** mode, which installs one small Finder Sync helper for that favorite.
-- **Remove Its Icon** - the folder's icon is backed up to `~/Library/Application Support/SidebarFavorites/IconBackups/` and removed, which is enough to make the glyph stick.
-- **Leave As Is** - keep both and accept that the glyph disappears until you press **Refresh**.
+- **Keep both icons** - the folder keeps its icon everywhere (Desktop, Finder windows, the Dock) *and* the row keeps your glyph. Switches this favorite to **Both icons** mode, which adds one small Finder Sync helper for it.
+- **Remove its icon** - the folder goes back to a plain icon, which is enough to make the glyph stick. Nothing is deleted until you press Save or Apply, and a copy is kept in `~/Library/Application Support/SidebarFavorites/IconBackups/`.
+- **Leave as is** - change nothing, and accept that the glyph disappears whenever the folder changes, until you press **Refresh**.
+
+It is a choice you can change: none of the three does anything until you save, so you can move between them freely - and Cancel leaves the folder untouched.
 
 Folders without an icon of their own are added exactly as before, with no extra questions.
 
-![Both icons: mode](docs/assets/both-icons-mode-picker.png)
+Pick **Keep both icons** and the warning turns into confirmation - Mode switches to *Both icons*, and the line underneath names the helper it will add:
+
+![Both icons selected](docs/assets/SBFAddFavoriteAdvancedSuccess.webp)
 
 ### Both icons mode
 
 Each Both-icons favorite runs one helper - about 6 MB, no window, nothing at login. It appears in **System Settings › General › Login Items & Extensions** as `SBF-<favorite name>` with this app's icon, and the app's Settings shows whether each one is actually enabled:
 
-![Both icons: helper status](docs/assets/both-icons-settings-helpers.png)
+![Helper status in Settings](docs/assets/SBFSettings.webp)
 
 You can switch a favorite between modes at any time in its editor; switching back removes the helper, and the row falls straight back to the normal sidebar icon. SF Symbols and custom SVGs work the same in both modes.
 
@@ -126,7 +136,9 @@ That bundle declares one UTI per favorite, tagging it with the favorite's code a
 
 Configuration lives in `~/Library/Application Support/SidebarFavorites/config.json`, and imported artwork in `Icons/` alongside it. Settings links straight to the helper bundle so you can see it for yourself.
 
-![Settings](docs/assets/settings.png)
+Every favorite is also one click away from the menu bar, with its icon:
+
+![The menu bar popover](docs/assets/SBFTaskbarPopOver.webp)
 
 ## Uninstalling
 
