@@ -165,6 +165,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
         }
 
         await requestReconcile(force: false)
+        await syncAdvancedHelpers()
     }
 
     /// The user authorised the plan they were shown. Runs it, then reconciles.
@@ -234,6 +235,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
     func favoriteAdded(_ favorite: Favorite) async {
         releasedFavorites.remove(favorite.id)
         await requestReconcile(force: false)
+        await syncAdvancedHelpers()
     }
 
     /// `previous` is the favorite as it was before the edit was saved.
@@ -250,6 +252,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
         }
 
         await requestReconcile(force: false)
+        await syncAdvancedHelpers()
     }
 
     /// Must be awaited BEFORE `ConfigManager.removeFavorite(id:)`: the teardown
@@ -272,11 +275,28 @@ final class FavoriteSyncCoordinator: ObservableObject {
         // The reconcile that follows drops the declaration from the helper plist;
         // re-registering deletes the Launch Services record for that code.
         await requestReconcile(force: false)
+
+        // The favorite is about to leave the config, so its helper is removed
+        // directly rather than left for the sweep to find unclaimed.
+        if favorite.mode == .advanced {
+            await FinderSyncAppGenerator.shared.remove(for: favorite)
+        }
     }
 
     func favoriteToggled(_ favorite: Favorite) async {
         releasedFavorites.remove(favorite.id)
         await requestReconcile(force: false)
+        await syncAdvancedHelpers()
+    }
+
+    /// Bring the per-favorite Finder Sync helpers in line with the config, and
+    /// surface anything the generator wants the user to know.
+    private func syncAdvancedHelpers() async {
+        let generatorWarnings = await FinderSyncAppGenerator.shared.sync(
+            favorites: configManager.config.favorites)
+        if !generatorWarnings.isEmpty {
+            warnings.append(contentsOf: generatorWarnings)
+        }
     }
 
     /// Clear the icon override from every row, remove the rows the app added, and
@@ -326,6 +346,24 @@ final class FavoriteSyncCoordinator: ObservableObject {
         collected += applyBindings(outcome.bindings)
         boundItems = [:]
         collected += teardownWarnings
+
+        // Advanced helpers go with the icons, and the favorites are demoted to
+        // regular INSIDE the teardown claim - otherwise the next reconcile
+        // would regenerate every helper this just deleted.
+        collected += await FinderSyncAppGenerator.shared.removeAll()
+        var demoted = configManager.config.favorites
+        var demotedAny = false
+        for index in demoted.indices where demoted[index].mode == .advanced {
+            demoted[index].mode = .regular
+            demotedAny = true
+        }
+        if demotedAny {
+            do {
+                try configManager.replaceFavorites(demoted)
+            } catch {
+                collected.append("Couldn't record the mode change: \(error.localizedDescription)")
+            }
+        }
 
         // Adopted rows that just lost their override still draw the old icon until
         // Finder relaunches. Removed rows need no redraw at all, so this is only
@@ -1125,7 +1163,16 @@ private enum SidebarReconciler {
             return
         }
 
-        mirrorToLocations(osType: osType, path: path, favoriteName: favorite.name, outcome: &outcome)
+        let patched = mirrorToLocations(osType: osType, path: path, favoriteName: favorite.name, outcome: &outcome)
+
+        guard patched else {
+            // Nothing was written, and with no Favorites row either this favorite
+            // would be invisible while reporting success. A mounted network share
+            // is the case that matters: Finder builds its Locations entry from the
+            // mount table rather than storing a row, so there is nothing to patch.
+            outcome.warnings.append("'\(favorite.name)' can't be shown in Locations only - Finder builds that row itself for network shares and it can't take a custom icon. Turn the option off to give it a row under Favorites instead.")
+            return
+        }
 
         // Finder owns the row, so there is no durable item ID to bind to. The
         // sentinel only tells the UI this favorite is live on screen; nothing
@@ -1143,7 +1190,10 @@ private enum SidebarReconciler {
     /// through it, and the symptom (an icon that keeps reverting) gives the user
     /// nothing to search for. Surfaced on every pass so it reaches the banner.
     private static func reportOwnIcons(_ favorites: [Favorite], outcome: inout RowOutcome) {
-        for favorite in favorites where favorite.enabled {
+        // Advanced ("both icons") favorites carry a target icon BY DESIGN - the
+        // Finder Sync helper is what keeps the sidebar glyph alive - so the
+        // remove-its-icon advice would destroy exactly what the mode preserves.
+        for favorite in favorites where favorite.enabled && favorite.mode != .advanced {
             guard let detection = IconAuthority.detect(atPath: favorite.expandedFolderPath) else { continue }
             let subject = detection.isVolume ? "disk" : "folder"
             outcome.warnings.append(
@@ -1166,18 +1216,20 @@ private enum SidebarReconciler {
     /// favorite, so a volume favorite is on screen twice; without this the two
     /// rows disagree. Failure is a warning, never fatal - the Favorites row, which
     /// is the one the user asked for, is already correct by the time this runs.
+    @discardableResult
     private static func mirrorToLocations(
         osType: String?,
         path: String?,
         favoriteName: String,
         outcome: inout RowOutcome
-    ) {
-        guard let path, isVolumeRoot(path) else { return }
+    ) -> Bool {
+        guard let path, isVolumeRoot(path) else { return false }
 
         do {
-            try SidebarItemManager.shared.setVolumeOSType(osType, path: path)
+            return try SidebarItemManager.shared.setVolumeOSType(osType, path: path)
         } catch {
             outcome.warnings.append("Couldn't update the Locations icon for '\(favoriteName)': \(error.localizedDescription)")
+            return false
         }
     }
 

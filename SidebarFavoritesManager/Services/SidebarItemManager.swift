@@ -160,15 +160,21 @@ final class SidebarItemManager: @unchecked Sendable {
     ///
     /// Silently does nothing when the volume is not mounted or Finder is not
     /// showing it: those are ordinary states, not failures.
-    func setVolumeOSType(_ osType: String?, path: String) throws {
+    /// Returns whether a row was actually found and written. False means Finder
+    /// has no row here to patch - the volume is not mounted, or it is a network
+    /// share whose Locations entry Finder synthesises from the mount table.
+    @discardableResult
+    func setVolumeOSType(_ osType: String?, path: String) throws -> Bool {
         lock.lock()
         defer { lock.unlock() }
 
+        var patched: ObjCBool = false
         do {
-            try SFLBridge.setOSType(osType, volumePath: path)
+            try SFLBridge.setOSType(osType, volumePath: path, patched: &patched)
         } catch {
             throw Self.sidebarError(from: error)
         }
+        return patched.boolValue
     }
 
     /// Deletes a row. Only ever called for rows this app inserted itself — the

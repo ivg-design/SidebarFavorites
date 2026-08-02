@@ -22,6 +22,7 @@
 		4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */; };
 		4BAB0D71C84DB2038A79BE40 /* OSTypeAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B275483C4FD4F33A8C20C /* OSTypeAllocator.swift */; };
 		673744E11E88C626D10983E1 /* SigningIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55902C37DF49AE55C76108F9 /* SigningIdentity.swift */; };
+		7CC8DF9C125868C87CAD7785 /* FinderSyncAppGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */; };
 		7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */; };
 		8CA92AFDA6180712B2D47658 /* custom-icon-template.svg in Resources */ = {isa = PBXBuildFile; fileRef = 85F7BD2A6DD1A868DDEFA337 /* custom-icon-template.svg */; };
 		8EB0B80609899DBC7F096E63 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F186785C1B2E73BAFFE1FB7E /* ProcessRunner.swift */; };
@@ -34,11 +35,13 @@
 		A14BFDE748D5355D2A2265EE /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D78EB6AA1AB975B77E369ECE /* FinderService.swift */; };
 		A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94654D92B069C68956C0342E /* Favorite.swift */; };
 		B06924040AB9DD750BF9F782 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */; };
+		B3A8B76884C393684672A21B /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */; };
 		B5630DACD3A3AED9AE4162DB /* AppIcon-master-1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F205EFE110E32159192B8D79 /* AppIcon-master-1024.png */; };
 		BC8588899C9973FA08B935D4 /* SVGThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */; };
 		C270B44ABC83B25D248FE504 /* HelperIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 8BE2C6190D205670F5798516 /* HelperIcon.icns */; };
 		C304D82537E34BE413811D41 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCCCF6C1FEB4B5E963E2DC81 /* MenuBarView.swift */; };
 		DA5D5EF17A7593BD90F16600 /* CodeSigner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3439D15842AECAE640371AE /* CodeSigner.swift */; };
+		DC88BBF64B4600FB0386C0B4 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F286900734F6179352EEA4 /* UpdateChecker.swift */; };
 		F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +54,7 @@
 		3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3D28DC8439D24236E5A6D298 /* SymbolTemplateSynthesizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolTemplateSynthesizer.swift; sourceTree = "<group>"; };
 		3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteSyncCoordinator.swift; sourceTree = "<group>"; };
+		4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		46B2A2855190B236E1340ABA /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
 		52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolValidator.swift; sourceTree = "<group>"; };
 		55902C37DF49AE55C76108F9 /* SigningIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningIdentity.swift; sourceTree = "<group>"; };
@@ -63,8 +67,10 @@
 		94654D92B069C68956C0342E /* Favorite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Favorite.swift; sourceTree = "<group>"; };
 		A4182B79F6FBC4556EECCB96 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarFavoritesManagerApp.swift; sourceTree = "<group>"; };
+		A9F286900734F6179352EEA4 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGGeometryParser.swift; sourceTree = "<group>"; };
 		BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoreThemeCatalogWriter.m; sourceTree = "<group>"; };
+		C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSyncAppGenerator.swift; sourceTree = "<group>"; };
 		C675A7C722D7988D48C49A11 /* SFLBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFLBridge.h; sourceTree = "<group>"; };
 		C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationConsentSheet.swift; sourceTree = "<group>"; };
 		D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconHelperBundle.swift; sourceTree = "<group>"; };
@@ -131,12 +137,14 @@
 		EC6B0ACA83F7A825C9E3CA98 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */,
 				E3439D15842AECAE640371AE /* CodeSigner.swift */,
 				EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */,
 				D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */,
 				BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */,
 				3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */,
 				D78EB6AA1AB975B77E369ECE /* FinderService.swift */,
+				C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */,
 				1C0596EA28980B7E1FB021CA /* IconAuthority.swift */,
 				D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */,
 				46B2A2855190B236E1340ABA /* MigrationService.swift */,
@@ -149,6 +157,7 @@
 				D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */,
 				3D28DC8439D24236E5A6D298 /* SymbolTemplateSynthesizer.swift */,
 				52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */,
+				A9F286900734F6179352EEA4 /* UpdateChecker.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -186,6 +195,7 @@
 				A9A75BFFD0DF6263973369A5 /* Increment Build Number */,
 				2E4185B4F0771FAD898F941E /* Sources */,
 				3D4B1976198A7B5BEDEFBF48 /* Resources */,
+				8E2EA73E074869EA58223CAA /* Build FinderSync Template */,
 			);
 			buildRules = (
 			);
@@ -248,6 +258,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		8E2EA73E074869EA58223CAA /* Build FinderSync Template */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build FinderSync Template";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "SRC=\"${SRCROOT}/SidebarFavoritesManager/FinderSyncTemplate\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FinderSyncTemplate\"\nmkdir -p \"$DEST\"\nxcrun swiftc -O -module-name SBFAdvHost \\\n  -o \"$DEST/host-bin\" \"$SRC/HostMain.swift\" || exit 1\nxcrun swiftc -O -module-name SBFAdvSync \\\n  -framework FinderSync -framework Cocoa \\\n  -Xlinker -e -Xlinker _NSExtensionMain \\\n  -o \"$DEST/appex-bin\" \"$SRC/FinderSyncExt.swift\" || exit 1\n";
+		};
 		A9A75BFFD0DF6263973369A5 /* Increment Build Number */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -275,6 +304,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */,
+				B3A8B76884C393684672A21B /* AppVersion.swift in Sources */,
 				DA5D5EF17A7593BD90F16600 /* CodeSigner.swift in Sources */,
 				0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */,
 				F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */,
@@ -284,6 +314,7 @@
 				25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */,
 				9C00E53E5D16EA48775FEBCF /* FavoriteSyncCoordinator.swift in Sources */,
 				A14BFDE748D5355D2A2265EE /* FinderService.swift in Sources */,
+				7CC8DF9C125868C87CAD7785 /* FinderSyncAppGenerator.swift in Sources */,
 				2AA92A2970C9BD177BA88272 /* IconAuthority.swift in Sources */,
 				8F458EA83BA78A498AD2BFDA /* IconHelperBundle.swift in Sources */,
 				448B1B61CA3435ADA48BB96F /* MenuBarIconStore.swift in Sources */,
@@ -302,6 +333,7 @@
 				7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */,
 				92788DB54714ABFFF4DDD9BD /* SymbolTemplateSynthesizer.swift in Sources */,
 				052520887DBA2F305505E718 /* SymbolValidator.swift in Sources */,
+				DC88BBF64B4600FB0386C0B4 /* UpdateChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-01
+
+Folders that carry their own icon - the kind people set so the folder is
+recognisable in the Dock - could not also keep a custom sidebar icon on macOS 26.
+Now they can.
+
+### Added
+
+- **Both icons mode.** A favorite can now keep the folder's own icon *and* a
+  custom sidebar glyph at the same time. Finder draws a sidebar row from a
+  different source when a Finder Sync extension claims that folder - the
+  extension's containing app icon - and that path ignores the folder's own icon
+  entirely, so the glyph survives. Turning the mode on generates one small
+  helper for that favorite in
+  `~/Library/Application Support/SidebarFavorites/AdvancedApps/`. The helper's
+  host app quits itself a few seconds after registering; only the extension
+  stays, at about 6 MB. Drag-and-drop onto the row, Open/Save panels and custom
+  SVG artwork all behave exactly as in the normal mode.
+- **A real choice when a folder has its own icon.** Adding such a folder used to
+  offer only "Remove Its Icon". It now offers **Keep Both Icons**, **Remove Its
+  Icon** and **Leave As Is**, each stating what it does. Folders without an icon
+  of their own are added with no extra questions, as before.
+- **Finder Sync Helpers section in Settings.** Lists every helper by the name it
+  has in System Settings (`SBF-<favorite>`), with a live indicator for whether
+  macOS actually has it enabled, and a shortcut to the Login Items & Extensions
+  pane.
+
+### Changed
+
+- The mode is a per-favorite setting in the favorite's editor, so an existing
+  favorite can be converted either way at any time. Switching back removes the
+  helper and the row falls straight back to the normal sidebar icon - the normal
+  icon code is kept on the row in both modes, so there is always something to
+  fall back to.
+- The main window's status area shows the version and build instead of "Ready",
+  and the menu bar popover shows it too.
+- Settings is taller (nothing needs scrolling any more) and closes with Escape.
+- The warning about a folder's own icon no longer argues for removing it, since
+  removing is now one of three options rather than the only one.
+
+### Fixed
+
+- Apply stayed disabled when the only thing changed in the editor was "Show in
+  Locations only" - that field was missing from the change comparison.
+- A folder icon applied within about ten seconds of the folder being created was
+  silently discarded by macOS. Icon work now waits for the folder to settle.
+
 ## [1.1.0] - 2026-07-31
 
 macOS 26 changed how Finder draws sidebar rows, which broke custom icons in a way

@@ -86,13 +86,33 @@ A mounted disk or server can carry a custom icon too. Finder already lists every
 
 Finder owns the rows in Locations, so the app only ever patches one in place. It never inserts, moves or deletes a row there, and the row is handed back untouched when the favorite is disabled or removed. Finder's synthesised entries - iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows - cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.
 
-## When an icon keeps disappearing
+## Keeping both icons
 
-If a sidebar icon reverts every time you copy something into the folder, the folder (or disk) has **a custom icon of its own** - the kind you set by pasting into Get Info. On macOS 26, Finder redraws a sidebar row from its target's own icon whenever that target changes, and discards the icon this app set.
+Some folders already have **an icon of their own** - the kind you paste into Get Info, usually so the folder is recognisable in the Dock. On macOS 26 that icon fights the sidebar: Finder redraws the row from the folder's own icon whenever the folder changes, and the sidebar glyph disappears.
 
-The app detects this and offers to fix it: open the favorite and choose **Remove Its Icon**. The icon is copied to `~/Library/Application Support/SidebarFavorites/IconBackups/` first, so nothing is lost. This costs you nothing you can see in the sidebar, because Finder never draws those icons there.
+When you add such a folder, the app says so and offers three ways out:
 
-Pressing **Refresh** puts a wiped icon back immediately, but the folder's own icon has to go for it to stay.
+![Both icons: detection](docs/assets/both-icons-detection.png)
+
+- **Keep Both Icons** - the folder keeps its icon everywhere (Desktop, Finder windows, the Dock) *and* the row keeps your glyph. This switches the favorite to **Both icons** mode, which installs one small Finder Sync helper for that favorite.
+- **Remove Its Icon** - the folder's icon is backed up to `~/Library/Application Support/SidebarFavorites/IconBackups/` and removed, which is enough to make the glyph stick.
+- **Leave As Is** - keep both and accept that the glyph disappears until you press **Refresh**.
+
+Folders without an icon of their own are added exactly as before, with no extra questions.
+
+![Both icons: mode](docs/assets/both-icons-mode-picker.png)
+
+### Both icons mode
+
+Each Both-icons favorite runs one helper - about 6 MB, no window, nothing at login. It appears in **System Settings › General › Login Items & Extensions** as `SBF-<favorite name>` with this app's icon, and the app's Settings shows whether each one is actually enabled:
+
+![Both icons: helper status](docs/assets/both-icons-settings-helpers.png)
+
+You can switch a favorite between modes at any time in its editor; switching back removes the helper, and the row falls straight back to the normal sidebar icon. SF Symbols and custom SVGs work the same in both modes.
+
+The result - the folder's own icon in the window, your glyph on the row:
+
+![Both icons: result](docs/assets/both-icons-finder-result.png)
 
 ## How it works
 
@@ -102,7 +122,9 @@ Every row in Finder's Favorites list can carry a private per-item property, `com
 ~/Library/Application Support/SidebarFavorites/SidebarFavoritesIcons.app
 ```
 
-That bundle declares one UTI per favorite, tagging it with the favorite's code and pointing it at an SF Symbol. It contains **no executable code of any kind** - its "executable" is a 17-byte `#!/bin/sh` no-op that exists only so macOS registers the bundle - and it is never launched. Custom SVGs are compiled into a symbol catalog inside it with `actool`. That is the whole mechanism: no extension, no daemon, no login item, no launch agent.
+That bundle declares one UTI per favorite, tagging it with the favorite's code and pointing it at an SF Symbol. It contains **no executable code of any kind** - its "executable" is a 17-byte `#!/bin/sh` no-op that exists only so macOS registers the bundle - and it is never launched. Custom SVGs are compiled into a symbol catalog inside it. That is the whole mechanism for a normal favorite: no extension, no daemon, no login item, no launch agent.
+
+**Both icons** mode adds one thing, and only for the favorites you turn it on for. Finder draws a sidebar row from a completely separate source when a Finder Sync extension claims that folder: the extension's containing app icon. That path ignores the folder's own icon entirely, which is why the glyph survives. So the app generates one tiny host app plus extension per Both-icons favorite in `~/Library/Application Support/SidebarFavorites/AdvancedApps/`, carrying that favorite's artwork as its symbol. The host quits itself a few seconds after registering; only the extension stays, at about 6 MB. The normal icon code is left on the row underneath, so if the helper is ever disabled the row falls back to it immediately.
 
 Configuration lives in `~/Library/Application Support/SidebarFavorites/config.json`, and imported artwork in `Icons/` alongside it. Settings links straight to the helper bundle so you can see it for yourself.
 
@@ -110,9 +132,11 @@ Configuration lives in `~/Library/Application Support/SidebarFavorites/config.js
 
 ## Uninstalling
 
-1. In the app, delete your favorites. This removes the sidebar rows the app added and restores the original icon on rows you added yourself. (Settings → **Remove All Sidebar Icons** does the same in one step and also deletes the helper bundle; it tells you exactly what it will do first.)
+1. In the app, delete your favorites. This removes the sidebar rows the app added and restores the original icon on rows you added yourself. (Settings → **Remove All Sidebar Icons** does the same in one step, and also deletes the helper bundle and any Both-icons helpers; it tells you exactly what it will do first.)
 2. Drag **SidebarFavorites Manager** to the Trash.
 3. Optionally delete `~/Library/Application Support/SidebarFavorites`.
+
+Do step 1 before step 2 if you used **Both icons** mode. Dragging the app to the Trash runs none of its code, so its helpers stay registered and keep appearing in System Settings until you remove them there or delete `~/Library/Application Support/SidebarFavorites`. Each one says in its description that it is safe to disable if SidebarFavorites is gone.
 
 ## Building from source
 

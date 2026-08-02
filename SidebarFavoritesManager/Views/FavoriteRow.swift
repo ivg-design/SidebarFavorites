@@ -26,8 +26,29 @@ struct FavoriteRow: View {
 
             // Info
             VStack(alignment: .leading, spacing: 2) {
-                Text(favorite.name)
-                    .font(.headline)
+                HStack(spacing: 6) {
+                    Text(favorite.name)
+                        .font(.headline)
+                    if favorite.mode == .advanced {
+                        Text("BOTH ICONS")
+                            // Hovering reveals the row's action buttons, and
+                            // SwiftUI answered the tighter HStack by wrapping
+                            // the chip onto a second line. The chip is two words
+                            // and always fits - it just has to be told it is not
+                            // the flexible one.
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .font(.system(size: 9, weight: .semibold))
+                            .tracking(0.5)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .overlay(
+                                Capsule().strokeBorder(Color.accentColor.opacity(0.6))
+                            )
+                            .foregroundColor(.accentColor)
+                            .help("The folder keeps its own icon; a Finder Sync helper draws the sidebar glyph")
+                    }
+                }
 
                 Text(favorite.folderPath)
                     .font(.caption)

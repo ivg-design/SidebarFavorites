@@ -1,0 +1,275 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SidebarFavorites — Dual-Mode UI Mockup</title>
+<style>
+:root {
+  --page: #EDEFF4; --page-ink: #23252e; --page-sub: #5d6170; --rail-rule: #d4d7e0;
+  --eyebrow: #3B74F6;
+  /* app tokens (fixed — the mocked app is dark) */
+  --win: #1E1F27; --win-deep: #16171D; --row: #262933; --row-hover: #2B2E3A;
+  --ink: #F2F3F7; --sub: #989DAE; --accent: #3B74F6; --good: #32C759;
+  --danger: #FF6057; --chip-line: #3d4150; --tile: #3B74F6;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --page: #0E0F13; --page-ink: #E8EAF1; --page-sub: #8b8fa0; --rail-rule: #23252e; }
+}
+:root[data-theme="light"] { --page: #EDEFF4; --page-ink: #23252e; --page-sub: #5d6170; --rail-rule: #d4d7e0; }
+:root[data-theme="dark"]  { --page: #0E0F13; --page-ink: #E8EAF1; --page-sub: #8b8fa0; --rail-rule: #23252e; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--page); color: var(--page-ink);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+.wrap { max-width: 1120px; margin: 0 auto; padding: 56px 32px 80px; }
+
+header.page { margin-bottom: 44px; max-width: 62ch; }
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--eyebrow); margin: 0 0 10px;
+}
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 10px; text-wrap: balance; }
+.lede { color: var(--page-sub); margin: 0; }
+.lede strong { color: var(--page-ink); font-weight: 600; }
+
+section.block { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 40px; padding: 44px 0; border-top: 1px solid var(--rail-rule); }
+@media (max-width: 880px) { section.block { grid-template-columns: 1fr; } }
+
+.rail h2 { font-size: 16px; font-weight: 700; margin: 2px 0 12px; letter-spacing: -.01em; }
+.rail .eyebrow { color: var(--eyebrow); }
+.rail p { color: var(--page-sub); margin: 0 0 12px; font-size: 14px; }
+.rail p b { color: var(--page-ink); font-weight: 600; }
+.fact { display: flex; gap: 10px; align-items: baseline; margin: 0 0 8px; font-size: 13px; color: var(--page-sub); }
+.fact code {
+  font: 12px/1.4 ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--page-ink); background: color-mix(in srgb, var(--rail-rule) 55%, transparent);
+  padding: 1px 6px; border-radius: 5px; white-space: nowrap;
+}
+.fact .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--eyebrow); flex: none; position: relative; top: -2px; }
+
+/* ---------- window chrome ---------- */
+.window {
+  background: var(--win); border-radius: 14px; overflow: hidden;
+  box-shadow: 0 22px 50px -18px rgba(6, 8, 18, .55), 0 0 0 1px rgba(255,255,255,.05);
+  color: var(--ink); font-size: 14px; max-width: 560px;
+}
+.titlebar { display: flex; align-items: center; gap: 7px; padding: 13px 15px 0; }
+.tl { width: 11px; height: 11px; border-radius: 50%; background: #3a3d48; }
+.appheader { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 14px; }
+.appheader h3 { font-size: 19px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.plus {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff;
+  display: grid; place-items: center; font-size: 18px; font-weight: 500; line-height: 1;
+}
+
+/* ---------- favorite rows ---------- */
+.rowlist { border-top: 1px solid #101116; }
+.frow { display: flex; align-items: center; gap: 13px; padding: 12px 16px; background: var(--row); border-bottom: 1px solid #1a1b22; }
+.frow.alt { background: var(--row-hover); }
+.tileicon { width: 44px; height: 44px; border-radius: 10px; background: var(--tile); display: grid; place-items: center; flex: none; }
+.tileicon svg { width: 24px; height: 24px; fill: #fff; }
+.tileicon.orangefolder { background: linear-gradient(180deg,#F5A623,#E8890C); }
+.meta { min-width: 0; flex: 1; }
+.meta .name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.meta .path { color: var(--sub); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .04em; padding: 2.5px 8px;
+  border-radius: 999px; border: 1px solid var(--chip-line); color: var(--sub); white-space: nowrap;
+}
+.chip.both { border-color: color-mix(in srgb, var(--accent) 65%, transparent); color: #8fb0ff; }
+.status { display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12.5px; white-space: nowrap; }
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--good); }
+.toggle { width: 46px; height: 27px; border-radius: 999px; background: #e8e9ee; position: relative; flex: none; }
+.toggle::after { content: ""; position: absolute; top: 2px; right: 2px; width: 23px; height: 23px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.footerbar { display: flex; justify-content: space-between; align-items: center; padding: 13px 20px; color: var(--sub); font-size: 13.5px; background: var(--win-deep); }
+
+/* ---------- mode picker sheet ---------- */
+.sheet-body { padding: 6px 20px 20px; }
+.sheet-body .secthead { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--sub); margin: 18px 2px 8px; }
+.modecard { border: 1.5px solid var(--chip-line); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; display: flex; gap: 12px; }
+.modecard .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #4a4e5e; flex: none; margin-top: 2px; }
+.modecard.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.modecard.sel .radio { border-color: var(--accent); background: radial-gradient(circle at center, var(--accent) 0 45%, transparent 50%); }
+.modecard h4 { margin: 0 0 3px; font-size: 14px; font-weight: 700; }
+.modecard p { margin: 0; color: var(--sub); font-size: 12.5px; line-height: 1.5; }
+.helperstat { border-radius: 10px; background: var(--win-deep); padding: 11px 13px; margin-top: 11px; display: grid; gap: 7px; }
+.helperstat .line { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink); }
+.helperstat .line .k { color: var(--sub); width: 68px; flex: none; }
+.helperstat .ok { color: var(--good); font-weight: 600; }
+.settingsrow-cap { font-size: 11px; color: var(--sub); margin: 10px 2px 5px; }
+.settingsrow { display: flex; align-items: center; gap: 11px; background: #2c2e39; border-radius: 9px; padding: 9px 12px; }
+.sbficon { width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(180deg,#4a84ff,#2b5fe0); display: grid; place-items: center; flex: none; }
+.sbficon svg { width: 18px; height: 18px; }
+.settingsrow .nm { font-size: 13px; font-weight: 600; }
+.settingsrow .sb { font-size: 11px; color: var(--sub); }
+.settingsrow .info { margin-left: auto; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--sub); color: var(--sub); font-size: 11px; display: grid; place-items: center; font-style: italic; font-family: Georgia, serif; }
+.sheetbtns { display: flex; justify-content: flex-end; gap: 9px; padding: 4px 20px 18px; }
+.btn { border-radius: 8px; padding: 6px 16px; font-size: 13.5px; font-weight: 600; }
+.btn.ghost { background: #33364200; border: 1px solid var(--chip-line); color: var(--ink); }
+.btn.primary { background: var(--accent); color: #fff; }
+
+/* ---------- detection dialog ---------- */
+.dialog { max-width: 430px; text-align: center; padding: 26px 26px 20px; }
+.dialog .bigicon { margin: 0 auto 14px; width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(180deg,#F5A623,#E8890C); display: grid; place-items: center; }
+.dialog .bigicon svg { width: 34px; height: 34px; fill: #fff; }
+.dialog h4 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.dialog p { margin: 0 0 18px; color: var(--sub); font-size: 13px; line-height: 1.55; }
+.choice { border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; text-align: left; }
+.choice .t { font-size: 13.5px; font-weight: 700; }
+.choice .s { font-size: 12px; opacity: .8; }
+.choice.primary { background: var(--accent); color: #fff; }
+.choice.secondary { background: #313442; color: var(--ink); }
+.choice.tertiary { background: none; color: var(--sub); text-align: center; padding: 8px; font-size: 13px; }
+
+footer.page { border-top: 1px solid var(--rail-rule); padding-top: 24px; color: var(--page-sub); font-size: 12.5px; max-width: 70ch; }
+footer.page code { font: 11.5px ui-monospace, "SF Mono", Menlo, monospace; }
+</style>
+
+<div class="wrap">
+<header class="page">
+  <p class="eyebrow">SidebarFavorites 1.2.0 — design proposal</p>
+  <h1>Dual-mode setup: Sidebar-only &amp; Both-icons</h1>
+  <p class="lede">Three screens, extending the shipping UI. Every claim in the side notes is a
+  <strong>measured result</strong> from the 2026-08-01 validation on macOS 26.6 (25G72), not an assumption
+  — sources: <strong>FINDERSYNC-CAPABILITY-MATRIX-26.6.md</strong>.</p>
+</header>
+
+<!-- ============ 1. main list ============ -->
+<section class="block">
+  <div class="mock">
+    <div class="window">
+      <div class="titlebar"><span class="tl"></span><span class="tl"></span><span class="tl"></span></div>
+      <div class="appheader"><h3>Sidebar Favorites</h3><div class="plus">+</div></div>
+      <div class="rowlist">
+        <div class="frow">
+          <div class="tileicon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M5.5 8 4 3l4.5 3zM18.5 8 20 3l-4.5 3z"/></svg></div>
+          <div class="meta">
+            <div class="name">github <span class="chip both">BOTH ICONS</span></div>
+            <div class="path">~/github</div>
+          </div>
+          <div class="status"><span class="dot"></span> In Sidebar</div>
+          <div class="toggle"></div>
+        </div>
+        <div class="frow alt">
+          <div class="tileicon"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM7 5v14M17 5v14" stroke="#1E1F27" stroke-width="1.6" fill="#fff"/><circle cx="5" cy="8" r=".9" fill="#1E1F27"/><circle cx="5" cy="12" r=".9" fill="#1E1F27"/><circle cx="19" cy="8" r=".9" fill="#1E1F27"/><circle cx="19" cy="12" r=".9" fill="#1E1F27"/></svg></div>
+          <div class="meta">
+            <div class="name">23-03-P_Motion Graphics <span class="chip">SIDEBAR ONLY</span></div>
+            <div class="path">~/Library/Cloud…otion Graphics</div>
+          </div>
+          <div class="status"><span class="dot"></span> In Sidebar</div>
+          <div class="toggle"></div>
+        </div>
+        <div class="frow">
+          <div class="tileicon"><svg viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v10H4z"/></svg></div>
+          <div class="meta">
+            <div class="name">Projects <span class="chip">SIDEBAR ONLY</span></div>
+            <div class="path">~/Projects</div>
+          </div>
+          <div class="status"><span class="dot"></span> In Sidebar</div>
+          <div class="toggle"></div>
+        </div>
+      </div>
+      <div class="footerbar"><span>Ready</span><span>⟳&nbsp; Refresh</span></div>
+    </div>
+  </div>
+  <aside class="rail">
+    <p class="eyebrow">1 · The list</p>
+    <h2>One new chip per row — nothing else moves</h2>
+    <p>Mode is a per-favorite property, shown as a chip beside the name. <b>Sidebar-only stays the
+    default</b> and is byte-identical to today's behavior; Both-icons is opt-in per favorite.</p>
+    <div class="fact"><span class="dot"></span><span>Advanced favorites cost <code>≈ 6 MB</code> real memory each (measured physical footprint, compressible when idle).</span></div>
+    <div class="fact"><span class="dot"></span><span>The OSType override stays stamped on every row — advanced rows fall back to it <code>instantly</code> if the helper is off.</span></div>
+  </aside>
+</section>
+
+<!-- ============ 2. mode picker ============ -->
+<section class="block">
+  <div class="mock">
+    <div class="window">
+      <div class="titlebar"><span class="tl"></span><span class="tl"></span><span class="tl"></span></div>
+      <div class="appheader"><h3>github</h3><span style="color:var(--sub);font-size:12.5px">~/github</span></div>
+      <div class="sheet-body">
+        <div class="secthead">Sidebar icon mode</div>
+        <div class="modecard">
+          <div class="radio"></div>
+          <div>
+            <h4>Sidebar icon only</h4>
+            <p>Sets the sidebar glyph. If this folder carries its own Get&nbsp;Info icon, macOS&nbsp;26
+            keeps erasing the glyph — SidebarFavorites will offer to remove the folder icon (backed up first).</p>
+          </div>
+        </div>
+        <div class="modecard sel">
+          <div class="radio"></div>
+          <div style="flex:1">
+            <h4>Both icons &nbsp;·&nbsp; Finder Sync helper</h4>
+            <p>The folder keeps its own icon everywhere — Desktop, windows, <b style="color:var(--ink)">Dock</b> —
+            while the sidebar shows your glyph. A tiny helper extension owns the row's icon.</p>
+            <div class="helperstat">
+              <div class="line"><span class="k">Helper</span> SBF-github <span class="ok">✓ Enabled</span></div>
+              <div class="line"><span class="k">Memory</span> 6 MB · reclaimable when idle</div>
+              <div class="line"><span class="k">Fallback</span> built-in sidebar glyph, automatic</div>
+            </div>
+            <div class="settingsrow-cap">Appears in System Settings › Login Items &amp; Extensions as:</div>
+            <div class="settingsrow">
+              <div class="sbficon"><svg viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="14" rx="2.5" fill="#fff"/><rect x="2" y="3" width="6.5" height="14" rx="2.5" fill="#cfe0ff"/><circle cx="5.2" cy="7" r="1" fill="#2b5fe0"/><circle cx="5.2" cy="10" r="1" fill="#2b5fe0"/><circle cx="5.2" cy="13" r="1" fill="#2b5fe0"/></svg></div>
+              <div><div class="nm">SBF-github</div><div class="sb">File Provider</div></div>
+              <div class="info">i</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sheetbtns"><div class="btn ghost">Cancel</div><div class="btn primary">Save</div></div>
+    </div>
+  </div>
+  <aside class="rail">
+    <p class="eyebrow">2 · The mode picker</p>
+    <h2>Advanced mode states its costs — and its name</h2>
+    <p>Lives in each favorite's settings: <b>toggling converts the favorite in place</b>, either
+    direction. Regular → Advanced generates and enables the helper; Advanced → Regular removes it and
+    the row falls back to the built-in glyph instantly. Round-trip verified live on the real
+    <b>github</b> favorite.</p>
+    <p>The helper block answers the three questions users actually ask: is it on, what does it cost,
+    what happens if it breaks. The System Settings preview teaches recognition <b>before</b> the user
+    ever opens Settings.</p>
+    <div class="fact"><span class="dot"></span><span>Hard requirement, verified live: every generated extension is named <code>SBF-[Name]</code> and carries the app icon in the Settings pane.</span></div>
+    <div class="fact"><span class="dot"></span><span>No Settings trip needed to enable: <code>pluginkit -e use</code> works, including ad-hoc-signed helpers on machines with no developer certificate.</span></div>
+    <div class="fact"><span class="dot"></span><span>SF Symbols and custom SVGs both work in both modes, from one artwork source, through one renderer — <code>identical glyphs</code>, verified side-by-side.</span></div>
+    <div class="fact"><span class="dot"></span><span>Custom SVG artwork ships via the app's own <code>CoreThemeCatalogWriter</code> — no Xcode required.</span></div>
+    <div class="fact"><span class="dot"></span><span>Drives &amp; SMB shares decorate too; unmount/remount self-heals via the helper's re-registration toggle.</span></div>
+  </aside>
+</section>
+
+<!-- ============ 3. detection dialog ============ -->
+<section class="block">
+  <div class="mock">
+    <div class="window dialog">
+      <div class="bigicon"><svg viewBox="0 0 24 24"><path d="M12 4 20 19H4z"/></svg></div>
+      <h4>“github” has its own folder icon</h4>
+      <p>macOS 26 erases custom sidebar glyphs on folders that carry a Get&nbsp;Info icon.
+      Choose how SidebarFavorites should handle it:</p>
+      <div class="choice primary"><div class="t">Keep both icons</div>
+        <div class="s">Adds helper “SBF-github” to System Settings (~6 MB) — you currently have 2.
+        Folder icon stays in the Dock and windows.</div></div>
+      <div class="choice secondary"><div class="t">Remove the folder icon</div>
+        <div class="s">Removed when you save; backed up first — restorable from Settings.</div></div>
+      <div class="choice tertiary">Leave as is (the sidebar icon will keep disappearing)</div>
+      <div class="choice tertiary" style="opacity:.55">Cancel</div>
+    </div>
+  </div>
+  <aside class="rail">
+    <p class="eyebrow">3 · The detection flow</p>
+    <h2>Today's remove-only dialog becomes a real choice</h2>
+    <p><b>Shown only when adding a favorite whose folder already has its own icon.</b> A folder with
+    no custom icon is added in Regular mode silently — today's exact behavior, zero new friction.
+    The recommended path is the new mode; removal stays for users who prefer zero helpers.</p>
+    <div class="fact"><span class="dot"></span><span>Icon restore obeys the <code>fresh-folder rule</code>: never decorate a folder &lt; 30 s old; verify ~20 s after applying and re-apply once.</span></div>
+    <div class="fact"><span class="dot"></span><span>Removal keeps using the existing <code>IconAuthority</code> backup path.</span></div>
+  </aside>
+</section>
+
+<footer class="page">
+  <p>Mockup only — not functional. Verified sources: <code>docs/FINDERSYNC-CAPABILITY-MATRIX-26.6.md</code>,
+  <code>docs/INVESTIGATION-RESULT-both-icons.md</code>, live dogfood on this machine (SBF-DeltaAdv,
+  SBF-EpsilonAdv, SBF-github — all visible in System Settings with app icon, sidebar symbols intact).</p>
+</footer>
+</div>

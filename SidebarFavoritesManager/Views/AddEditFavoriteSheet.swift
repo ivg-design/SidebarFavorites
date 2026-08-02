@@ -17,6 +17,10 @@ struct AddEditFavoriteSheet: View {
     @State private var folderPath: String = ""
     @State private var locationsOnly: Bool = false
 
+    /// How the sidebar glyph is delivered - see `Favorite.Mode`. Advanced adds
+    /// a per-favorite Finder Sync helper so the folder may keep its own icon.
+    @State private var mode: Favorite.Mode = .regular
+
     /// Locations only makes sense for a mounted volume, so the toggle is offered
     /// only when the chosen path is one.
     private var targetIsVolume: Bool {
@@ -107,6 +111,11 @@ struct AddEditFavoriteSheet: View {
         let iconValue: String
         let customSVGPath: String?
         let iconScale: Double
+        // Both were once missing here, which left Apply disabled for a change
+        // that only touched them - every field `buildFavorite` writes belongs
+        // in this comparison.
+        let locationsOnly: Bool
+        let mode: Favorite.Mode
 
         init(_ favorite: Favorite) {
             self.init(
@@ -115,7 +124,9 @@ struct AddEditFavoriteSheet: View {
                 iconType: favorite.iconType,
                 iconValue: favorite.iconValue,
                 customSVGPath: favorite.customSVGPath,
-                iconScale: favorite.iconScale
+                iconScale: favorite.iconScale,
+                locationsOnly: favorite.locationsOnly,
+                mode: favorite.mode
             )
         }
 
@@ -124,13 +135,17 @@ struct AddEditFavoriteSheet: View {
              iconType: Favorite.IconType,
              iconValue: String,
              customSVGPath: String?,
-             iconScale: Double) {
+             iconScale: Double,
+             locationsOnly: Bool,
+             mode: Favorite.Mode) {
             self.name = name
             self.folderPath = folderPath
             self.iconType = iconType
             self.iconValue = iconValue
             self.customSVGPath = customSVGPath
             self.iconScale = iconScale
+            self.locationsOnly = locationsOnly
+            self.mode = mode
         }
     }
 
@@ -143,7 +158,9 @@ struct AddEditFavoriteSheet: View {
             customSVGPath: customSVGPath,
             // Through the model's clamp, so this compares equal to the snapshot
             // taken from a saved favorite rather than differing by a rounding.
-            iconScale: Favorite.clampedIconScale(iconScale)
+            iconScale: Favorite.clampedIconScale(iconScale),
+            locationsOnly: locationsOnly,
+            mode: mode
         )
     }
 
@@ -198,6 +215,33 @@ struct AddEditFavoriteSheet: View {
                 .onChange(of: folderPath) { newPath in
                     name = Favorite.canonicalName(forFolderPath: newPath)
                     refreshIconAuthority(for: newPath)
+                }
+
+                Section("Sidebar Icon Mode") {
+                    Picker("Mode", selection: $mode) {
+                        Text("Sidebar icon only").tag(Favorite.Mode.regular)
+                        Text("Both icons").tag(Favorite.Mode.advanced)
+                    }
+                    .pickerStyle(.segmented)
+
+                    if mode == .advanced {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("The folder keeps its own icon everywhere — Desktop, windows, Dock — while the sidebar shows your glyph.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Label("Adds helper “SBF-\(name.isEmpty ? "…" : name)” to System Settings (~6 MB)", systemImage: "puzzlepiece.extension")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        // Says what the mode IS. The consequence of choosing it
+                        // for a target that carries its own icon is stated once,
+                        // at the choice above - not repeated here.
+                        Text("Sets the sidebar glyph. Nothing runs in the background.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 Section("Icon") {
@@ -260,6 +304,7 @@ struct AddEditFavoriteSheet: View {
                 // Editing an existing favorite: the target may have acquired its
                 // own icon since it was added, which is worth saying here too.
                 locationsOnly = favorite.locationsOnly
+                mode = favorite.mode
                 refreshIconAuthority(for: favorite.folderPath)
                 iconType = favorite.iconType
                 iconValue = favorite.iconValue
@@ -734,33 +779,78 @@ struct AddEditFavoriteSheet: View {
     @ViewBuilder
     private func ownIconWarning(_ detection: IconAuthority.Detection) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label(detection.summary, systemImage: "exclamationmark.triangle.fill")
-                .foregroundColor(.orange)
-                .font(.callout)
+            if mode == .advanced {
+                // The detection stops being a problem the moment the helper owns
+                // the row - say so instead of warning about it.
+                Label("This \(detection.isVolume ? "disk" : "folder") has its own icon — kept. The helper draws the sidebar glyph.", systemImage: "checkmark.seal.fill")
+                    .foregroundColor(.green)
+                    .font(.callout)
+            } else {
+                Label(detection.summary, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                    .font(.callout)
 
-            Text(detection.explanation)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if let backup = iconAuthorityBackup {
-                Text("Removed. A copy is in \(backup.deletingLastPathComponent().path).")
+                Text(detection.explanation)
                     .font(.caption)
                     .foregroundColor(.secondary)
-            } else if let error = iconAuthorityError {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-            } else {
-                HStack {
-                    Button("Remove Its Icon") { removeOwnIcon(detection) }
-                    Button("Keep It") { iconAuthority = nil }
-                        .buttonStyle(.borderless)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let backup = iconAuthorityBackup {
+                    Text("Removed. A copy is in \(backup.deletingLastPathComponent().path).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else if let error = iconAuthorityError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                } else {
+                    // One row per choice, each with the consequence written next
+                    // to it: three buttons in a line with a shared paragraph
+                    // above them made the paragraph read as advice for whichever
+                    // button the eye landed on first.
+                    VStack(alignment: .leading, spacing: 8) {
+                        choiceRow(
+                            title: "Keep Both Icons",
+                            detail: "Keeps this \(detection.isVolume ? "disk" : "folder")'s icon and the sidebar glyph. Adds a helper (~6 MB) listed in System Settings.",
+                            prominent: true
+                        ) { mode = .advanced }
+
+                        choiceRow(
+                            title: "Remove Its Icon",
+                            detail: "The sidebar glyph stays put. This \(detection.isVolume ? "disk" : "folder") goes back to a plain icon everywhere; a copy is kept so you can put it back.",
+                            prominent: false
+                        ) { removeOwnIcon(detection) }
+
+                        choiceRow(
+                            title: "Leave As Is",
+                            detail: "Change nothing. The sidebar glyph will keep disappearing until you press Refresh.",
+                            prominent: false
+                        ) { iconAuthority = nil }
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 2)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    /// One choice in the custom-icon block: what it is called, and what happens.
+    @ViewBuilder
+    private func choiceRow(title: String,
+                           detail: String,
+                           prominent: Bool,
+                           action: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if prominent {
+                Button(title, action: action).buttonStyle(.borderedProminent)
+            } else {
+                Button(title, action: action).buttonStyle(.bordered)
+            }
+            Text(detail)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private func refreshIconAuthority(for path: String) {
@@ -847,6 +937,7 @@ struct AddEditFavoriteSheet: View {
         // A folder can never live in Locations, so the flag is not allowed to
         // survive re-pointing a favorite at one.
         favorite.locationsOnly = locationsOnly && targetIsVolume
+        favorite.mode = mode
         favorite.markUpdated()
         return favorite
     }

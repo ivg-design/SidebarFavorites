@@ -26,6 +26,9 @@ struct SettingsView: View {
     // overwrites the other's result text.
     @State private var isRemovingAllSidebarIcons = false
 
+    /// Live PlugInKit state per advanced favorite - the "permissions" panel.
+    @State private var helperStatuses: [UUID: FinderSyncAppGenerator.HelperStatus] = [:]
+
     var body: some View {
         Form {
             Section {
@@ -83,6 +86,30 @@ struct SettingsView: View {
                 }
             }
 
+            if !advancedFavorites.isEmpty {
+                Section("Finder Sync Helpers") {
+                    ForEach(advancedFavorites) { favorite in
+                        helperRow(favorite)
+                    }
+
+                    Text("Each Both-icons favorite runs one helper (~6 MB). Helpers appear in System Settings as “SBF-…” with this app's icon.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack {
+                        Button("Open Extensions Settings") {
+                            FinderSyncAppGenerator.openExtensionsSettings()
+                        }
+                        Spacer()
+                        Button("Refresh Status") {
+                            refreshHelperStatuses()
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+
             Section("Actions") {
                 Button("Restart Finder") {
                     FavoriteSyncCoordinator.shared.restartFinder()
@@ -97,10 +124,16 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 420)
+        // Tall enough for every section without scrolling, including the
+        // Finder Sync helper list, which grows one row per advanced favorite.
+        .frame(width: 440, height: settingsHeight)
+        // Esc closes it, like every other sheet in the app.
+        .background(DismissOnEscape())
+        .onExitCommand { NSApp.keyWindow?.close() }
         .onAppear {
             showInMenuBar = configManager.config.settings.showInMenuBar
             syncLaunchAtLoginFromSystem()
+            refreshHelperStatuses()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             syncLaunchAtLoginFromSystem()
@@ -168,6 +201,70 @@ struct SettingsView: View {
         return lines.joined(separator: "\n")
     }
 
+    /// Grows with the helper list so nothing needs scrolling; capped so the
+    /// window still fits a laptop screen when many favorites are advanced.
+    private var settingsHeight: CGFloat {
+        let base: CGFloat = 560
+        guard !advancedFavorites.isEmpty else { return base }
+        return min(base + 90 + CGFloat(advancedFavorites.count) * 44, 900)
+    }
+
+    // MARK: - Finder Sync helper status
+
+    private var advancedFavorites: [Favorite] {
+        configManager.config.favorites.filter { $0.mode == .advanced }
+    }
+
+    @ViewBuilder
+    private func helperRow(_ favorite: Favorite) -> some View {
+        let status = helperStatuses[favorite.id]
+        HStack(spacing: 8) {
+            Circle()
+                .fill(statusColor(status))
+                .frame(width: 8, height: 8)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(FinderSyncAppGenerator.displayName(for: favorite))
+                    .font(.callout)
+                Text(statusText(status))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            if status == .disabled || status == .notRegistered {
+                Button("Fix…") {
+                    FinderSyncAppGenerator.openExtensionsSettings()
+                }
+                .buttonStyle(.borderless)
+                .font(.caption)
+            }
+        }
+    }
+
+    private func statusColor(_ status: FinderSyncAppGenerator.HelperStatus?) -> Color {
+        switch status {
+        case .enabled: return .green
+        case .disabled: return .orange
+        case .notRegistered: return .red
+        case nil: return .secondary.opacity(0.4)
+        }
+    }
+
+    private func statusText(_ status: FinderSyncAppGenerator.HelperStatus?) -> String {
+        switch status {
+        case .enabled: return "Enabled — the helper draws this row's sidebar icon"
+        case .disabled: return "Disabled in System Settings — the regular sidebar icon is shown"
+        case .notRegistered: return "Not registered — the regular sidebar icon is shown"
+        case nil: return "Checking…"
+        }
+    }
+
+    private func refreshHelperStatuses() {
+        let favorites = configManager.config.favorites
+        Task {
+            helperStatuses = await FinderSyncAppGenerator.shared.helperStatuses(for: favorites)
+        }
+    }
+
     /// App icon, name and attribution at the top of the About section.
     private var aboutHeader: some View {
         HStack(spacing: 12) {
@@ -197,14 +294,7 @@ struct SettingsView: View {
 
     /// "1.0.0 (10)" - the marketing version with the build number, so a bug
     /// report can name the exact build rather than just the release.
-    private var versionString: String {
-        let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-        guard let build = info?["CFBundleVersion"] as? String, build != short else {
-            return short
-        }
-        return "\(short) (\(build))"
-    }
+    private var versionString: String { AppVersion.display }
 
     /// Reads the authoritative launch-at-login state from `SMAppService` and reconciles
     /// both the toggle and the persisted config with it, rather than trusting whatever was
@@ -298,6 +388,35 @@ struct SettingsView: View {
             isRemovingAllSidebarIcons = false
         }
     }
+}
+
+/// Makes Esc close the Settings window.
+///
+/// SwiftUI's Settings scene has no Cancel button for `.cancelAction` to bind to,
+/// and `onExitCommand` alone does not fire for a window whose focus sits in a
+/// Form control - so this installs a local key monitor for the window it lands in.
+private struct DismissOnEscape: NSViewRepresentable {
+    final class Coordinator {
+        var monitor: Any?
+        deinit { if let monitor { NSEvent.removeMonitor(monitor) } }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        context.coordinator.monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // 53 is Esc. Only claim the event when it belongs to this window.
+            guard event.keyCode == 53, let window = view.window, window.isKeyWindow else {
+                return event
+            }
+            window.close()
+            return nil
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
 #Preview {

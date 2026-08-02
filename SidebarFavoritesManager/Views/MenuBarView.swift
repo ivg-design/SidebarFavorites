@@ -56,6 +56,10 @@ struct MenuBarView: View {
 
         Divider()
 
+        // Same build string the main window's footer shows, so the version is
+        // readable without opening anything.
+        Text("SidebarFavorites \(AppVersion.display)")
+
         Button("Quit SidebarFavorites") {
             NSApp.terminate(nil)
         }

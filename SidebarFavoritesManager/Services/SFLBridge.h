@@ -126,10 +126,16 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
 ///
 /// Re-setting the value a row already holds is what makes Finder repaint it, so
 /// this is also the repair path for Locations.
+///
+/// `patched` reports whether a row was actually found and written. A mounted
+/// **network share** has no row here at all - Finder synthesises its Locations
+/// entry from the mount table - so the call succeeds having done nothing, and
+/// only this flag distinguishes that from a real write.
 + (BOOL)setOSType:(nullable NSString *)osType
     forVolumePath:(NSString *)path
+          patched:(BOOL *)patched
             error:(NSError **)error
-    NS_SWIFT_NAME(setOSType(_:volumePath:));
+    NS_SWIFT_NAME(setOSType(_:volumePath:patched:));
 
 /// Removes a row by its persistent item ID. There is deliberately no
 /// remove-by-path: the caller owns the decision about which rows may be deleted.

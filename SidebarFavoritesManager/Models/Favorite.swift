@@ -76,6 +76,28 @@ struct Favorite: Identifiable, Codable, Equatable {
         return min(max(value, iconScaleRange.lowerBound), iconScaleRange.upperBound)
     }
 
+    /// How this favorite's sidebar glyph is delivered.
+    ///
+    /// `.regular` is the 1.x mechanism: an `OverrideIcon.OSType` row property
+    /// resolved through the shared helper bundle's UTIs. `.advanced` adds a
+    /// per-favorite Finder Sync helper whose containing-app symbol Finder draws
+    /// on the row - which survives the macOS 26 wipe, so the target may keep a
+    /// custom icon of its own ("both icons"). The OSType override stays stamped
+    /// in both modes: it is the instant fallback whenever the helper is off.
+    ///
+    /// Decoded with `decodeIfPresent`, defaulting to `.regular`, for the same
+    /// reason `iconScale` was (see below): configs written before this key
+    /// existed describe exactly the same favorites, so adding it needs no
+    /// schema bump and must never re-arm the 1.0 migration consent flow.
+    enum Mode: String, Codable {
+        case regular
+        case advanced
+    }
+
+    /// See `Mode`. Not part of the helper digest: the shared helper's UTIs are
+    /// identical in both modes.
+    var mode: Mode = .regular
+
     /// The type of icon being used
     enum IconType: String, Codable {
         case sfSymbol = "sfSymbol"
@@ -107,6 +129,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         case sidebarProvenance
         case locationsOnly
         case iconScale
+        case mode
     }
 
     init(
@@ -123,7 +146,8 @@ struct Favorite: Identifiable, Codable, Equatable {
         sidebarItemID: UInt32? = nil,
         sidebarProvenance: SidebarProvenance = .unbound,
         locationsOnly: Bool = false,
-        iconScale: Double = Favorite.defaultIconScale
+        iconScale: Double = Favorite.defaultIconScale,
+        mode: Mode = .regular
     ) {
         self.id = id
         self.name = name
@@ -141,6 +165,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         // Property observers do not run during initialization, so the invariant
         // `iconScale` carries has to be established by hand in both initializers.
         self.iconScale = Favorite.clampedIconScale(iconScale)
+        self.mode = mode
     }
 
     /// Decodes tolerantly so a 0.6.0 config.json - which has none of the
@@ -166,6 +191,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         iconScale = Favorite.clampedIconScale(
             try container.decodeIfPresent(Double.self, forKey: .iconScale) ?? Favorite.defaultIconScale
         )
+        mode = try container.decodeIfPresent(Mode.self, forKey: .mode) ?? .regular
     }
 
     /// The scale that is actually applied to this favorite's artwork.

@@ -23,6 +23,11 @@ targets:
     platform: macOS
     sources:
       - path: SidebarFavoritesManager
+        excludes:
+          # Sources for the generated Finder Sync helper - a separate program,
+          # compiled by the Build FinderSync Template phase below, never linked
+          # into the Manager itself.
+          - "FinderSyncTemplate/**"
     settings:
       base:
         INFOPLIST_FILE: SidebarFavoritesManager/Info.plist
@@ -32,6 +37,25 @@ targets:
         SWIFT_VERSION: "5.9"
         SWIFT_OBJC_BRIDGING_HEADER: SidebarFavoritesManager/SidebarFavoritesManager-Bridging-Header.h
         CLANG_ENABLE_MODULES: YES
+    postBuildScripts:
+      # Advanced ("both icons") mode clones these two binaries per favorite.
+      # They are BUILT here rather than committed: they are products, and the
+      # sources beside them are the thing worth reviewing. The appex entry point
+      # must be _NSExtensionMain and the module name must stay SBFAdvSync -
+      # FinderSyncAppGenerator writes "SBFAdvSync.FinderSyncExt" into every
+      # generated appex's Info.plist.
+      - name: Build FinderSync Template
+        script: |
+          SRC="${SRCROOT}/SidebarFavoritesManager/FinderSyncTemplate"
+          DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FinderSyncTemplate"
+          mkdir -p "$DEST"
+          xcrun swiftc -O -module-name SBFAdvHost \
+            -o "$DEST/host-bin" "$SRC/HostMain.swift" || exit 1
+          xcrun swiftc -O -module-name SBFAdvSync \
+            -framework FinderSync -framework Cocoa \
+            -Xlinker -e -Xlinker _NSExtensionMain \
+            -o "$DEST/appex-bin" "$SRC/FinderSyncExt.swift" || exit 1
+        basedOnDependencyAnalysis: false
     preBuildScripts:
       - name: Increment Build Number
         script: |
@@ -59,3 +83,5 @@ schemes:
       config: Release
     archive:
       config: Release
+# (appended by dual-mode demo build) copy the Finder Sync template binaries —
+# XcodeGen does not pick up extension-less executables as resources.

@@ -40,18 +40,16 @@ enum IconAuthority {
                 : "This folder has a custom icon of its own."
         }
 
-        /// What removing it costs, and what keeping it costs.
+        /// States the problem only.
+        ///
+        /// Deliberately says nothing about what to do about it: there are three
+        /// ways out and each is described at its own control. Up to 1.1 this
+        /// paragraph argued for removal, which is wrong now that keeping both
+        /// icons is possible.
         var explanation: String {
             let subject = isVolume ? "disk" : "folder"
-            return """
-            Finder never shows that icon in the sidebar - it draws its own \
-            symbol there - but on macOS 26 its presence makes the sidebar icon \
-            disappear again whenever anything in the \(subject) changes.
-
-            Removing it keeps the sidebar icon working. The \(subject) then \
-            shows a plain icon on the Desktop and in Finder windows. A copy is \
-            kept, so it can be put back.
-            """
+            return "On macOS 26, a \(subject) that carries its own icon makes the "
+                + "sidebar icon disappear again every time the \(subject) changes."
         }
     }
 
@@ -59,17 +57,30 @@ enum IconAuthority {
 
     /// The custom icon carried by the target at `path`, or nil when it has none.
     ///
-    /// Both halves are required: the icon file has to exist AND the target's
-    /// `kHasCustomIcon` bit has to be set. A leftover file with the bit cleared
-    /// draws nothing and triggers nothing, so it is not reported - removing it
-    /// would be meddling with a file that costs the user nothing.
+    /// The icon file must exist. Where the target's Finder info can be read, the
+    /// `kHasCustomIcon` bit must also be set: a leftover file with the bit cleared
+    /// draws nothing and triggers nothing, so reporting it would be meddling with
+    /// a file that costs the user nothing. Where it cannot be read - see below -
+    /// the file alone decides.
     static func detect(atPath path: String) -> Detection? {
         let url = URL(fileURLWithPath: path)
-        guard hasCustomIconFlag(at: url) else { return nil }
 
         let isVolume = (try? url.resourceValues(forKeys: [.isVolumeKey]).isVolume) == true
         let iconFile = url.appendingPathComponent(isVolume ? volumeIconName : folderIconName)
         guard FileManager.default.fileExists(atPath: iconFile.path) else { return nil }
+
+        // The flag confirms the icon is live rather than an inert leftover - but
+        // only when it can be read at all. Some file systems do not carry Finder
+        // info the way HFS+/APFS do (a network share can store it in an AppleDouble
+        // side file, or drop it entirely), and requiring it there produced no
+        // warning at all for the one class of user most likely to need it. When
+        // there is no Finder info to read, the icon file's own presence decides.
+        switch finderInfo(at: url) {
+        case .some(let info):
+            guard info[flagsHighByteOffset] & customIconHighBit != 0 else { return nil }
+        case .none:
+            break
+        }
 
         return Detection(targetPath: path, iconFileURL: iconFile, isVolume: isVolume)
     }
@@ -120,11 +131,6 @@ enum IconAuthority {
         var buffer = [UInt8](repeating: 0, count: 32)
         let read = getxattr(url.path, finderInfoAttribute, &buffer, buffer.count, 0, 0)
         return read == 32 ? buffer : nil
-    }
-
-    private static func hasCustomIconFlag(at url: URL) -> Bool {
-        guard let info = finderInfo(at: url) else { return false }
-        return info[flagsHighByteOffset] & customIconHighBit != 0
     }
 
     private static func clearCustomIconFlag(at url: URL) throws {

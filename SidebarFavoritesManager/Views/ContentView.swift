@@ -9,6 +9,9 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var deletingFavoriteIDs: Set<UUID> = []
     @State private var warningsExpanded = false
+
+    /// A newer release found at launch, if any. Drives the update alert.
+    @State private var availableUpdate: UpdateChecker.Update?
     // Names the favorite about to be removed; the confirmationDialog's isPresented
     // binding is derived from this being non-nil.
     @State private var favoritePendingDeletion: Favorite?
@@ -173,6 +176,27 @@ struct ContentView: View {
         }
         .task {
             await coordinator.bootstrap()
+
+            // After the sidebar is in order, not before: a version check must
+            // never delay the app doing its job, and it is fine for it to finish
+            // long after the window is usable.
+            availableUpdate = await UpdateChecker.checkForUpdate()
+        }
+        .alert("A new version is available", isPresented: Binding(
+            get: { availableUpdate != nil },
+            set: { if !$0 { availableUpdate = nil } }
+        )) {
+            Button("Download") {
+                if let update = availableUpdate {
+                    NSWorkspace.shared.open(update.pageURL)
+                }
+                availableUpdate = nil
+            }
+            Button("Later", role: .cancel) { availableUpdate = nil }
+        } message: {
+            if let update = availableUpdate {
+                Text("SidebarFavorites \(update.version) is out. You have \(UpdateChecker.runningVersion).")
+            }
         }
     }
 
@@ -293,9 +317,15 @@ struct ContentView: View {
 
     private var footer: some View {
         HStack {
-            Text(statusText)
+            // The build, always - "Ready" said nothing a user could act on, and
+            // this is the number a bug report needs. Transient phases still take
+            // the slot while work is in flight.
+            Text(coordinator.phase == .idle && coordinator.migrationPlan == nil
+                 ? AppVersion.display
+                 : statusText)
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .help("SidebarFavorites \(AppVersion.display)")
 
             Spacer()
 

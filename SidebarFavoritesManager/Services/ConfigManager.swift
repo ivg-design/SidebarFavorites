@@ -38,6 +38,14 @@ final class ConfigManager: ObservableObject {
         appSupportURL.appendingPathComponent("Apps")
     }
 
+    /// Directory the advanced ("both icons") mode generates one Finder Sync
+    /// host+appex per favorite into. Not auto-created: its absence means no
+    /// advanced favorites exist, and `FinderSyncAppGenerator` creates it on the
+    /// first install.
+    var advancedAppsDirectoryURL: URL {
+        appSupportURL.appendingPathComponent("AdvancedApps")
+    }
+
     /// Directory for custom icon SVGs
     var iconsDirectoryURL: URL {
         let url = appSupportURL.appendingPathComponent("Icons")

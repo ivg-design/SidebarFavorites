@@ -405,8 +405,10 @@ static LSSharedFileListItemRef SFLVolumeRowForPath(CFArrayRef snapshot, NSString
 }
 
 + (BOOL)setOSType:(nullable NSString *)osType
-   forVolumePath:(NSString *)path
+    forVolumePath:(NSString *)path
+         patched:(BOOL *)patched
             error:(NSError **)error {
+    if (patched != NULL) { *patched = NO; }
     if (osType != nil && !SFLIsWellFormedOSType(osType)) {
         return SFLFail(error, SFLBridgeErrorCodeInvalidOSType,
                        [NSString stringWithFormat:@"'%@' is not a valid 4-character icon code.", osType]);
@@ -440,10 +442,13 @@ static LSSharedFileListItemRef SFLVolumeRowForPath(CFArrayRef snapshot, NSString
     CFRelease(list);
 
     if (row == NULL) {
-        // Not an error: the volume simply is not mounted, or Finder is not showing
-        // it. Callers treat this as "nothing to do".
+        // Not an error: the volume is not mounted, Finder is not showing it, or -
+        // for a network server - Finder synthesises the row from the mount table
+        // instead of storing one here, so there is nothing to patch. The caller
+        // needs to know the difference, which is what `patched` reports.
         return YES;
     }
+    if (patched != NULL) { *patched = (status == noErr); }
     if (status != noErr) {
         return SFLFail(error, status,
                        [NSString stringWithFormat:@"Couldn't set the Locations icon (error %d).", (int)status]);
