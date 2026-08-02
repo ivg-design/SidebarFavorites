@@ -42,6 +42,14 @@ Releases are Developer ID signed, notarized and stapled, so it opens normally - 
 
 Requires macOS 13.0 (Ventura) or later.
 
+### Updates
+
+The app asks GitHub once per launch whether a newer release exists, and tells you if there is one:
+
+![The update notice](docs/assets/SBFUpdateNotification.webp)
+
+**Download** opens the release page; **Later** dismisses it until the next launch. That is the whole mechanism - one request at startup, no background checking, no automatic download, and nothing installed behind your back. If the check cannot reach GitHub it says nothing at all.
+
 ## Quick start
 
 ![The manager window](docs/assets/SBFMainWindow.webp)
