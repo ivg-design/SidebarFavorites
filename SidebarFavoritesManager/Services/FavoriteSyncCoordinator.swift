@@ -164,6 +164,9 @@ final class FavoriteSyncCoordinator: ObservableObject {
             }
         }
 
+        // Before the reconcile, so a row whose mode was dropped is repainted as
+        // the advanced favorite it still is.
+        await restoreModesLostToAnOlderBuild()
         await requestReconcile(force: false)
         await syncAdvancedHelpers()
     }
@@ -287,6 +290,25 @@ final class FavoriteSyncCoordinator: ObservableObject {
         releasedFavorites.remove(favorite.id)
         await requestReconcile(force: false)
         await syncAdvancedHelpers()
+    }
+
+    /// Put back any `mode` an older build dropped, before the helper sweep can
+    /// act on the missing value. See `favoritesWithOrphanedHelpers`.
+    private func restoreModesLostToAnOlderBuild() async {
+        let favorites = configManager.config.favorites
+        let lost = FinderSyncAppGenerator.shared.favoritesWithOrphanedHelpers(in: favorites)
+        guard !lost.isEmpty else { return }
+
+        var repaired = favorites
+        for index in repaired.indices where lost.contains(repaired[index].id) {
+            repaired[index].mode = .advanced
+        }
+        do {
+            try configManager.replaceFavorites(repaired)
+            NSLog("FavoriteSyncCoordinator: restored Both-icons mode on \(lost.count) favorite(s) after an older build rewrote config.json")
+        } catch {
+            warnings.append("Couldn't restore Both-icons mode after an older version of the app rewrote the settings file: \(error.localizedDescription)")
+        }
     }
 
     /// Bring the per-favorite Finder Sync helpers in line with the config, and

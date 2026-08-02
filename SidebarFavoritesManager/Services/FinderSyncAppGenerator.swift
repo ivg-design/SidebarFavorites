@@ -377,6 +377,32 @@ final class FinderSyncAppGenerator {
         return dictionary["CFBundleIdentifier"] as? String
     }
 
+    // MARK: - Surviving a downgrade
+
+    /// Favorites that have a helper installed but no longer say they are
+    /// advanced - i.e. whose `mode` was lost, and which are about to have a
+    /// working helper swept away for a state they never chose.
+    ///
+    /// A build older than 1.2 has no `mode` property, so re-encoding
+    /// `config.json` drops the key entirely. Running 1.1 once - by launching a
+    /// copy still sitting in /Applications, say - is enough. The installed
+    /// bundles are the second copy of that state: their names carry the
+    /// favorite's id, nothing older than 1.2 writes them, and the only path
+    /// that turns a favorite back to regular deletes its bundle in the same
+    /// step. So a bundle with no advanced favorite behind it means the config
+    /// lost the answer, not that the user changed their mind.
+    func favoritesWithOrphanedHelpers(in favorites: [Favorite]) -> [UUID] {
+        let root = configManager.advancedAppsDirectoryURL
+        guard let installed = try? fileManager.contentsOfDirectory(atPath: root.path) else {
+            return []
+        }
+        let installedIDs = Set(installed.filter { $0.hasSuffix(".app") }
+            .compactMap { $0.dropLast(4).split(separator: "-").last.map(String.init) })
+        return favorites
+            .filter { $0.mode != .advanced && installedIDs.contains(Self.shortID($0.id)) }
+            .map(\.id)
+    }
+
     // MARK: - Status (Settings panel)
 
     /// What System Settings would say about one favorite's helper, asked from
