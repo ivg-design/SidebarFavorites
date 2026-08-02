@@ -399,6 +399,15 @@ final class FavoriteSyncCoordinator: ObservableObject {
         return collected
     }
 
+    /// Publish a failure raised outside the coordinator - the editor window
+    /// writing a favorite, say - so the main window's alert reports it.
+    ///
+    /// `lastError` stays `private(set)`: this is the one way in, and it makes
+    /// "who set this" answerable.
+    func report(error message: String) {
+        lastError = message
+    }
+
     func dismissWarnings() {
         stickyWarnings.removeAll()
         warnings.removeAll()

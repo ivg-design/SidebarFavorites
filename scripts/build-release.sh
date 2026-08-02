@@ -115,9 +115,25 @@ fi
 
 OUTER_APP_PATH="$RELEASE_DIR/$APP_NAME.app"
 
-# Step 7: Sign the app
-# The app has no nested code (no embedded helper app, no app extension) so only
-# the outer bundle needs signing.
+# Step 7: Sign the app, inner code first.
+#
+# Resources/FinderSyncTemplate holds two Mach-O executables - the host and
+# extension binaries that advanced ("both icons") mode clones per favorite.
+# Notarization rejects any executable in the bundle that is not itself signed
+# with a Developer ID certificate, timestamped and hardened; sealing them as
+# resources is not enough. They have to be signed before the outer bundle,
+# because signing the app seals whatever they are at that moment.
+TEMPLATE_DIR="$OUTER_APP_PATH/Contents/Resources/FinderSyncTemplate"
+if [ -d "$TEMPLATE_DIR" ]; then
+    for BINARY in "$TEMPLATE_DIR"/*-bin; do
+        [ -f "$BINARY" ] || continue
+        echo "Signing $(basename "$BINARY")..."
+        codesign --force --sign "$IDENTITY" \
+            "${CODESIGN_EXTRA_ARGS[@]}" \
+            "$BINARY"
+    done
+fi
+
 echo "Signing $APP_NAME.app..."
 codesign --force --sign "$IDENTITY" \
     "${CODESIGN_EXTRA_ARGS[@]}" \

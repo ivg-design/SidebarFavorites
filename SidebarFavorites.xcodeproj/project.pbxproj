@@ -22,6 +22,7 @@
 		448B1B61CA3435ADA48BB96F /* MenuBarIconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BD9736476A052F2A50161D /* MenuBarIconStore.swift */; };
 		4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */; };
 		4BAB0D71C84DB2038A79BE40 /* OSTypeAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B275483C4FD4F33A8C20C /* OSTypeAllocator.swift */; };
+		4EE036577423D8C60164D5D4 /* FavoriteEditorWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4F19E1C4C373AA935F4520 /* FavoriteEditorWindow.swift */; };
 		673744E11E88C626D10983E1 /* SigningIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55902C37DF49AE55C76108F9 /* SigningIdentity.swift */; };
 		7CC8DF9C125868C87CAD7785 /* FinderSyncAppGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */; };
 		7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */; };
@@ -49,6 +50,7 @@
 
 /* Begin PBXFileReference section */
 		0BD2B23709F81767F72E8B18 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		0C4F19E1C4C373AA935F4520 /* FavoriteEditorWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteEditorWindow.swift; sourceTree = "<group>"; };
 		147636508548FA032461B12F /* SidebarFavoritesManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SidebarFavoritesManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C0596EA28980B7E1FB021CA /* IconAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconAuthority.swift; sourceTree = "<group>"; };
 		1E62EDE72F4C95ED46D7AD2E /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -180,6 +182,7 @@
 			children = (
 				F28792F283612A4FC2B12E28 /* AddEditFavoriteSheet.swift */,
 				E33EDF718268412B7F826DEC /* ContentView.swift */,
+				0C4F19E1C4C373AA935F4520 /* FavoriteEditorWindow.swift */,
 				6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */,
 				E8BD9736476A052F2A50161D /* MenuBarIconStore.swift */,
 				FCCCF6C1FEB4B5E963E2DC81 /* MenuBarView.swift */,
@@ -317,6 +320,7 @@
 				2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */,
 				439029DFB0848F9B8C785302 /* CoreThemeCatalogWriter.m in Sources */,
 				A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */,
+				4EE036577423D8C60164D5D4 /* FavoriteEditorWindow.swift in Sources */,
 				25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */,
 				9C00E53E5D16EA48775FEBCF /* FavoriteSyncCoordinator.swift in Sources */,
 				A14BFDE748D5355D2A2265EE /* FinderService.swift in Sources */,

@@ -4,7 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var configManager: ConfigManager
     @EnvironmentObject var coordinator: FavoriteSyncCoordinator
     @Binding var showingAddSheet: Bool
-    @State private var editingFavorite: Favorite?
+    @Environment(\.openWindow) private var openWindow
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var deletingFavoriteIDs: Set<UUID> = []
@@ -35,7 +35,7 @@ struct ContentView: View {
 
                 Spacer()
 
-                Button(action: { showingAddSheet = true }) {
+                Button(action: { openEditor(FavoriteEditorWindow.newFavoriteToken) }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 22))
                 }
@@ -70,23 +70,11 @@ struct ContentView: View {
             // Footer with actions
             footer
         }
-        .frame(width: 400, height: 500)
-        .sheet(isPresented: $showingAddSheet) {
-            AddEditFavoriteSheet(
-                favorite: nil,
-                onApply: { favorite in await applyFavorite(favorite) }
-            ) { newFavorite in
-                Task { _ = await persistFavorite(newFavorite) }
-            }
-        }
-        .sheet(item: $editingFavorite) { favorite in
-            AddEditFavoriteSheet(
-                favorite: favorite,
-                onApply: { updated in await applyFavorite(updated) }
-            ) { updatedFavorite in
-                Task { _ = await persistFavorite(updatedFavorite) }
-            }
-        }
+        // A floor, not a fixed size: the list scrolls, but a long list is much
+        // easier to work with in a taller window, so the window is resizable and
+        // this only stops it being shrunk past usefulness.
+        .frame(minWidth: 400, idealWidth: 400, maxWidth: .infinity,
+               minHeight: 380, idealHeight: 560, maxHeight: .infinity)
         // Consent, not progress: nothing has happened yet when this appears.
         // Dismissing by any route (Esc, "Not Now") is a decline, which leaves the
         // machine exactly as it was and re-offers on the next launch.
@@ -213,7 +201,7 @@ struct ContentView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             Button("Add Favorite") {
-                showingAddSheet = true
+                openEditor(FavoriteEditorWindow.newFavoriteToken)
             }
             .buttonStyle(.borderedProminent)
             Spacer()
@@ -229,7 +217,7 @@ struct ContentView: View {
                         favorite: favorite,
                         inSidebar: coordinator.boundItems[favorite.id] != nil,
                         isAdopted: favorite.sidebarProvenance == .adopted,
-                        onEdit: { editingFavorite = favorite },
+                        onEdit: { openEditor(favorite.id.uuidString) },
                         onDelete: { favoritePendingDeletion = favorite },
                         onToggle: { toggleFavorite(favorite) },
                         onReveal: { coordinator.revealInFinder(favorite.folderPath) }
@@ -381,6 +369,13 @@ struct ContentView: View {
     /// favorite while the sheet is still open, so the Save that follows from that
     /// same sheet is an update - deciding by sheet would insert a duplicate.
     @discardableResult
+    /// Opens (or focuses) the editor window for a favorite id, or for a new
+    /// favorite. The main window is no longer involved: the editor is its own
+    /// window, so it can be moved, resized and left open beside the list.
+    private func openEditor(_ token: String) {
+        openWindow(id: "editor", value: token)
+    }
+
     private func persistFavorite(_ favorite: Favorite) async -> String? {
         // Captured before the write overwrites it, so the coordinator can compare
         // old vs. new (folder path, icon) against the live sidebar snapshot.

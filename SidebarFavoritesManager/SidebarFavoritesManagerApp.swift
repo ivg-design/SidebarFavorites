@@ -19,10 +19,25 @@ struct SidebarFavoritesManagerApp: App {
                 .environmentObject(coordinator)
         }
         .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
+        // `.contentSize` pinned the window to its content, so a list longer than
+        // the window could only be scrolled, never given more room.
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 400, height: 560)
         .commands {
             AppCommands(showingAddSheet: $showingAddSheet)
         }
+
+        // The favorite editor. A window rather than a sheet so it can be moved
+        // and resized, and so it does not cover the list it is describing.
+        // One window per value: re-editing the same favorite focuses the window
+        // already showing it.
+        WindowGroup(id: "editor", for: String.self) { $token in
+            FavoriteEditorWindow(token: token ?? FavoriteEditorWindow.newFavoriteToken)
+                .environmentObject(configManager)
+                .environmentObject(coordinator)
+        }
+        .defaultSize(width: 480, height: 720)
+        .windowResizability(.contentMinSize)
 
         Settings {
             SettingsView()
@@ -48,10 +63,9 @@ struct AppCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             Button("Add Favorite...") {
-                // Ensure the main window is open before flipping the sheet flag,
-                // so Cmd-N works even if the window was closed.
-                openWindow(id: "main")
-                showingAddSheet = true
+                // The editor is its own window now, so this no longer depends on
+                // the main window being open.
+                openWindow(id: "editor", value: FavoriteEditorWindow.newFavoriteToken)
             }
             .keyboardShortcut("n", modifiers: .command)
         }

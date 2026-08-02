@@ -173,20 +173,9 @@ struct AddEditFavoriteSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text(isEditing ? "Edit Favorite" : "Add Favorite")
-                    .font(.headline)
-                Spacer()
-                Button(action: { dismiss() }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.borderless)
-            }
-            .padding()
-
-            Divider()
+            // No header row: this is a window now, and its title bar already
+            // carries the title and a close button. Drawing a second pair
+            // underneath them was the sheet's job.
 
             // Form
             Form {
@@ -308,7 +297,10 @@ struct AddEditFavoriteSheet: View {
         }
         // Tall enough that the live preview is visible without scrolling in both
         // icon modes; the form still scrolls when an import raises several warnings.
-        .frame(width: 470, height: 700)
+        // A floor, not a size: the editor is a resizable window, and a wider one
+        // makes long paths and the symbol grid easier to read.
+        .frame(minWidth: 440, idealWidth: 480, maxWidth: .infinity,
+               minHeight: 480, idealHeight: 720, maxHeight: .infinity)
         .onAppear {
             if let favorite = existingFavorite {
                 favoriteID = favorite.id
