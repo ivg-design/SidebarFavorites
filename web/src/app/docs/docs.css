@@ -31,7 +31,7 @@
 .dx-group-title { margin: var(--s-5) 0 var(--s-1) var(--s-3); font-family: var(--font-body); font-size: var(--t-13); font-weight: 600; color: var(--muted); }
 .dx-group:first-child .dx-group-title { margin-top: 0; }
 .dx-group ul, .dx-toc-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
-.dx-row { display: flex; align-items: center; gap: var(--s-2); height: 32px; padding: 0 var(--s-3); border-radius: var(--r-1); font-size: var(--t-14); color: var(--ink); white-space: nowrap; transition: background-color var(--t-fast); }
+.dx-row { display: flex; align-items: center; gap: var(--s-2); height: 30px; padding: 0 var(--s-3); border-radius: var(--r-1); font-size: var(--t-14); color: var(--ink); white-space: nowrap; transition: background-color var(--t-fast); }
 .dx-row:hover { background: rgba(20,19,17,.05); }
 .dx-row[aria-current="page"] { background: rgba(20,19,17,.09); }
 .dx-row:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
