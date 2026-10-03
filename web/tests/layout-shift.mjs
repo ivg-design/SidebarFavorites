@@ -10,14 +10,14 @@ let browser;
 before(async () => { browser = await puppeteer.launch({ executablePath: CH, headless: true, args: ["--no-sandbox"] }); });
 after(async () => { await browser?.close(); });
 
-const X = (sel) => (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
+const X = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().left * 10) / 10 : null; };
 const ANCHORS = { brand: ".dx-brand-home", rail: ".dx-rail", article: ".dx-main-wrap", toc: ".dx-toc" };
 
 async function positions(page, path, height) {
   await page.setViewport({ width: 1440, height });
   await page.goto(BASE + path, { waitUntil: "networkidle0" });
   const out = {};
-  for (const [k, sel] of Object.entries(ANCHORS)) out[k] = await page.evaluate(X(sel), sel);
+  for (const [k, sel] of Object.entries(ANCHORS)) out[k] = await page.evaluate(X, sel);
   out.scrollable = await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight);
   return out;
 }
@@ -28,7 +28,7 @@ test("docs: removing the scrollbar (overflow hidden) leaves header, rail, articl
   assert.equal(withBar.scrollable, true, "long page should scroll");
   await page.evaluate(() => { document.documentElement.style.overflowY = "hidden"; });
   const noBar = {};
-  for (const [k, sel] of Object.entries(ANCHORS)) noBar[k] = await page.evaluate(X(sel), sel);
+  for (const [k, sel] of Object.entries(ANCHORS)) noBar[k] = await page.evaluate(X, sel);
   for (const k of Object.keys(ANCHORS)) assert.equal(noBar[k], withBar[k], `${k} moved: ${noBar[k]} vs ${withBar[k]}`);
   await page.close();
 });

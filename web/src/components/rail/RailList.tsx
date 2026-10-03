@@ -22,7 +22,7 @@ function Row({ href, label, Icon, state, current, external, testid, onNavigate }
     >
       <span className="rail-ic" aria-hidden="true">
         {state !== "static" && <FolderGlyph className="rail-folder" />}
-        <Icon className="rail-glyph" size={16} strokeWidth={1.75} />
+        <Icon className="rail-glyph" size={16} strokeWidth={1.6} />
       </span>
       <span className="rail-lab">{nb(label)}</span>
       {external && <span className="rail-ext" aria-hidden="true">↗</span>}
