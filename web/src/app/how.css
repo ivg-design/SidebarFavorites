@@ -5,7 +5,7 @@
 .hw-copy { min-width: 0; }
 .hw-copy .eyebrow { margin-bottom: var(--s-3); }
 .hw-prose { margin-top: var(--s-4); }
-.hw-sub { align-items: center; }
+.hw-sub { align-items: start; }
 @media (min-width: 900px) { .hw-sticky { position: sticky; top: 96px; } }
 
 /* the app's own controls: dark, system font */

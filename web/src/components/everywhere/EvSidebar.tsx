@@ -6,7 +6,7 @@ import { FolderGlyph, SideHeading, SideRow, Sidebar } from "../finder/Finder";
 import { ROWS, type EvRow, type Kind, type Group } from "./data";
 
 const NATIVE_W = 248;
-const MAX_Z = 1.85;
+const MAX_Z = 1.3; // same cap as the hero: one scale for every Finder mock
 
 function Eject() {
   return (
