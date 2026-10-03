@@ -6,7 +6,7 @@ export default function Figure({ shot, alt, caption, max }: { shot: ShotName; al
   const [w1, w2, h1] = SHOTS[shot];
   const src = asset(`/shots/${shot}-w${w1}.webp`);
   const src2 = asset(`/shots/${shot}-w${w2}.webp`);
-  const width = max ?? w1;
+  const width = Math.min(max ?? w1, Math.round((720 * w1) / h1)); // tall shots: height capped at 720px, ratio kept
   return (
     <figure className="dx-fig" style={{ maxWidth: width }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}

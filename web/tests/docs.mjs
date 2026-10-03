@@ -128,3 +128,22 @@ test("changelog: per-version anchors, same shell", async () => {
   assert.equal(info.toc, info.ids.length);
   await page.close();
 });
+
+test("docs: opening the search palette moves nothing by a pixel (scrollbar gutter)", async () => {
+  const page = await open("/docs/config-json");
+  const measure = () => page.evaluate(() => ["header a[href]", ".dx-rail", "main"].map((q) => document.querySelector(q).getBoundingClientRect().left));
+  const before = await measure();
+  await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
+  await page.waitForSelector('[data-testid="docs-search-input"]');
+  assert.deepEqual(await measure(), before);
+  await page.close();
+});
+
+test("docs: table code tokens never wrap mid-word", async () => {
+  for (const width of [1440, 390]) {
+    const page = await open("/docs/config-json", { width });
+    const bad = await page.evaluate(() => [...document.querySelectorAll(".dx-table code")].filter((c) => c.getClientRects().length > 1).map((c) => c.textContent));
+    assert.deepEqual(bad, [], `wrapped at ${width}`);
+    await page.close();
+  }
+});

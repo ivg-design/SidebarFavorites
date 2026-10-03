@@ -27,7 +27,7 @@ export function Body() {
       <H2 id="locations-rows">How Locations rows are handled</H2>
       <p>Finder owns the rows in Locations, so the app only ever patches one in place. It never inserts, moves or deletes a row there, and the row is handed back untouched when the favorite is disabled or removed.</p>
       <H2 id="cannot-take-icons">Rows that cannot take an icon</H2>
-      <p>Finder&rsquo;s synthesised entries (iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows) cannot take a custom icon at all. macOS stores one and never draws it, so the app leaves them alone.</p>
+      <p>Finder&rsquo;s synthesised entries (iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows) cannot take a custom icon at all. macOS stores one and never draws it, so the app leaves them alone.</p>
     </>
   );
 }

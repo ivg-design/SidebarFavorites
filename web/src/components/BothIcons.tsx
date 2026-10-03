@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { asset } from "@/lib/config";
+import { nb } from "@/lib/nowrap";
 import { Reveal } from "./motion/Reveal";
 import { FolderTile, MacWindow, Pane, SideHeading, SideRow, Sidebar, FolderGlyph, Vivid } from "./finder/Finder";
 import { Glyph } from "./glyphs";
@@ -10,15 +11,15 @@ import "../app/demos.css";
 type Mode = "keep" | "remove" | "leave";
 
 const CHOICES: { id: Mode; head: string; text: string }[] = [
-  { id: "keep", head: "Keep both icons", text: "Folder keeps its icon everywhere and the row keeps your glyph. Adds one small Finder Sync helper (≈ 6 MB, no window, nothing at login) for that favorite." },
-  { id: "remove", head: "Remove its icon", text: "Back to a plain folder, which is enough to make the glyph stick. A copy is kept in IconBackups." },
-  { id: "leave", head: "Leave as is", text: "Change nothing; the glyph disappears whenever the folder changes, until you press Refresh." },
+  { id: "keep", head: "Keep both icons", text: nb("Folder keeps its icon everywhere and the row keeps your glyph. Adds one small Finder Sync helper (≈ 6 MB, no window, nothing at login) for that favorite.") },
+  { id: "remove", head: "Remove its icon", text: nb("Back to a plain folder, which is enough to make the glyph stick. A copy is kept in IconBackups.") },
+  { id: "leave", head: "Leave as is", text: nb("Change nothing; the glyph disappears whenever the folder changes, until you press Refresh.") },
 ];
 
 const STATUS: Record<Mode, { text: string; dot: string }> = {
-  keep: { text: "Finder Sync helper SBF-DemoBoth registered · ≈ 6 MB · nothing at login", dot: "#30D158" },
-  remove: { text: "Folder icon removed · a copy is kept in IconBackups", dot: "#3B82F7" },
-  leave: { text: "Sidebar glyph lost whenever this folder changes · press Refresh", dot: "#FF9F0A" },
+  keep: { text: nb("Finder Sync helper SBF-DemoBoth registered · ≈ 6 MB · nothing at login"), dot: "#30D158" },
+  remove: { text: nb("Folder icon removed · a copy is kept in IconBackups"), dot: "#3B82F7" },
+  leave: { text: nb("Sidebar glyph lost whenever this folder changes · press Refresh"), dot: "#FF9F0A" },
 };
 
 export default function BothIcons() {
@@ -59,7 +60,7 @@ export default function BothIcons() {
           <div className="bi2-copy">
             <p className="eyebrow">Keeping both icons</p>
             <h2 className="display h-sec">Folders with an icon of their own get a choice.</h2>
-            <p className="lede">Pasted a custom icon into Get Info so the folder is recognisable in the Dock? On macOS 26 that icon fights the sidebar glyph. When you add such a folder the app says so and offers three ways out — none does anything until you save.</p>
+            <p className="lede">{nb("Pasted a custom icon into Get Info so the folder is recognisable in the Dock? On macOS 26 that icon fights the sidebar glyph. When you add such a folder the app says so and offers three ways out — none does anything until you save.")}</p>
             <div className="bi2-choices" role="radiogroup" aria-label="What to do with the folder's own icon">
               {CHOICES.map((c) => (
                 <label key={c.id} className="bi2-choice">

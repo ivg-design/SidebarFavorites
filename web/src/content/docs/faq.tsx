@@ -26,7 +26,7 @@ export function Body() {
   return (
     <>
       <H2 id="background">Does anything run in the background?</H2>
-      <p>No, not for a normal favorite: no extension, no daemon, no login item, no launch agent. The one exception is <strong>Both icons</strong> mode, which adds one small Finder Sync helper (about 6 MB, no window) for each favorite you turn it on for. See <DocLink to="keeping-both-icons">Keeping both icons</DocLink>.</p>
+      <p>No, not for a normal favorite: no extension, no daemon, no login item, no launch agent. The one exception is <strong>Both icons</strong> mode, which adds one small Finder Sync helper (about 6 MB, no window) for each favorite you turn it on for. See <DocLink to="keeping-both-icons">Keeping both icons</DocLink>.</p>
       <H2 id="color">Can I have a coloured icon?</H2>
       <p>No. Finder draws sidebar icons as a flat silhouette tinted to match the sidebar. That is a macOS rule, not a limitation of this app.</p>
       <H2 id="quit">Do I need to keep the app open?</H2>
@@ -34,7 +34,7 @@ export function Body() {
       <H2 id="rows">Will it touch sidebar rows I added myself?</H2>
       <p>It only puts an icon on them. Rows you added yourself are left where they are, and removing the favorite restores the original icon rather than deleting the row.</p>
       <H2 id="which-folders">Which folders work?</H2>
-      <p>Local folders, iCloud Drive, <code>~/Library/CloudStorage</code> (Google Drive, Dropbox, OneDrive and so on), and mounted disks and network shares. See <DocLink to="cloud-folders">Cloud folders</DocLink> and <DocLink to="disks-and-shares">Disks and network shares</DocLink>.</p>
+      <p>Local folders, iCloud Drive, <code>~/Library/CloudStorage</code> (Google Drive, Dropbox, OneDrive and so on), and mounted disks and network shares. See <DocLink to="cloud-folders">Cloud folders</DocLink> and <DocLink to="disks-and-shares">Disks and network shares</DocLink>.</p>
       <H2 id="network">Does it phone home?</H2>
       <p>The app makes one request to GitHub per launch to check for a newer release. There is no background checking and no automatic download. See <DocLink to="updates">Updates</DocLink>.</p>
       <H2 id="license">What is the license?</H2>
@@ -42,11 +42,11 @@ export function Body() {
       <H2 id="credits">Credits</H2>
       <ul>
         <li>Inspired by <a href="https://github.com/rknightuk/custom-finder-sidebar-icons" target="_blank" rel="noopener noreferrer">rknightuk/custom-finder-sidebar-icons</a>.</li>
-        <li>Uses Apple&rsquo;s SF Symbols.</li>
+        <li>Uses Apple&rsquo;s SF Symbols.</li>
         <li>The Nix package comes from <a href="https://github.com/rohanp2051" target="_blank" rel="noopener noreferrer">@rohanp2051</a>. Thank you.</li>
       </ul>
       <H3 id="trademarks">Trademarks</H3>
-      <p>SidebarFavorites is not affiliated with Apple Inc. SF Symbols is a trademark of Apple Inc.</p>
+      <p>SidebarFavorites is not affiliated with Apple Inc. SF Symbols is a trademark of Apple Inc.</p>
     </>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Glyph } from "../glyphs";
 import { EASE_QUART } from "../motion/Reveal";
@@ -16,8 +16,17 @@ const MORPH_INDEX: Record<string, number> = {
 export default function BigGlyph({ glyph, size = 200 }: { glyph: string; size?: number }) {
   const reduce = !!useReducedMotion();
   const [ready, setReady] = useState(false);
+  const [wanted, setWanted] = useState(false);
   const target = MORPH_INDEX[glyph];
   const useRive = target !== undefined;
+
+  // The runtime (wasm) is ~0.6 MB over the wire: fetch it only once the page is idle after first paint.
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const start = () => setWanted(true);
+    const t = setTimeout(() => { if (w.requestIdleCallback) w.requestIdleCallback(start, { timeout: 2500 }); else start(); }, 600);
+    return () => clearTimeout(t);
+  }, []);
   const showFallback = !useRive || !ready;
   const duration = reduce ? 0 : 0.22;
   return (
@@ -31,7 +40,7 @@ export default function BigGlyph({ glyph, size = 200 }: { glyph: string; size?: 
           </motion.span>
         </AnimatePresence>
       )}
-      {useRive && <FolderMorph className="hx-big-rive" target={target} auto={false} onReady={() => setReady(true)} />}
+      {useRive && wanted && <FolderMorph className="hx-big-rive" target={target} auto={false} onReady={() => setReady(true)} />}
     </div>
   );
 }

@@ -7,15 +7,16 @@ import { Flip } from "./flip/Flip";
 import { Glyph } from "./glyphs";
 import { Sidebar, SideHeading, SideRow } from "./finder/Finder";
 import "./finder/finder.css";
+import { nb } from "@/lib/nowrap";
 import "@/app/flow.css";
 
 const ADVANCE_MS = 3000;
 
 const TABS = [
-  { icon: Folder, label: "Local folders", word: "Local folders.", text: "Anything on your Mac. ~ paths welcome." },
-  { icon: Cloud, label: "iCloud & CloudStorage", word: "iCloud & CloudStorage.", text: "Google Drive, Dropbox, OneDrive — the virtual FileProvider mounts older tools could never see." },
-  { icon: HardDrive, label: "Mounted disks", word: "Mounted disks.", text: "Finder already lists them under Locations; the app icons that row, or adds a Favorites row too." },
-  { icon: Server, label: "Network shares", word: "Network shares.", text: "Same as disks. Finder keeps owning the Locations row; the app only patches it in place." },
+  { icon: Folder, label: "Local folders", word: "Local folders.", text: nb("Anything on your Mac. ~ paths welcome.") },
+  { icon: Cloud, label: "iCloud & CloudStorage", word: "iCloud & CloudStorage.", text: nb("Google Drive, Dropbox, OneDrive — the virtual FileProvider mounts older tools could never see.") },
+  { icon: HardDrive, label: "Mounted disks", word: "Mounted disks.", text: nb("Finder already lists them under Locations; the app icons that row, or adds a Favorites row too.") },
+  { icon: Server, label: "Network shares", word: "Network shares.", text: nb("Same as disks. Finder keeps owning the Locations row; the app only patches it in place.") },
 ] as const;
 
 interface Row { key: string; label: string; glyph: string; tab: number; custom: boolean }
@@ -120,7 +121,7 @@ export default function Everywhere() {
             <p role="tabpanel" id={`${uid}-p`} aria-labelledby={`${uid}-t${sel}`} className="ev-desc" data-testid="everywhere-desc" key={sel}>{TABS[sel].text}</p>
           </Reveal>
         </div>
-        <Reveal><p className="fine ev-fine">Finder’s own synthesised rows — iCloud Drive, Computer, AirDrop, Network, the cloud-provider rows — cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.</p></Reveal>
+        <Reveal><p className="fine ev-fine">{nb("Finder’s own synthesised rows — iCloud Drive, Computer, AirDrop, Network, the cloud-provider rows — cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.")}</p></Reveal>
       </div>
     </section>
   );

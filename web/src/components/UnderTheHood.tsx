@@ -4,6 +4,7 @@ import { useInView } from "framer-motion";
 import { asset } from "@/lib/config";
 import { Reveal } from "./motion/Reveal";
 import { FlipIn } from "./flip/Flip";
+import { nb } from "@/lib/nowrap";
 import "@/app/flow.css";
 
 const TRACE = [
@@ -16,7 +17,7 @@ const TRACE = [
 
 const LEDGER = [
   { num: "17 bytes", body: <>The helper bundle’s “executable” is a <code>#!/bin/sh</code> no-op. It exists so macOS registers the bundle. It is never launched.</> },
-  { num: "0 processes", body: <>Nothing runs after you quit. Icons survive reboots and Finder restarts on their own. (Both icons mode adds one small opt-in helper per favorite.)</> },
+  { num: "0 processes", body: <>{nb("Nothing runs after you quit. Icons survive reboots and Finder restarts on their own. ")}{nb("(Both icons mode adds one small opt-in helper per favorite.)")}</> },
   { num: "1 file", body: <>Configuration is <code>~/Library/Application Support/SidebarFavorites/config.json</code>; imported artwork sits in <code>Icons/</code> beside it.</> },
   { num: "1 request", body: <>Updates: one GitHub check per launch, no background checking, no automatic download. Offline, it says nothing.</> },
 ];
@@ -43,7 +44,7 @@ export default function UnderTheHood() {
         <Reveal>
           <p className="eyebrow">Under the hood</p>
           <h2 className="display h-sec">No extension. No daemon. No login item.</h2>
-          <p className="lede">Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them. That is the whole mechanism for a normal favorite.</p>
+          <p className="lede">{nb("Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them. That is the whole mechanism for a normal favorite.")}</p>
         </Reveal>
         <Trace />
         <ol className="uh-ledger">

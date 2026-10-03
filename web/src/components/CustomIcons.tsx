@@ -1,5 +1,6 @@
 import { Eye, SlidersHorizontal, RefreshCw, TriangleAlert, Info } from "lucide-react";
 import { asset } from "@/lib/config";
+import { nb } from "@/lib/nowrap";
 import { Reveal } from "./motion/Reveal";
 import SizeToy from "./SizeToy";
 import "../app/demos.css";
@@ -20,10 +21,10 @@ export default function CustomIcons() {
         <Reveal className="ci2-copy">
           <p className="eyebrow">Custom icons</p>
           <h2 className="display h-sec">Any SVG. Nothing to prepare.</h2>
-          <p className="lede">A logo, an icon you drew, anything made of vector shapes. No SF Symbols template, no guide boxes, no naming field. The app flattens the file to a single outline and builds the symbol around it — compiled by the asset-catalog engine that ships with macOS, so no Xcode.</p>
+          <p className="lede">{nb("A logo, an icon you drew, anything made of vector shapes. No SF Symbols template, no guide boxes, no naming field. The app flattens the file to a single outline and builds the symbol around it — compiled by the asset-catalog engine that ships with macOS, so no Xcode.")}</p>
           <ul className="ci2-list">
             {BULLETS.map(([Icon, t]) => (
-              <li key={t}><Icon size={20} aria-hidden="true" /><span>{t}</span></li>
+              <li key={t}><Icon size={20} aria-hidden="true" /><span>{nb(t)}</span></li>
             ))}
           </ul>
           <div className="ci2-callout">

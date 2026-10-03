@@ -10,7 +10,7 @@ export const meta: DocMeta = {
   group: "Guides",
   description: "Import any ordinary SVG as a sidebar icon. Nothing to prepare, a live preview at the real size, and a 50 to 150 percent size slider.",
   keywords: ["svg", "import", "logo", "custom icon", "size slider", "preview", "warnings", "raster", "gradient", "actool", "xcode", "flatten"],
-  excerpt: "The app parses the file, flattens it to a single outline and builds the SF Symbol around it. No SF Symbols template, no guide boxes, no Xcode.",
+  excerpt: "The app parses the file, flattens it to a single outline and builds the SF Symbol around it. No SF Symbols template, no guide boxes, no Xcode.",
   sections: [
     { id: "import", title: "Import any SVG" },
     { id: "preview", title: "Live preview" },
@@ -25,12 +25,12 @@ export function Body() {
   return (
     <>
       <H2 id="import">Import any SVG</H2>
-      <p>Click <strong>Import SVG…</strong> in the editor and pick any ordinary SVG: a logo, an icon you drew, anything made of vector shapes. There is nothing to prepare. No SF Symbols template to export, no guide boxes to draw inside, no naming field to get right. The app parses the file, flattens it to a single outline and builds the SF Symbol around it.</p>
+      <p>Click <strong>Import SVG…</strong> in the editor and pick any ordinary SVG: a logo, an icon you drew, anything made of vector shapes. There is nothing to prepare. No SF Symbols template to export, no guide boxes to draw inside, no naming field to get right. The app parses the file, flattens it to a single outline and builds the SF Symbol around it.</p>
       <Figure shot="svg-import" alt="The SVG import sheet showing an enlarged silhouette and a mock sidebar row" caption="Importing an SVG." max={420} />
       <H2 id="preview">Live preview</H2>
       <p>You see the exact silhouette that will ship, both enlarged and in a mock sidebar row at the real 16 pt size.</p>
       <H2 id="size">Size slider</H2>
-      <p>The slider runs from 50 to 150 percent. 100 percent is exactly the size of a system SF Symbol, which is the right measurement but not always the right look: a wide or busy mark reads heavier than a sparse one at the same size. Nudge it until it sits comfortably next to the rest of the sidebar. The preview follows as you drag.</p>
+      <p>The slider runs from 50 to 150 percent. 100 percent is exactly the size of a system SF Symbol, which is the right measurement but not always the right look: a wide or busy mark reads heavier than a sparse one at the same size. Nudge it until it sits comfortably next to the rest of the sidebar. The preview follows as you drag.</p>
       <Figure shot="custom-svg-settings" alt="The custom SVG settings with the size slider and a sidebar row preview" caption="Tuning a custom icon." max={420} />
       <H2 id="apply">Apply</H2>
       <p><strong>Apply</strong> saves, rebuilds the icon and restarts Finder in one click without closing the sheet, so you can tune the size against the real sidebar.</p>

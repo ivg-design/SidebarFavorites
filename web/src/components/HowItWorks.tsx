@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { asset } from "@/lib/config";
 import { EASE_QUART } from "./motion/Reveal";
+import { nb } from "@/lib/nowrap";
 import "@/app/flow.css";
 
 interface Step { n: number; title: string; text: string; img: string; widths: [number, number]; w: number; h: number; pos: string; alt: string }
@@ -10,13 +11,13 @@ interface Step { n: number; title: string; text: string; img: string; widths: [n
 const STEPS: Step[] = [
   { n: 1, title: "Click + and pick the folder", img: "SBFMainWindow", widths: [430, 860], w: 860, h: 1124, pos: "50% 30%",
     alt: "The SidebarFavorites window listing folders, each with its icon and an In Sidebar toggle",
-    text: "Browse, or type a path — ~ works. Local folders, iCloud Drive, Google Drive, Dropbox, OneDrive, mounted disks and network shares all count." },
-  { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "50% 20%",
+    text: nb("Browse, or type a path — ~ works. Local folders, iCloud Drive, Google Drive, Dropbox, OneDrive, mounted disks and network shares all count.") },
+  { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "22% 18%",
     alt: "The SF Symbols browser showing a grid of symbols with a search field",
-    text: "Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the roughly 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG." },
+    text: nb("Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the roughly 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG.") },
   { n: 3, title: "Add", img: "SBFAddFavoriteWindow", widths: [480, 960], w: 960, h: 1930, pos: "50% 55%",
     alt: "The Add Favorite window's Icon section with the SF Symbol type, symbol name and quick picks",
-    text: "The folder appears in Finder's sidebar with your icon. If Finder is still showing an old one, a banner offers Restart Finder — the app never restarts it on its own." },
+    text: nb("The folder appears in Finder's sidebar with your icon. If Finder is still showing an old one, a banner offers Restart Finder — the app never restarts it on its own.") },
 ];
 
 function StepCard({ s, i, reduce }: { s: Step; i: number; reduce: boolean }) {

@@ -1,0 +1,17 @@
+.nf-main { padding: clamp(40px, 6vw, 96px) var(--gutter) var(--section-y); }
+.nf-panel { max-width: 720px; margin: 0 auto; padding: clamp(24px, 5vw, 56px); border-radius: 20px; }
+.nf-row:hover { background: rgba(255,255,255,.07); }
+.nf-row:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.nf-pane { place-items: center; min-height: 240px; grid-template-columns: 1fr; align-content: center; }
+.nf-tile { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.nf-folder { width: 64px; height: 64px; color: var(--mac-glyph); }
+.nf-name { font-size: 12px; color: var(--mac-text); }
+.nf-cap { font-size: 12px; color: var(--mac-dim); }
+.nf-copy { max-width: 720px; margin: clamp(32px, 5vw, 56px) auto 0; }
+.nf-h1 { font-size: clamp(48px, 9vw, 96px); }
+.nf-copy p { font-size: 18px; color: var(--muted); max-width: 52ch; margin: 16px 0 28px; }
+.nf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+.nf-link { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; padding: 12px 0; }
+.nf-link:hover { color: var(--coral-ink); }
+.nf-panel .mac-bar .title { white-space: nowrap; }
+@media (max-width: 560px) { .nf-panel .mac-bar .tools { display: none; } }

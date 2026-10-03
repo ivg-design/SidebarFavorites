@@ -25,7 +25,7 @@ export function Body() {
       <ul>
         <li>Your macOS version, and the app version (shown in the menu bar menu and in the main window footer).</li>
         <li>What you did, what you expected, and what happened instead.</li>
-        <li>Whether the favorite uses <strong>Both icons</strong> mode, and what Settings shows for its helper.</li>
+        <li>Whether the favorite uses <strong>Both icons</strong> mode, and what Settings shows for its helper.</li>
         <li>Any warnings the app showed for an SVG, and the SVG itself if you can share it.</li>
         <li>If the app reported a configuration issue, mention it. The unreadable file is kept next to the original as <code>config.corrupt-&lt;timestamp&gt;.json</code>.</li>
       </ul>

@@ -15,7 +15,8 @@
   .ba2-demo { order: 1; }
 }
 .ba2-h { max-width: 18ch; font-size: clamp(36px, 4.4vw, 56px); }
-.ba2-side .lede { margin-top: 0; max-width: 46ch; }
+.ba2-side .lede { margin-top: 20px; max-width: 46ch; }
+@media (min-width: 1024px) { .ba2-side .lede { margin-top: 0; } }
 .ba2-side .note-coral { margin-top: 16px; }
 .ba2-stage { position: relative; min-width: 0; }
 .ba2-panel { border-radius: 24px; padding: clamp(16px, 4vw, 44px); min-height: 400px; display: grid; align-content: center; box-shadow: 0 30px 60px -34px rgba(42,39,34,.55); }

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { asset, ISSUES_URL, REPO_URL } from "@/lib/config";
+import { nb } from "@/lib/nowrap";
 
 const cols: { h: string; links: [string, string, boolean?][] }[] = [
   { h: "Product", links: [["How it works", "/#how"], ["Custom icons", "/#custom"], ["Everywhere", "/#everywhere"], ["Both icons", "/#both"], ["Under the hood", "/#hood"], ["Install", "/#install"], ["Changelog", "/changelog"]] },
@@ -15,8 +16,8 @@ export default function Footer() {
         <div className="foot-brand">
           <Image src={asset("/images/icon-64.png")} alt="" width={40} height={40} />
           <b>SidebarFavorites</b>
-          <p>Finder sidebar icons for macOS, by IVG Design. MIT license.</p>
-          <p>© 2026 IVG Design</p>
+          <p>{nb("Finder sidebar icons for macOS, by IVG Design. MIT license.")}</p>
+          <p>{nb("© 2026 IVG Design")}</p>
         </div>
         <div className="foot-links">
           {cols.map((c) => (
@@ -25,7 +26,7 @@ export default function Footer() {
               <ul>
                 {c.links.map(([l, h, ext]) => (
                   <li key={l}>
-                    {ext ? <a href={h} target="_blank" rel="noopener noreferrer">{l}</a> : <a href={asset(h)}>{l}</a>}
+                    {ext ? <a href={h} target="_blank" rel="noopener noreferrer">{nb(l)}</a> : <a href={asset(h)}>{nb(l)}</a>}
                   </li>
                 ))}
               </ul>

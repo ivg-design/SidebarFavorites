@@ -109,9 +109,10 @@
 .dx-prose .dx-step p strong { color: #3b362e; font-weight: 600; }
 
 /* figure */
-.dx-fig { margin: 28px 0 0; width: 100%; }
+.dx-prose > .dx-fig { margin: 32px 0; }
+.dx-fig { width: 100%; }
 .dx-fig img { display: block; width: 100%; height: auto; max-width: 100%; border-radius: 14px; border: 1px solid var(--line); background: var(--sidebar); box-shadow: 0 1px 0 rgba(30,27,22,.04), 0 18px 36px -24px rgba(30,27,22,.35); }
-.dx-fig figcaption { margin-top: 12px; font-size: 13.5px; color: var(--muted); line-height: 1.5; max-width: 68ch; }
+.dx-fig figcaption { margin-top: 8px; font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 68ch; }
 
 /* code */
 .dx-code { position: relative; background: var(--graphite); color: var(--cream-on-dark); border-radius: 12px; }
@@ -141,8 +142,8 @@
 .dx-prose .dx-callout a { color: var(--coral-ink); }
 
 /* table */
-.dx-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); max-width: 100%; }
-.dx-table table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 14.5px; line-height: 1.55; }
+.dx-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); max-width: 100%; }
+.dx-table table { border-collapse: collapse; table-layout: auto; width: 100%; font-size: 14.5px; line-height: 1.55; }
 .dx-table th { text-align: left; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; background: var(--sidebar); white-space: nowrap; }
 .dx-table td { padding: 11px 14px; border-top: 1px solid var(--line); vertical-align: top; }
 .dx-table td:first-child { white-space: nowrap; }
@@ -196,3 +197,8 @@
 @media (prefers-reduced-motion: reduce) {
   .dx-pal, .dx-pal-panel, .dx-copy-text { animation: none !important; }
 }
+.dx-table code, .dx-prose .dx-table code { white-space: nowrap; overflow-wrap: normal; word-break: keep-all; }
+.dx-table td:last-child { min-width: 280px; }
+.dx-prose kbd, .cl-entry kbd { white-space: nowrap; }
+/* Inline code stays on one line, except on phones where a long path would force a sideways scroll. */
+@media (min-width: 561px) { .dx-prose code, .cl-entry code { white-space: nowrap; overflow-wrap: normal; } }

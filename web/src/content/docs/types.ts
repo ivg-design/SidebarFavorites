@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { nb } from "@/lib/nowrap";
 
 export type DocGroup = "Getting started" | "Guides" | "Reference" | "Help";
 export const DOC_GROUPS: DocGroup[] = ["Getting started", "Guides", "Reference", "Help"];
@@ -47,12 +48,12 @@ export function decodeEntities(s: string): string {
 export function plainMeta<T extends DocMeta>(m: T): T {
   return {
     ...m,
-    title: decodeEntities(m.title),
-    navTitle: m.navTitle && decodeEntities(m.navTitle),
-    description: decodeEntities(m.description),
-    excerpt: decodeEntities(m.excerpt),
+    title: nb(decodeEntities(m.title)),
+    navTitle: m.navTitle && nb(decodeEntities(m.navTitle)),
+    description: nb(decodeEntities(m.description)),
+    excerpt: nb(decodeEntities(m.excerpt)),
     keywords: m.keywords.map(decodeEntities),
-    sections: m.sections.map((s) => ({ ...s, title: decodeEntities(s.title) })),
+    sections: m.sections.map((s) => ({ ...s, title: nb(decodeEntities(s.title)) })),
   };
 }
 

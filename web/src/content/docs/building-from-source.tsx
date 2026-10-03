@@ -28,9 +28,9 @@ xcodegen generate
 xcodebuild -scheme SidebarFavoritesManager -configuration Release`} />
       <H2 id="dmg">A distributable DMG</H2>
       <CodeBlock prompt code="./scripts/build-release.sh" label="Release script" />
-      <p>The script finds a <strong>Developer ID Application</strong> identity in your keychain and signs with it (hardened runtime, timestamped), falling back to ad-hoc signing with a warning if there is none. Override it with <code>SIGN_IDENTITY=&quot;Developer ID Application: Your Name (TEAMID)&quot;</code>.</p>
+      <p>The script finds a <strong>Developer ID Application</strong> identity in your keychain and signs with it (hardened runtime, timestamped), falling back to ad-hoc signing with a warning if there is none. Override it with <code>SIGN_IDENTITY=&quot;Developer ID Application: Your Name (TEAMID)&quot;</code>.</p>
       <H2 id="notarization">Signing and notarization</H2>
-      <p>Notarization runs automatically when a Developer ID identity <em>and</em> a notarization keychain profile are both available. Set <code>NOTARIZE=0</code> to skip it. The profile defaults to <code>SidebarFavoritesNotary</code> (override with <code>NOTARY_PROFILE</code>) and is created once per machine. Run this yourself in Terminal; it stores an app-specific password in your keychain:</p>
+      <p>Notarization runs automatically when a Developer ID identity <em>and</em> a notarization keychain profile are both available. Set <code>NOTARIZE=0</code> to skip it. The profile defaults to <code>SidebarFavoritesNotary</code> (override with <code>NOTARY_PROFILE</code>) and is created once per machine. Run this yourself in Terminal; it stores an app-specific password in your keychain:</p>
       <CodeBlock prompt label="Store notarization credentials" code={`xcrun notarytool store-credentials SidebarFavoritesNotary \\
     --apple-id "you@example.com" \\
     --team-id "TEAMID" \\

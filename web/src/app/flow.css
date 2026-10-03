@@ -125,3 +125,6 @@
   .uh-trace li { opacity: 1; transform: none; transition: none; }
   .hw-n::before, .hw-n span { transition: none; }
 }
+@media (min-width: 834px) and (max-width: 1023px) { .hw-h { flex-direction: column; align-items: flex-start; gap: 10px; } }
+.in-label { white-space: nowrap; }
+@media (max-width: 420px) { .in-label { white-space: normal; text-wrap: balance; } }

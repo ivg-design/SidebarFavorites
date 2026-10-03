@@ -3,6 +3,7 @@ import type { SiteRelease } from "@/lib/github";
 import { BREW_LINES, RELEASES_URL } from "@/lib/config";
 import { Reveal } from "./motion/Reveal";
 import CopyButton from "./CopyButton";
+import { nb } from "@/lib/nowrap";
 import "@/app/flow.css";
 
 export default function Install({ release }: { release: SiteRelease }) {
@@ -11,7 +12,7 @@ export default function Install({ release }: { release: SiteRelease }) {
       <div className="wrap in-grid">
         <Reveal className="in-copy-col">
           <h2 className="display in-h">Install once. Forget it exists.</h2>
-          <p>Developer ID signed, notarized and stapled — it opens normally, no Gatekeeper detour. Requires macOS 13 Ventura or later; Apple Silicon and Intel. Free, MIT licensed, source on GitHub.</p>
+          <p>{nb("Developer ID signed, notarized and stapled — it opens normally, no Gatekeeper detour. Requires macOS 13 Ventura or later; Apple Silicon and Intel. Free, MIT licensed, source on GitHub.")}</p>
           <p className="in-small">Updates: the app asks GitHub once per launch and shows a notice with Download / Later. That is the whole mechanism.</p>
         </Reveal>
         <Reveal delay={0.08}>
@@ -26,10 +27,10 @@ export default function Install({ release }: { release: SiteRelease }) {
           <div className="in-or" aria-hidden="true">or</div>
           <a className="in-dmg" href={release.dmgUrl} data-testid="install-dmg">
             <Download size={18} aria-hidden="true" />
-            Download SidebarFavorites {release.version} · DMG · {release.sizeLabel}
+            <span className="in-label">Download SidebarFavorites {release.version} · DMG · {release.sizeLabel}</span>
           </a>
-          <p className="in-after">Drag SidebarFavorites Manager to Applications and open it. · <a href={RELEASES_URL}>All releases on GitHub ↗</a></p>
-          <p className="in-facts">Universal (Apple Silicon + Intel) · macOS 13+ · Developer ID signed and notarized · MIT</p>
+          <p className="in-after">{nb("Drag SidebarFavorites Manager to Applications and open it.")} · <a href={RELEASES_URL}>All releases on GitHub ↗</a></p>
+          <p className="in-facts">{nb("Universal (Apple Silicon + Intel) · macOS 13+ · Developer ID signed and notarized · MIT")}</p>
         </Reveal>
       </div>
     </section>

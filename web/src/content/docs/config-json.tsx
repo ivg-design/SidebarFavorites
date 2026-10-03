@@ -39,7 +39,7 @@ export function Body() {
           <tr><td><code>favorites</code></td><td>The list of favorites (below).</td></tr>
           <tr><td><code>settings</code></td><td>App settings (below).</td></tr>
           <tr><td><code>helperDigest</code></td><td>SHA-256 of the declarations that produced the helper bundle on disk. An unchanged digest skips the whole rebuild.</td></tr>
-          <tr><td><code>helperGeneration</code></td><td>A counter written as the helper bundle&rsquo;s version, bumped on every rebuild so Launch Services sees a new record.</td></tr>
+          <tr><td><code>helperGeneration</code></td><td>A counter written as the helper bundle&rsquo;s version, bumped on every rebuild so Launch Services sees a new record.</td></tr>
         </tbody>
       </Table>
       <H2 id="settings">Settings</H2>
@@ -64,7 +64,7 @@ export function Body() {
           <tr><td><code>sidebarProvenance</code></td><td><code>managed</code> (the app inserted the row), <code>adopted</code> (the row was already there) or <code>unbound</code> (no row). This decides what removal does.</td></tr>
           <tr><td><code>locationsOnly</code></td><td>For a mounted volume: icon Finder&rsquo;s Locations row and add no Favorites row.</td></tr>
           <tr><td><code>iconScale</code></td><td>The size correction for custom artwork, between 0.5 and 1.5. Default 1.0.</td></tr>
-          <tr><td><code>mode</code></td><td><code>regular</code> or <code>advanced</code> (Both icons).</td></tr>
+          <tr><td><code>mode</code></td><td><code>regular</code> or <code>advanced</code> (Both icons).</td></tr>
         </tbody>
       </Table>
       <H2 id="if-unreadable">If the file cannot be read</H2>
