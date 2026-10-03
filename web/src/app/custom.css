@@ -1,0 +1,64 @@
+/* #custom — Custom icons. Prefix cx-. One dark panel in the app's Preview style (system font, --mac-* colours). */
+.cx-copy { display: grid; gap: var(--s-7); min-width: 0; }
+.cx-shot { min-width: 0; }
+@media (min-width: 900px) and (min-height: 1000px) { .cx-copy { position: sticky; top: 96px; } }
+.cx-fine { max-width: 62ch; margin-top: calc(var(--s-7) * -1 + var(--s-5)); }
+
+.cx-panel {
+  font-family: var(--mac-font); font-size: 13px; line-height: 1.35; color: var(--mac-text);
+  background: var(--mac-win); border-radius: 11px; padding: var(--s-5); display: grid; gap: var(--s-5); min-width: 0;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.7), inset 0 0 0 .5px rgba(255,255,255,.12), 0 24px 48px -24px rgba(0,0,0,.5);
+  -webkit-font-smoothing: antialiased;
+}
+.cx-block { display: grid; gap: var(--s-3); min-width: 0; }
+.cx-rule { border: 0; border-top: 1px solid rgba(255,255,255,.1); margin: 0; }
+.cx-h { margin: 0; font: 600 15px/1.2 var(--mac-font); color: var(--mac-text); }
+.cx-sub { margin: var(--s-2) 0 0; font-size: 11px; font-weight: 600; color: var(--mac-dim); }
+.cx-dim { font-size: 11px; color: var(--mac-dim); padding-left: var(--s-2); }
+
+/* mark picker */
+.cx-marks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
+.cx-mark { display: flex; align-items: center; gap: var(--s-2); min-height: 56px; padding: var(--s-2) var(--s-3); text-align: left; border-radius: 8px; border: 1px solid rgba(255,255,255,.1); background: var(--mac-side); color: var(--mac-text); transition: background-color var(--t-fast) var(--ease-quart), border-color var(--t-fast); min-width: 0; }
+.cx-mark:hover { background: #2E2E33; }
+.cx-mark[aria-pressed="true"] { border-color: var(--mac-blue); background: rgba(59,130,247,.16); }
+.cx-mark:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.cx-mark-art { flex: none; width: 32px; height: 32px; display: grid; place-items: center; }
+.cx-mark-txt { display: grid; min-width: 0; }
+.cx-mark-txt b { font-weight: 600; font-size: 13px; }
+.cx-mark-txt i { font-style: normal; font-size: 11px; color: var(--mac-dim); overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .cx-marks { grid-template-columns: 1fr; }
+}
+
+/* result: enlarged tile + true-scale row */
+.cx-out { display: grid; gap: var(--s-3); }
+.cx-ship { display: flex; align-items: flex-start; gap: var(--s-4); flex-wrap: wrap; }
+.cx-tile { width: 80px; height: 80px; flex: none; display: grid; place-items: center; border-radius: 12px; background: #19191B; border: 1px solid rgba(255,255,255,.12); color: var(--mac-glyph); overflow: hidden; }
+.cx-side { flex: 1 1 160px; max-width: 240px; background: var(--mac-side); border-radius: 8px; padding: var(--s-1) var(--s-2) var(--s-2); display: grid; gap: var(--s-1); align-content: start; }
+.cx-big, .cx-live { display: grid; place-items: center; transform: scale(var(--k, 1)); transform-origin: center; }
+.cx-live svg { overflow: visible; }
+
+.cx-warn { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.cx-warn li { display: flex; gap: var(--s-2); align-items: flex-start; font-size: 12px; color: #F1C46A; }
+.cx-warn li svg { flex: none; margin-top: 2px; }
+.cx-warn li span { color: var(--mac-text); }
+
+/* size slider */
+.cx-sizebar { display: flex; align-items: baseline; gap: var(--s-3); }
+.cx-sizebar label { font-weight: 600; font-size: 13px; margin-right: auto; }
+.cx-read { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--mac-dim); }
+.cx-reset { min-height: 44px; min-width: 56px; padding: 0 var(--s-3); border-radius: 6px; border: 0; background: rgba(255,255,255,.1); color: var(--mac-text); font-size: 13px; align-self: center; }
+.cx-reset:hover:not(:disabled) { background: rgba(255,255,255,.16); }
+.cx-reset:disabled { color: #6C6C72; cursor: default; }
+.cx-reset:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.cx-range { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; margin: calc(var(--s-2) * -1) 0; background: transparent; cursor: pointer; }
+.cx-range::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,.18); }
+.cx-range::-moz-range-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,.18); }
+.cx-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #E7E7EB; box-shadow: 0 1px 3px rgba(0,0,0,.5); border: 0; }
+.cx-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #E7E7EB; box-shadow: 0 1px 3px rgba(0,0,0,.5); border: 0; }
+.cx-range:focus-visible { outline: none; }
+.cx-range:focus-visible::-webkit-slider-thumb { outline: 2px solid #fff; outline-offset: 2px; }
+.cx-range:focus-visible::-moz-range-thumb { outline: 2px solid #fff; outline-offset: 2px; }
+.cx-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--mac-dim); }
+.cx-note { margin: 0; font-size: 12px; color: var(--mac-dim); text-wrap: pretty; }
+.cx-note + .cx-note { margin-top: calc(var(--s-1) * -1); }
