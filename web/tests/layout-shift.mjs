@@ -37,12 +37,12 @@ test("404: a page shorter than the viewport keeps the header brand where a scrol
   const page = await browser.newPage();
   await page.setViewport({ width: 1440, height: 900 });
   await page.goto(BASE + "/", { waitUntil: "networkidle0" });
-  const long = await page.$eval(".brand", (e) => e.getBoundingClientRect().left);
+  const long = await page.$eval(".nav-brand, .brand", (e) => e.getBoundingClientRect().left);
   await page.setViewport({ width: 1440, height: 2400 });
   await page.goto(BASE + "/nope-404", { waitUntil: "networkidle0" });
   const scrollable = await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight);
   assert.equal(scrollable, false, "404 should fit a 2400px viewport");
-  const short = await page.$eval(".brand", (e) => e.getBoundingClientRect().left);
+  const short = await page.$eval(".nav-brand, .brand", (e) => e.getBoundingClientRect().left);
   assert.equal(short, long);
   await page.close();
 });
@@ -63,10 +63,25 @@ test("landing: the mobile menu scroll lock does not move the header brand", asyn
   const page = await browser.newPage();
   await page.setViewport({ width: 834, height: 900 });
   await page.goto(BASE + "/", { waitUntil: "networkidle0" });
-  const before = await page.$eval(".brand", (e) => e.getBoundingClientRect().left);
-  await page.click('button[aria-controls]');
+  const before = await page.$eval(".nav-brand, .brand", (e) => e.getBoundingClientRect().left);
+  await page.click('[data-testid="hd-menu"]');
   await new Promise((r) => setTimeout(r, 300));
-  const during = await page.$eval(".brand", (e) => e.getBoundingClientRect().left);
+  const during = await page.$eval(".nav-brand, .brand", (e) => e.getBoundingClientRect().left);
   assert.equal(during, before);
   await page.close();
 });
+
+for (const width of [1440, 390]) {
+  test(`hero: stage height does not change between 300 ms and 3 s after load at ${width}`, async () => {
+    const page = await browser.newPage();
+    await page.setViewport({ width, height: 900 });
+    await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+    await page.waitForSelector('[data-testid="hero-stage"]');
+    await new Promise((r) => setTimeout(r, 300));
+    const H = () => page.$eval('[data-testid="hero-stage"]', (e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
+    const a = await H();
+    await new Promise((r) => setTimeout(r, 2700));
+    assert.equal(await H(), a);
+    await page.close();
+  });
+}
