@@ -3,6 +3,7 @@
 import puppeteer from "puppeteer-core";
 const [url, width = "1440", expr = "null"] = process.argv.slice(2);
 const b = await puppeteer.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", headless: true, args: ["--no-sandbox"] });
+try {
 const p = await b.newPage(); await p.setViewport({ width: +width, height: 900 });
 p.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log("CONSOLE", m.type(), m.text().slice(0, 300)); });
 p.on("pageerror", (e) => console.log("PAGEERROR", String(e).slice(0, 300)));
@@ -11,4 +12,4 @@ const match = process.env.PROBE_MATCH; if (match) p.on("response", (r) => { if (
 await p.goto(url, { waitUntil: "networkidle0" });
 await new Promise((r) => setTimeout(r, 2500));
 console.log(JSON.stringify(await p.evaluate(expr), null, 1));
-await b.close();
+} finally { await b.close(); } // never kill Chrome: always close it, also on failure

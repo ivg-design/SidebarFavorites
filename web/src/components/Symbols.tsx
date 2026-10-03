@@ -8,15 +8,17 @@ import "@/app/symbols.css";
 export default function Symbols() {
   return (
     <section id="symbols" className="sec-band sec-dark sy-sec" aria-labelledby="symbols-h">
-      <div className="wrap">
-        <Reveal className="sec-head">
-          <h2 className="h2" id="symbols-h">{nb("Every symbol your Mac can draw, by name.")}</h2>
-          <p className="lede">
-            {nb("Browse All… in the app searches the whole SF Symbols catalogue on your Mac — about 8,300 symbols on a current macOS — by name or by keyword, so “bin” finds trash. Type a name here to search the catalogue this page was built from.")}
-          </p>
-        </Reveal>
-      </div>
-      <SymbolStage wall={<SymbolWall />} />
+      <SymbolStage
+        wall={<SymbolWall />}
+        head={
+          <Reveal className="sec-head">
+            <h2 className="h2" id="symbols-h">{nb("Every symbol your Mac can draw, by name.")}</h2>
+            <p className="lede">
+              {nb("Browse All… in the app searches the whole SF Symbols catalogue on your Mac — about 8,300 symbols on macOS 13, more on each release — by name or by keyword, so “bin” finds trash. Type a name here to search the catalogue this page was built from.")}
+            </p>
+          </Reveal>
+        }
+      />
     </section>
   );
 }

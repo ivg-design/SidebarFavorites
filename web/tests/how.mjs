@@ -37,9 +37,9 @@ test("how: typing a known symbol name sets the preview glyph", async () => {
 
 test("how: a quick pick sets the glyph and fills the input", async () => {
   const page = await open();
-  await page.click('[data-testid="how-pick-camera"]');
-  assert.equal(await attr(page, PV, "data-glyph"), "camera");
-  assert.equal(await page.$eval(IN, (e) => e.value), "camera");
+  await page.click('[data-testid="how-pick-camera.fill"]');
+  assert.equal(await attr(page, PV, "data-glyph"), "camera.fill");
+  assert.equal(await page.$eval(IN, (e) => e.value), "camera.fill");
   await page.close();
 });
 
@@ -53,9 +53,9 @@ test("how: the row preview follows the glyph too", async () => {
 
 test("how: an unknown name keeps the last glyph and shows the honest hint", async () => {
   const page = await open();
-  await page.click('[data-testid="how-pick-camera"]');
+  await page.click('[data-testid="how-pick-camera.fill"]');
   await typeNew(page, "zzz");
-  assert.equal(await attr(page, PV, "data-glyph"), "camera");
+  assert.equal(await attr(page, PV, "data-glyph"), "camera.fill");
   assert.equal(await text(page, '[data-testid="how-hint"]'), "Not one of the names this page can draw \u2014 the app searches all 8,300.");
   await typeNew(page, "star.fill");
   assert.equal(await attr(page, PV, "data-glyph"), "star.fill");
@@ -63,11 +63,25 @@ test("how: an unknown name keeps the last glyph and shows the honest hint", asyn
   await page.close();
 });
 
+test("how: the 24 quick picks are the app's, in order, in 8 columns by 3 rows, every one drawn", async () => {
+  const APP = ["folder.fill","folder.fill.badge.gearshape","star.fill","heart.fill","bookmark.fill","flag.fill","tag.fill","archivebox.fill","tray.full.fill","briefcase.fill","doc.fill","doc.text.fill","book.fill","books.vertical.fill","magazine.fill","newspaper.fill","photo.fill","camera.fill","video.fill","music.note","waveform","gamecontroller.fill","terminal.fill","hammer.fill"];
+  for (const width of [1440, 390]) {
+    const page = await open({ width });
+    const picks = await page.$$eval(".hw-pick", (els) => els.map((e) => ({ n: e.getAttribute("aria-label"), r: (({left,top}) => ({left,top}))(e.getBoundingClientRect()), drawn: !!e.querySelector("svg path") && e.querySelector("svg").getAttribute("viewBox") === "0 0 16 16" })));
+    assert.deepEqual(picks.map((p) => p.n), APP);
+    assert.ok(picks.every((p) => p.drawn), `${width}: an SF-drawn glyph for every pick`);
+    assert.equal(new Set(picks.map((p) => Math.round(p.r.left))).size, 8, `${width}: 8 columns`);
+    assert.equal(new Set(picks.map((p) => Math.round(p.r.top))).size, 3, `${width}: 3 rows`);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), `${width}: no overflow`);
+    await page.close();
+  }
+});
+
 test("how: quick picks are 44 px targets", async () => {
   for (const width of [1440, 390]) {
     const page = await open({ width });
     const sizes = await page.$$eval(".hw-pick", (els) => els.map((e) => e.getBoundingClientRect()).map((r) => [r.width, r.height]));
-    assert.equal(sizes.length, 16);
+    assert.equal(sizes.length, 24);
     for (const [w, h] of sizes) assert.ok(w >= 43.9 && h >= 43.9, `${width}: pick ${w}x${h}`);
     await page.close();
   }

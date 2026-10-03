@@ -36,13 +36,16 @@ export function Body() {
       <p><strong>Apply</strong> saves, rebuilds the icon and restarts Finder in one click without closing the sheet, so you can tune the size against the real sidebar.</p>
       <p>No Xcode is required. Custom icons are compiled by the asset-catalog engine that ships with macOS itself. (Before 1.1 this needed <code>actool</code>, which only exists inside Xcode.)</p>
       <H2 id="warnings">What the app tells you it dropped</H2>
-      <p>Some things cannot be part of a sidebar symbol. The app tells you what it had to drop or flatten:</p>
+      <p>Some things cannot be part of a sidebar symbol. The import sheet lists what it had to drop or flatten, in these words:</p>
       <ul>
-        <li>embedded photos and PNGs (a symbol cannot contain raster);</li>
-        <li>live text that was never outlined;</li>
-        <li>colours and gradients;</li>
-        <li>artwork too fine, too dense or too wide to read at sidebar size.</li>
+        <li>an embedded photo or PNG: <q>The embedded image was dropped - a sidebar icon can&rsquo;t contain a photo or a PNG, only vector shapes.</q></li>
+        <li>live text: <q>Live text isn&rsquo;t converted to shapes. If lettering is missing from the preview, outline it in your drawing app and import again.</q></li>
+        <li>anything else the parser cannot draw, named by tag: <q>Some parts of this SVG can&rsquo;t be reproduced in a symbol (&lt;filter&gt;). The preview shows what the icon will actually contain.</q></li>
+        <li>colours and gradients: <q>Colours and gradients flatten into one silhouette, so lighter areas won&rsquo;t stay lighter.</q></li>
+        <li>artwork far from square, more than three times wider than tall or the reverse: <q>Much wider than it is tall.</q> or <q>Much taller than it is wide.</q> followed by what to do about it;</li>
+        <li>artwork too thin, too small, or filling its box at 16 pt: <q>Almost nothing survives at 16 pt</q>, <q>This fills its box almost completely</q> or <q>Thin strokes and fine detail blur into grey at 16 pt</q>, each with a suggestion.</li>
       </ul>
+      <p>A file is only refused when it cannot be read (<q>Couldn&rsquo;t read this file.</q>), is not an SVG (<q>This isn&rsquo;t an SVG file.</q>), has broken XML (<q>Couldn&rsquo;t read this SVG.</q>), has nothing drawable (<q>This SVG just wraps an image.</q> or <q>This SVG has no shapes we can use.</q>), or comes out empty (<q>We couldn&rsquo;t turn this SVG into a shape.</q>).</p>
       <p>These are warnings, not rejections. See <DocLink to="troubleshooting" hash="svg-warnings">Troubleshooting</DocLink> if an icon does not look the way you expected.</p>
       <H2 id="monochrome">Icons are monochrome</H2>
       <Callout kind="warn" title="A macOS rule.">Sidebar icons are always monochrome. Finder draws them as a flat silhouette tinted to match the sidebar. Colour is impossible there. That is a macOS rule, not a limitation of this app. The preview shows you the silhouette, so there are no surprises.</Callout>

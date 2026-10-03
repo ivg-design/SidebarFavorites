@@ -177,10 +177,16 @@ code { font-family: var(--font-mono); font-size: 0.92em; font-variant-ligatures:
 
 /* real screenshots: one scale system. A capture is 2x retina; it renders at 0.65x its pixels
    (1.3x true size) so UI text reads at ~17px. --shot-w is the source width in px. */
-.shot { width: min(100%, calc(var(--shot-w) * 0.65px)); height: auto; border-radius: var(--r-3); box-shadow: 0 1px 0 rgba(20,19,17,.06), 0 24px 48px -24px rgba(20,19,17,.35); }
-figure.shot-fig { margin: 0; display: grid; gap: var(--s-3); justify-items: start; }
+.shot { width: calc(var(--shot-w) * 0.65px); max-width: 100%; height: auto; /* fixed width + max-width (not min(100%, …)): the lazy image then reserves its box before it loads */ border-radius: var(--r-3); box-shadow: 0 1px 0 rgba(20,19,17,.06), 0 24px 48px -24px rgba(20,19,17,.35); }
+figure.shot-fig { margin: 0; display: grid; gap: var(--s-3); justify-items: stretch; max-width: 100%; min-width: 0; } /* stretch, not start: a start-justified track shrink-wrapped the lazy image to a fraction of its box before it loaded (a 4× layout shift) */
 figure.shot-fig figcaption { font-size: var(--t-14); color: var(--muted); max-width: 48ch; text-wrap: pretty; }
 figure.shot-fig figcaption b { color: var(--ink); font-weight: 600; }
+
+/* resolve: grey and 1.5px soft -> colour and sharp on entry (Resolve.tsx flips data-resolve off -> on) */
+[data-resolve] .shot, [data-resolve] .shot-crop { transition: filter 420ms var(--ease); }
+[data-resolve="off"] .shot, [data-resolve="off"] .shot-crop { filter: saturate(0) blur(1.5px); }
+.vivid[data-resolve="on"] { transition: filter 1000ms var(--ease-quart); }
+.vivid[data-resolve="off"] { filter: saturate(0) brightness(.92); }
 
 /* reduced motion: final state everywhere */
 @media (prefers-reduced-motion: reduce) {

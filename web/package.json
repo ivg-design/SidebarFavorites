@@ -2,6 +2,7 @@
   "name": "sidebarfavorites-site",
   "version": "0.1.0",
   "private": true,
+  "browserslist": ["last 2 Chrome versions", "last 2 Safari versions", "last 2 Firefox versions", "last 2 Edge versions", "iOS >= 16"],
   "scripts": {
     "dev": "next dev",
     "content:sync": "node scripts/sync-content.mjs",

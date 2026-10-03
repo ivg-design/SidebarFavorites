@@ -26,6 +26,9 @@ async function until(fn, ms = 3000) { const t = Date.now(); while (Date.now() - 
 const T = (id) => `[data-testid="${id}"]`;
 const text = (page, id) => page.$eval(T(id), (e) => e.textContent.trim());
 const warn = (page) => page.$$eval(`${T("cx-warnings")} li`, (l) => l.map((x) => x.textContent.trim()));
+// The app's sentences (SymbolValidator.swift), verbatim.
+const COLOURS = "Colours and gradients flatten into one silhouette, so lighter areas won't stay lighter.";
+const TEXT = "Live text isn't converted to shapes. If lettering is missing from the preview, outline it in your drawing app and import again.";
 const masks = (page, id) => page.$$eval(`${T(id)} .cx-layer`, (l) => l.map((x) => getComputedStyle(x).webkitMaskImage || getComputedStyle(x).maskImage));
 
 test("custom: a sample is selected by default; choosing another updates the row, the tile and the warnings", async () => {
@@ -40,9 +43,13 @@ test("custom: a sample is selected by default; choosing another updates the row,
   assert.notEqual((await masks(page, "cx-tile-sil")).at(-1), before);
   assert.equal((await masks(page, "cx-row-sil")).at(-1), (await masks(page, "cx-tile-sil")).at(-1));
   const w = await warn(page);
-  assert.ok(w.some((x) => /Gradients and filters/.test(x)) && w.some((x) => /Colours/.test(x)) && w.some((x) => /Strokes/.test(x)), w.join("|"));
+  assert.deepEqual(w, [COLOURS]);
   await page.click(T("cx-mark-c"));
-  assert.ok(await until(async () => (await warn(page)).some((x) => /Text was dropped/.test(x))));
+  assert.ok(await until(async () => (await warn(page)).some((x) => x === TEXT)));
+  assert.deepEqual(await warn(page), [TEXT, COLOURS]);
+  await page.click(T("cx-mark-a"));
+  assert.ok(await until(async () => (await warn(page)).length === 1));
+  assert.deepEqual(await warn(page), [COLOURS]);
   await page.close();
 });
 
@@ -59,7 +66,8 @@ test("custom: uploading an SVG sets the mask, the label from the file name and p
   const dec = decodeURIComponent(mk);
   assert.ok(!/<script|onload|onclick|foreignObject|<text/i.test(dec), "sanitised: " + dec.slice(0, 200));
   const w = await warn(page);
-  assert.deepEqual(w.map((x) => x.split(" ")[0]).sort(), ["Colours", "Gradients", "No", "Text"]);
+  // My-Logo.svg: a gradient fill, live <text>, a <foreignObject> and a <script>; the app's sentences, verbatim.
+  assert.deepEqual(w, [TEXT, "Some parts of this SVG can't be reproduced in a symbol (<foreignobject>, <script>). The preview shows what the icon will actually contain.", COLOURS]);
   assert.equal(await page.$eval(T("cx-row-sil"), (e) => e.getBoundingClientRect().width), 16);
   assert.equal(await page.$eval(`${T("cx-silhouette")} .cx-sil`, (e) => e.getBoundingClientRect().width), 72);
   assert.equal(await page.$eval(T("cx-silhouette"), (e) => e.getBoundingClientRect().width), 96);
@@ -67,11 +75,28 @@ test("custom: uploading an SVG sets the mask, the label from the file name and p
   await page.close();
 });
 
+test("custom: embedded image, aspect and raster-only files use the app's sentences", async () => {
+  const page = await open();
+  const feed = async (svg) => page.evaluate((t) => {
+    const dt = new DataTransfer(); dt.setData("text/plain", t);
+    document.querySelector('[data-testid="cx-zone"]').dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
+  }, svg);
+  await page.focus(T("cx-zone"));
+  await feed('<svg viewBox="0 0 100 20"><image href="data:image/png;base64,AAAA" width="10" height="10"/><rect width="100" height="20" fill="#000"/></svg>');
+  assert.ok(await until(async () => (await warn(page)).length === 2));
+  assert.deepEqual(await warn(page), ["The embedded image was dropped - a sidebar icon can't contain a photo or a PNG, only vector shapes.", "Much wider than it is tall. Sidebar icons are square, so this gets shrunk to fit its width - a compact mark works better than a wordmark."]);
+  await feed('<svg viewBox="0 0 10 100"><rect width="10" height="100" fill="#000"/></svg>');
+  assert.ok(await until(async () => (await warn(page)).some((x) => x.startsWith("Much taller"))));
+  await feed('<svg viewBox="0 0 10 10"><image href="data:image/png;base64,AAAA" width="10" height="10"/></svg>');
+  assert.ok(await until(async () => (await text(page, "cx-message")) === "This SVG just wraps an image."));
+  await page.close();
+});
+
 test("custom: a non-SVG file is rejected with a plain message and nothing changes", async () => {
   const page = await open();
   const before = (await masks(page, "cx-tile-sil")).at(-1);
   await (await page.$(T("cx-file"))).uploadFile(path.join(FX, "notes.txt"));
-  assert.ok(await until(async () => /not an SVG/i.test(await text(page, "cx-message"))));
+  assert.ok(await until(async () => (await text(page, "cx-message")) === "This isn't an SVG file."));
   assert.equal(await page.$eval(T("cx-message"), (e) => e.dataset.kind), "err");
   assert.equal(await text(page, "cx-row-label"), "badge");
   assert.equal((await masks(page, "cx-tile-sil")).at(-1), before);
@@ -87,7 +112,8 @@ test("custom: pasting SVG text on the drop zone loads it", async () => {
     document.querySelector('[data-testid="cx-zone"]').dispatchEvent(new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }));
   });
   assert.ok(await until(async () => (await text(page, "cx-row-label")) === "pasted"));
-  assert.deepEqual((await warn(page)).map((x) => x.split(" ")[0]), ["Strokes"]);
+  assert.deepEqual(await warn(page), [], "a single stroked rect has nothing the app warns about");
+  assert.equal(await text(page, "cx-clean"), "No warnings.");
   await page.close();
 });
 

@@ -36,7 +36,7 @@ export function Body() {
       <p>The editor is its own window. Move it, resize it, leave it open beside the list.</p>
       <Figure shot="SBFAddFavoriteWindow" alt="The favorite editor window with a folder chosen, the SF Symbol type selected and a grid of quick-pick symbols" caption="Adding a favorite: the folder, the icon type and the quick-pick symbols in one window." />
       <H2 id="browse-all">Browse All SF Symbols</H2>
-      <p><strong>Browse All…</strong> searches every SF Symbol this Mac can draw, about 8,300 of them, by name or by keyword. So &ldquo;bin&rdquo; finds <code>trash</code>.</p>
+      <p><strong>Browse All…</strong> searches every SF Symbol this Mac can draw, about 8,300 of them on macOS 13 and more on each release, by name or by keyword. So &ldquo;bin&rdquo; finds <code>trash</code>.</p>
       <Figure shot="SFSymbolBrowser" alt="The SF Symbols browser sheet with a search field and a grid of symbols" caption="Browsing the SF Symbols catalog by name or keyword." />
       <p>For your own artwork, see <DocLink to="custom-svg-icons">Custom SVG icons</DocLink>.</p>
       <H2 id="restart-finder">If Finder shows an old icon</H2>

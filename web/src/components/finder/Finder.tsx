@@ -1,4 +1,5 @@
 "use client";
+import Resolve from "@/components/motion/Resolve";
 import { useId, type ReactNode, type ComponentPropsWithoutRef } from "react";
 import { ChevronLeft, ChevronRight, LayoutGrid, Search, Share, Tag, ChevronDown } from "lucide-react";
 import { Glyph } from "../glyphs";
@@ -45,7 +46,7 @@ export function Morph({ glyph, on, className }: { glyph: string; on: boolean; cl
 }
 
 export function Vivid({ className, children, ...rest }: ComponentPropsWithoutRef<"div">) {
-  return <div className={`vivid ${className ?? ""}`} {...rest}>{children}</div>;
+  return <Resolve className={`vivid ${className ?? ""}`} {...rest}>{children}</Resolve>;
 }
 
 /** Dark Finder window chrome at native metrics. Children go inside `.mac-body` (a Sidebar and a Pane). */

@@ -26,7 +26,7 @@ function search(names: string[] | null, q: string): { total: number; list: strin
   return { total: hits.length, list: sorted };
 }
 
-export default function SymbolStage({ wall }: { wall: ReactNode }) {
+export default function SymbolStage({ wall, head }: { wall: ReactNode; head: ReactNode }) {
   const id = useId();
   const stageRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export default function SymbolStage({ wall }: { wall: ReactNode }) {
     import("@/data/sf-names.json").then((m) => setNames((m.default ?? m) as unknown as string[]));
   };
   useEffect(() => {
-    const el = stageRef.current;
+    const el = stageRef.current?.closest("section") ?? null; // the stage itself has no box (display: contents)
     if (!el || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { load(); io.disconnect(); } }, { rootMargin: "600px 0px" });
     io.observe(el);
@@ -93,6 +93,7 @@ export default function SymbolStage({ wall }: { wall: ReactNode }) {
         {paused ? <Play size={18} aria-hidden="true" /> : <Pause size={18} aria-hidden="true" />}
       </button>
       <div className="wrap sy-wrap">
+        <div className="sy-head">{head}</div>
         <div className="sy-panel" role="search">
           <label htmlFor={`${id}-in`} className="sy-label">Symbol name</label>
           <input

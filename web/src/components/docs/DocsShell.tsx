@@ -116,9 +116,9 @@ export default function DocsShell({ index, children, changelog }: { index: DocIn
         )}
       </div>
       <div className="dx-body">
-        <aside className="dx-rail"><Nav index={index} slug={slug} /></aside>
+        <aside className="dx-rail" aria-label="Documentation sidebar"><Nav index={index} slug={slug} /></aside>
         <div className="dx-main-wrap">{children}</div>
-        <aside className="dx-toc" key={changelog ? "changelog" : entry.slug}><Toc sections={tocItems} title={changelog ? "Versions" : "On this page"} /></aside>
+        <aside className="dx-toc" aria-label="Page contents" key={changelog ? "changelog" : entry.slug}><Toc sections={tocItems} title={changelog ? "Versions" : "On this page"} /></aside>
       </div>
     </div>
   );

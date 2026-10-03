@@ -28,7 +28,9 @@
 .hw-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .hw-hint { margin: calc(-1 * var(--s-2)) 0 0; font-size: var(--t-14); line-height: 1.4; color: var(--muted); min-height: 2.8em; text-wrap: pretty; }
 .hw-hint[data-miss="true"] { color: var(--ink); }
-.hw-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: var(--s-1); }
+/* 8 columns like the app; on a phone the row bleeds 12 px into the gutter so each column stays a 44 px target. */
+.hw-picks { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--s-1) 0; margin-inline: calc(-1 * var(--s-3)); }
+@media (min-width: 520px) { .hw-picks { column-gap: var(--s-1); margin-inline: 0; } }
 .hw-pick { height: 44px; display: grid; place-items: center; border: 0; border-radius: var(--r-1); background: transparent; color: var(--ink-2); transition: background-color var(--t-fast) var(--ease); }
 .hw-pick:hover { background: var(--wash); }
 .hw-pick[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent-ink); color: var(--ink); }

@@ -17,7 +17,7 @@ export default function Footer() {
     <footer className="foot" data-testid="footer">
       <div className="wrap foot-in">
         <a className="foot-brand" href={asset("/")} aria-label="SidebarFavorites, home" data-testid="footer-home">
-          <Image src={asset("/images/icon-64.png")} alt="" width={56} height={56} />
+          <Image src={asset("/images/icon-112.png")} alt="" width={56} height={56} />
         </a>
         <nav className="foot-links" aria-label="Footer">
           {links.map(([l, h, ext]) => ext

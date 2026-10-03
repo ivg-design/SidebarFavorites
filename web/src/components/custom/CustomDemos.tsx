@@ -66,7 +66,7 @@ export default function CustomDemos() {
         onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
       >
         <p id={`${uid}-t`} className="cx-zone-t">Drop an SVG here, or paste one</p>
-        <p id={`${uid}-d`} className="fine cx-zone-d">Up to 512 KB. It is read in this page and goes nowhere.</p>
+        <p id={`${uid}-d`} className="fine cx-zone-d">This page reads files up to 512 KB. Nothing leaves your browser.</p>
         <button type="button" className="btn btn-primary" data-testid="cx-choose" onClick={() => input.current?.click()}>Choose a file</button>
         <input
           ref={input} type="file" hidden accept=".svg,image/svg+xml" data-testid="cx-file" aria-label="Choose an SVG file"
@@ -104,13 +104,13 @@ export default function CustomDemos() {
           </div>
           <div className="cx-warnwrap" aria-live="polite">
             {warnings && warnings.length > 0 && (
-              <ul className="cx-warn" data-testid="cx-warnings" aria-label="Warnings from the app">
+              <ul className="cx-warn" data-testid="cx-warnings" aria-label="What the app would say">
                 {warnings.map((w) => (
                   <li key={w}><TriangleAlert size={14} aria-hidden="true" /><span>{w}</span></li>
                 ))}
               </ul>
             )}
-            {warnings && warnings.length === 0 && <p className="cx-clean" data-testid="cx-clean">Nothing to flag. This file goes in as it is.</p>}
+            {warnings && warnings.length === 0 && <p className="cx-clean" data-testid="cx-clean">No warnings.</p>}
           </div>
         </section>
         <hr className="cx-rule" />

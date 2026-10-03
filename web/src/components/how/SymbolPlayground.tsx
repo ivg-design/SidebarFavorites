@@ -4,11 +4,14 @@ import { Glyph } from "../glyphs";
 import { SF_PATHS } from "../glyphs-sf";
 import { Sidebar, SideRow } from "../finder/Finder";
 
-/** The app's quick-pick row (SF names, all drawn by the site's SF_PATHS). */
-export const PICKS = [
-  "hammer.fill", "music.note", "paintpalette", "paperplane.fill", "arrow.triangle.branch", "camera", "star.fill", "heart.fill",
-  "bookmark.fill", "flag.fill", "tag.fill", "archivebox.fill", "briefcase.fill", "doc.text", "photo", "globe",
+/** The app's quick picks, in the app's order (AddEditFavoriteSheet.commonSymbols): 24 names, an 8-column grid. */
+export const QUICK_PICKS = [
+  "folder.fill", "folder.fill.badge.gearshape", "star.fill", "heart.fill", "bookmark.fill", "flag.fill", "tag.fill", "archivebox.fill",
+  "tray.full.fill", "briefcase.fill", "doc.fill", "doc.text.fill", "book.fill", "books.vertical.fill", "magazine.fill", "newspaper.fill",
+  "photo.fill", "camera.fill", "video.fill", "music.note", "waveform", "gamecontroller.fill", "terminal.fill", "hammer.fill",
 ] as const;
+/** Columns of that grid (the app's LazyVGrid uses 8). */
+export const QUICK_COLS = 8;
 
 /** The verb: a 420 ms cross-dissolve between the outgoing and the incoming glyph (two stacked layers). */
 function Resolve({ glyph, size }: { glyph: string; size: number }) {
@@ -48,13 +51,13 @@ export default function SymbolPlayground() {
           onChange={(e) => update(e.target.value)} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
           aria-describedby={`${id}-hint`}
         />
-        <datalist id={`${id}-dl`}>{PICKS.map((n) => <option key={n} value={n} />)}</datalist>
+        <datalist id={`${id}-dl`}>{QUICK_PICKS.map((n) => <option key={n} value={n} />)}</datalist>
       </div>
       <p className="hw-hint" id={`${id}-hint`} aria-live="polite" data-miss={miss} data-testid="how-hint">
         {miss ? "Not one of the names this page can draw — the app searches all 8,300." : "Type a name, or click a quick pick."}
       </p>
-      <div className="hw-picks" role="group" aria-label="Quick picks">
-        {PICKS.map((n) => (
+      <div className="hw-picks" style={{ gridTemplateColumns: `repeat(${QUICK_COLS}, minmax(0, 1fr))` }} role="group" aria-label="Quick picks">
+        {QUICK_PICKS.map((n) => (
           <button key={n} type="button" className="hw-pick" aria-label={n} title={n} aria-pressed={glyph === n && !miss}
             data-testid={`how-pick-${n}`} onClick={() => update(n)}>
             <Glyph name={n} size={22} />

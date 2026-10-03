@@ -5,6 +5,7 @@ const isForgeContext = process.env.NEXT_PUBLIC_SITE_URL?.includes("forge.mograph
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  experimental: { inlineCss: true },
   images: { unoptimized: true },
   turbopack: { root: process.cwd() },
   assetPrefix: isProd && isForgeContext ? "/apps/sidebarfavorites" : "",

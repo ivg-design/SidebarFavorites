@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import Resolve from "@/components/motion/Resolve";
 import { asset } from "@/lib/config";
 import { SHOTS, SHOT_SCALE, type ShotName } from "@/lib/shots";
 
@@ -27,8 +28,8 @@ export default function Shot({ name, alt, caption, crop, cropLabel, priority, cl
     />
   );
   if (!crop) {
-    if (!caption) return img;
-    return <figure className={`shot-fig ${className ?? ""}`}>{img}<figcaption>{caption}</figcaption></figure>;
+    if (!caption) return <Resolve contents>{img}</Resolve>;
+    return <Resolve contents><figure className={`shot-fig ${className ?? ""}`}>{img}<figcaption>{caption}</figcaption></figure></Resolve>;
   }
   const cw = crop.w ?? w, cx = crop.x ?? 0;
   const style = {
@@ -37,9 +38,9 @@ export default function Shot({ name, alt, caption, crop, cropLabel, priority, cl
   } as CSSProperties;
   const inner = { position: "absolute", width: `${(w / cw) * 100}%`, left: `${(-cx / cw) * 100}%`, top: `${(-crop.y / crop.h) * 100}%` } as CSSProperties;
   return (
-    <figure className={`shot-fig ${className ?? ""}`}>
+    <Resolve contents><figure className={`shot-fig ${className ?? ""}`}>
       <div className="shot-crop" style={style} data-testid={testId ? `${testId}-crop` : undefined}><div style={inner}>{img}</div></div>
       <figcaption><b>Detail: {cropLabel ?? "crop"}.</b> {caption}</figcaption>
-    </figure>
+    </figure></Resolve>
   );
 }

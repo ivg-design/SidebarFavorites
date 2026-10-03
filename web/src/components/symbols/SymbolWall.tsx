@@ -3,7 +3,8 @@ import names from "@/data/sf-names.json";
 /** Server component: the wall's rows are chosen with a fixed seed so every render is identical.
  *  The catalogue is imported here only, so it never enters the client bundle through this file. */
 const ROWS = 20; // phones hide the last 9 in CSS
-const PER_ROW = 70;
+const MIN_HALF = 2150; // px: wider than the widest viewport (1920) plus the gutter, so the marquee never gaps
+const ADV = 7.2, GAP = 24, PAD = 80;
 
 function mulberry32(seed: number) {
   let a = seed >>> 0;
@@ -23,9 +24,11 @@ function sample(): string[][] {
   const out: string[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: string[] = [];
-    for (let i = 0; i < PER_ROW; i++) {
+    let w = PAD;
+    while (w < MIN_HALF) {
       const k = Math.floor(rnd() * pool.length);
       row.push(pool[k]);
+      w += pool[k].length * ADV + GAP;
       pool.splice(k, 1);
     }
     out.push(row);
@@ -36,7 +39,6 @@ function sample(): string[][] {
 /** Drift is a constant speed in px/s (10-16, per row); duration = one half's width / speed, so more names never drift faster.
  *  Width is estimated from JetBrains Mono's 0.6em advance at 13px plus the flex gap and the left padding. */
 const SPEEDS = [10, 13, 16, 11, 14, 12, 15, 10, 16, 13];
-const ADV = 7.2, GAP = 24, PAD = 80;
 const dur = (row: string[], r: number) => Math.round((row.reduce((w, n) => w + n.length * ADV + GAP, PAD)) / SPEEDS[r % SPEEDS.length]);
 
 export default function SymbolWall() {
