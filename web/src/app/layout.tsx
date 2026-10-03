@@ -8,7 +8,7 @@ import "./changelog.css";
 // Fonts are the mobile LCP budget: three static Schibsted cuts instead of the variable file, Newsreader italic only
 // (the only serif on the site is the one italic word), and the mono is not preloaded (nothing above the fold needs it first).
 const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
-const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["italic"], axes: ["opsz"], display: "swap" });
+const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["italic"], weight: ["400"], display: "swap" }); // one static italic cut (~35 KB) instead of the 147 KB opsz+wght variable file: the mobile LCP
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], weight: ["400", "500"], display: "swap", preload: false });
 
 const TITLE = "SidebarFavorites: custom Finder sidebar icons for macOS";

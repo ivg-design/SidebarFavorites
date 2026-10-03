@@ -61,3 +61,25 @@ Ranked by impact. **[fixed]** marks what round two changed; the after-state is a
   wording now says so once. **[fixed]**
 - Replay is visible at t=0 (disabled, 50 %). **[fixed]** hidden until the move is done.
 - Stale captures in `.reviews/v3/*`. **[fixed]** regenerated after the changes.
+
+## After state (round two, same machine, headless)
+
+| | before | after |
+|---|---|---|
+| Suite | 91/91 | **96/96** (+ resolve ×3, how 8×3 picks, SVG warnings ×2 rewritten) |
+| Lighthouse mobile `/` | 78 / 100 / 100 / 100, LCP 5.7 s | **89 / 100 / 100 / 100, LCP 3.7 s**, TBT 20 ms, CLS 0 |
+| Lighthouse desktop `/` | 98 / 100 / 100 / 100 | **99 / 100 / 100 / 100**, LCP 0.9 s |
+| Home HTML | 885 KB (2,800 wall spans) | **≈ 470 KB** (455 spans; halves still ≥ 2,130 px) |
+| Preloaded fonts | 357 KB (two variable files) | **71 KB** (Schibsted 700 static + Newsreader italic 400 static) |
+| Render-blocking CSS | 3 files, ≈ 300 ms | **0** (`experimental.inlineCss`) |
+| Zoom-out 70–95 % | two sidebars, doubled text | one window; column lands at 84 %, swap at 90 %, test asserts both states |
+| Capture pre-load box | 143 × 187 → 559 × 731 on lazy load (a 4× shift, pre-existing) | **reserved** (`.shot` fixed width + `max-width`; figure track stretched) |
+| Horizontal overflow 390/834/1280/1440 | 0 | 0 |
+| axe | `landmark-unique` on docs, duplicate ids | **clean**; docs search button named; wall names 4.6:1 |
+
+Trade-off taken for LCP: Newsreader is now one static italic cut (no `opsz` axis), so the headline word is the text
+optical size rather than the 72-pt display cut. Visibly a hair heavier; still the owner's pivot (`.reviews/v3/hero/1440-t1500.png`).
+Not verifiable here: real Safari / touch (headless Chrome only); the forge base path.
+Captures: `.reviews/v3/hero/` (t0, t150, t1500, t2700, picker, scroll 25–100 at 1440/1280/834/390), `.reviews/v3/r2/`
+(every section and state, zoom 50/80/90/95/100, header on paper, docs ×3, changelog, 404 at 1440/834/390),
+`.reviews/v3/lead/` (lead's set, regenerated), `.reviews/v3/symbols/` (worker C), `.reviews/v3/how/resolve-*.png` (worker D).

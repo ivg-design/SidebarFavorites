@@ -39,4 +39,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   `BASE=http://localhost:32xx node --test tests/*.mjs`; captures with `node scripts/shot.mjs <url> <out.png> <width>
   [reduced] [clickSelector]`, the hero's timeline with `node scripts/shot-hero.mjs`, everything at once with
   `BASE=… node scripts/v3-captures.mjs <outdir>`; probes with `node scripts/probe.mjs`.
+- Round two (independent review, 2026-10-03): the zoom-out is one camera move (HeroStage LAND/CHROME/SWAP/COPY beats; the
+  resting window's own sidebar is hidden until the hard swap at 90 %); every capture and vivid panel *resolves* on entry
+  (src/components/motion/Resolve.tsx, `[data-resolve]` rules in globals.css; reduced motion = end state); the symbol wall is
+  the band's texture under an opaque title scrim; the SVG demo and both pickers use the app's own strings and its real 24
+  quick picks (`QUICK_PICKS` in how/SymbolPlayground.tsx). Fonts are static cuts (mobile LCP budget); `experimental.inlineCss`.
+  Section captures: `node scripts/shot-sections.mjs <base> <outDir> <w> <h>`. Findings: .reviews/v3-round2-*.md.
+- Never kill headless Chrome: every puppeteer script and test closes the browser in a `finally`/`after` block.
 - Concept and brief of this version: .reviews/v3-concept.md, .reviews/v3-brief.md; v2 audit: .reviews/v2-audit.md.

@@ -12,7 +12,7 @@
   animation: sy-drift var(--sy-dur, 100s) linear infinite; }
 .sy-row[data-dir="rev"] { animation-direction: reverse; }
 .sy-half { display: flex; flex: none; gap: var(--s-5); padding-left: var(--gutter); }
-.sy-n { white-space: nowrap; color: #5A5B55; transition: color var(--t-slow) var(--ease); }
+.sy-n { white-space: nowrap; color: #8A8B86; /* 4.6:1 on graphite: the texture passes contrast; the title sits on its own scrim */ transition: color var(--t-slow) var(--ease); }
 @keyframes sy-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
 .sy-stage[data-paused="true"] .sy-row { animation-play-state: paused; }
 .sy-stage[data-q="true"] .sy-row { animation: none; }

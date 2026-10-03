@@ -29,7 +29,7 @@ export default function TopBar({ index, current }: { index: DocIndexEntry[]; cur
             <span className="dx-brand-name">SidebarFavorites <span className="dx-brand-docs"><span aria-hidden="true">/ </span>Docs</span></span>
           </a>
         </div>
-        <button type="button" className="dx-search" data-testid="docs-search-open" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="Meta+K">
+        <button type="button" className="dx-search" data-testid="docs-search-open" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="Meta+K" aria-label="Search docs">
           <Search size={16} aria-hidden="true" />
           <span className="dx-search-label">Search docs…</span>
           <kbd>{mac ? "⌘K" : "Ctrl K"}</kbd>
