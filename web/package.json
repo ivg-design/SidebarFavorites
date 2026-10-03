@@ -9,7 +9,8 @@
     "prebuild": "npm run content:sync && npm run images:build",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "node --test tests/e2e.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
@@ -26,9 +27,13 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "puppeteer-core": "^25.12.0",
     "sharp": "0.35.4",
     "tailwindcss": "^4",
     "typescript": "5.9.3"
   },
-  "overrides": { "postcss": "8.5.23", "sharp": "0.35.4" }
+  "overrides": {
+    "postcss": "8.5.23",
+    "sharp": "0.35.4"
+  }
 }
