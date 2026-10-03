@@ -22,8 +22,8 @@ export default function DocArticle({ slug }: { slug: string }) {
         <p className="dx-lede">{doc.description}</p>
         <div className="dx-prose"><Body /></div>
         <nav className="dx-pn" aria-label="Previous and next page">
-          {prev ? <a className="dx-prev" href={asset(docUrl(prev.slug))} rel="prev"><ArrowLeft size={16} aria-hidden="true" />{prev.title}</a> : <span />}
-          {next ? <a className="dx-next" href={asset(docUrl(next.slug))} rel="next">{next.title}<ArrowRight size={16} aria-hidden="true" /></a> : <span />}
+          {prev ? <a className="dx-prev" data-testid="docs-prev" href={asset(docUrl(prev.slug))} rel="prev"><ArrowLeft size={16} aria-hidden="true" />{prev.title}</a> : <span />}
+          {next ? <a className="dx-next" data-testid="docs-next" href={asset(docUrl(next.slug))} rel="next">{next.title}<ArrowRight size={16} aria-hidden="true" /></a> : <span />}
         </nav>
       </main>
       <DocsFooter />

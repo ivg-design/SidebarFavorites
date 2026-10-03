@@ -1,5 +1,5 @@
 import type { DocIndexEntry, DocPage, DocGroup } from "./types";
-import { DOC_GROUPS, docUrl } from "./types";
+import { DOC_GROUPS, docUrl, plainMeta } from "./types";
 import * as quickStart from "./quick-start";
 import * as install from "./install";
 import * as updates from "./updates";
@@ -21,7 +21,7 @@ export { DOC_GROUPS, docUrl };
 export type { DocGroup, DocIndexEntry, DocPage };
 
 /** Page order = nav tree order = prev/next order. */
-export const docPages: DocPage[] = [
+const rawPages: DocPage[] = [
   { ...quickStart.meta, Body: quickStart.Body },
   { ...install.meta, Body: install.Body },
   { ...updates.meta, Body: updates.Body },
@@ -39,6 +39,8 @@ export const docPages: DocPage[] = [
   { ...faq.meta, Body: faq.Body },
   { ...report.meta, Body: report.Body },
 ];
+
+export const docPages: DocPage[] = rawPages.map((p) => ({ ...plainMeta(p), Body: p.Body }));
 
 export function getDoc(slug: string): DocPage | undefined {
   return docPages.find((p) => p.slug === slug);

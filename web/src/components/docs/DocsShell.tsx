@@ -55,7 +55,7 @@ function Toc({ entry }: { entry: DocIndexEntry }) {
   }, [entry]);
 
   return (
-    <nav className="dx-toc-nav" aria-label="On this page">
+    <nav className="dx-toc-nav" data-testid="docs-toc" aria-label="On this page">
       <h2 className="dx-toc-title">On this page</h2>
       <ul>
         {entry.sections.map((s) => (

@@ -90,7 +90,7 @@ export default function SearchPalette({ index, open, onClose }: { index: DocInde
       {items.map((r, k) => {
         const i = offset + k;
         return (
-          <a key={r.key} id={optId(i)} data-i={i} role="option" aria-selected={i === active} className="dx-pal-item" href={asset(r.url)} tabIndex={-1}
+          <a key={r.key} id={optId(i)} data-i={i} data-testid="docs-search-result" role="option" aria-selected={i === active} className="dx-pal-item" href={asset(r.url)} tabIndex={-1}
             onMouseMove={() => setActive(i)} onClick={(e) => { e.preventDefault(); go(r); }}>
             {r.kind === "page" ? <FileText size={16} aria-hidden="true" /> : <Hash size={16} aria-hidden="true" />}
             <span className="dx-pal-title">{r.title}</span>
@@ -106,7 +106,7 @@ export default function SearchPalette({ index, open, onClose }: { index: DocInde
     <div className="dx-pal" data-closing={closing} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dx-pal-panel" role="dialog" aria-modal="true" aria-label="Search the docs" onKeyDown={onKeyDown}>
         <input
-          ref={input} className="dx-pal-input" type="text" role="combobox" aria-expanded="true" aria-controls={`${uid}-list`}
+          ref={input} className="dx-pal-input" type="text" data-testid="docs-search-input" role="combobox" aria-expanded="true" aria-controls={`${uid}-list`}
           aria-activedescendant={flat.length ? optId(active) : undefined} aria-autocomplete="list" autoComplete="off" spellCheck={false}
           placeholder="Search pages, sections and keywords" aria-label="Search the docs" value={query}
           onChange={(e) => { setQuery(e.target.value); setActive(0); }}

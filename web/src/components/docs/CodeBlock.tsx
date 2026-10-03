@@ -21,7 +21,7 @@ export default function CodeBlock({ code, prompt = false, label }: { code: strin
 
   return (
     <div className="dx-code" data-prompt={prompt}>
-      <button type="button" className="dx-copy" onClick={copy} aria-label={copied ? "Copied" : "Copy code"}>
+      <button type="button" className="dx-copy" data-testid="docs-copy" onClick={copy} aria-label={copied ? "Copied" : "Copy code"}>
         <span className="dx-swap" data-on={copied}>
           <Copy size={15} className="a" aria-hidden="true" />
           <Check size={15} className="b" aria-hidden="true" />
