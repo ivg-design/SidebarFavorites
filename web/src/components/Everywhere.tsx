@@ -14,7 +14,7 @@ const ADVANCE_MS = 3000;
 
 const TABS = [
   { icon: Folder, label: "Local folders", word: "Local folders.", text: nb("Anything on your Mac. ~ paths welcome.") },
-  { icon: Cloud, label: "iCloud & CloudStorage", word: "Cloud folders.", text: nb("Google Drive, Dropbox, OneDrive — the virtual FileProvider mounts older tools could never see.") },
+  { icon: Cloud, label: "iCloud & CloudStorage", word: "Cloud folders.", text: nb("Google Drive, Dropbox and OneDrive live in virtual File Provider folders that older tools could not reach. SidebarFavorites can.") },
   { icon: HardDrive, label: "Mounted disks", word: "Mounted disks.", text: nb("Finder already lists them under Locations; the app icons that row, or adds a Favorites row too.") },
   { icon: Server, label: "Network shares", word: "Network shares.", text: nb("Same as disks. Finder keeps owning the Locations row; the app only patches it in place.") },
 ] as const;
