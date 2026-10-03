@@ -114,7 +114,7 @@ test("counting numerals end on their real values", async () => {
   await new Promise((r) => setTimeout(r, 1500));
   const labels = await page.$$eval("#hood .num", (els) => els.map((e) => e.getAttribute("aria-label")));
   assert.deepEqual(labels, ["17 bytes", "0 processes", "1 file", "1 request"]);
-  const shown = await page.$$eval("#hood .num", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim()));
+  const shown = await page.$$eval("#hood .num", (els) => els.map((e) => e.innerText.replace(/\s+/g, " ").trim()));
   assert.deepEqual(shown, ["17 bytes", "0 processes", "1 file", "1 request"]);
   await page.close();
 });
