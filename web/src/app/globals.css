@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SidebarFavorites web v2 — tokens and shared type only.
+   SidebarFavorites web v3 — tokens and shared type only. Concept: .reviews/v3-concept.md
    Each section owns its own CSS file (hero.css, nav.css, how.css, …).
 
    SPACING SCALE — the only spacing values on the site. Every margin, gap and
@@ -11,27 +11,27 @@
    SECTION RHYTHM — three named rhythms, applied on purpose:
      feature  (.sec)        clamp(96 → 128)  the default section
      beat     (.sec-beat)   clamp(64 → 96)   a denser section that follows a feature
-     band     (.sec-band)   clamp(112 → 160) a full-bleed colour band (hero panel, install)
-   Inside a section: eyebrow → heading gap = --s-4; heading → lede = --s-5;
-   lede → content = --s-7 (desktop) / --s-6; between stacked blocks = --s-8.
+     band     (.sec-band)   clamp(112 → 160) a full-bleed colour band
+   Inside a section: heading → lede = --s-5; lede → content = --s-7 (desktop) / --s-6;
+   between stacked blocks = --s-8. No eyebrows, no numbering, no accent word in a title.
    ========================================================================== */
 :root {
-  /* colour: tinted neutrals, one accent, Finder blue only inside mocks */
-  --paper: #F4F3EF;
-  --surface: #FBFAF8;
-  --ink: #141311;
-  --ink-2: #3A3732;
-  --muted: #625D55;
-  --line: #DAD6CE;
-  --line-strong: #C9C3B8;
-  --wash: #ECE9E2;
-  --graphite: #1A1917;
-  --paper-on-dark: #ECE8DF;
-  --muted-on-dark: #A8A294;
+  /* colour: warm paper and ink; ONE accent (the wallpaper's magenta); Finder blue only inside mocks */
+  --paper: #F1F0EA;
+  --surface: #F8F7F3;
+  --ink: #161817;
+  --ink-2: #3B3E3C;
+  --muted: #636865;
+  --line: #D9D8D0;
+  --line-strong: #C6C5BC;
+  --wash: #E9E8E1;
+  --graphite: #1A1A1C;
+  --paper-on-dark: #ECEBE4;
+  --muted-on-dark: #A3A49C;
   --line-on-dark: rgba(255,255,255,.1);
-  --accent: #E8542F;
-  --accent-ink: #BE3E1C;   /* accent for small text on paper: 5.0:1 */
-  --accent-soft: #FBE3DA;
+  --accent: #D2358A;
+  --accent-ink: #B02A74;   /* accent for small text on paper: ≥ 4.5:1 */
+  --accent-soft: #F7DCEA;
   --focus: var(--accent-ink);
 
   /* spacing scale */
@@ -46,24 +46,26 @@
   /* radii */
   --r-1: 6px; --r-2: 10px; --r-3: 16px; --r-4: 24px;
 
-  /* motion */
+  /* motion: one ease for everything that moves on its own (the owner's), one verb (resolve = 420ms cross-dissolve) */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-quint: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-expo: var(--ease);
   --t-fast: 150ms; --t-base: 240ms; --t-slow: 420ms;
 
-  /* type: display grotesk for headings, Public Sans body, JetBrains for code,
-     system font inside every macOS mock (pictures of macOS use macOS type) */
-  --font-display: var(--font-bricolage), "SF Pro Display", system-ui, sans-serif;
-  --font-body: var(--font-public-sans), system-ui, sans-serif;
+  /* type: Schibsted Grotesk for display and body, Newsreader italic for the one pivot word,
+     JetBrains Mono for code and symbol names, the system font inside every macOS mock */
+  --font-display: var(--font-schibsted), "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-schibsted), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-newsreader), "Times New Roman", serif;
   --font-mono: var(--font-jetbrains), ui-monospace, Menlo, monospace;
   --mac-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
 
   /* type scale, ratio 1.25 rounded; headings are fluid between two steps */
   --t-13: 13px; --t-14: 14px; --t-16: 16px; --t-17: 17px; --t-20: 20px; --t-24: 24px;
-  --t-32: 32px; --t-44: 44px; --t-56: 56px; --t-72: 72px; --t-96: 96px;
-  --fs-h1: clamp(var(--t-44), 6.6vw, var(--t-96));
-  --fs-h2: clamp(var(--t-32), 4vw, var(--t-56));
+  --t-32: 32px; --t-44: 44px; --t-56: 56px; --t-72: 72px; --t-96: 96px; --t-124: 124px;
+  --fs-h1: clamp(var(--t-56), 7.6vw, var(--t-124));
+  --fs-h2: clamp(36px, 4.4vw, var(--t-72));
   --fs-h3: clamp(var(--t-20), 1.8vw, var(--t-24));
   --fs-lede: clamp(var(--t-17), 1.4vw, var(--t-20));
   --fs-body: var(--t-16);
@@ -78,7 +80,7 @@
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 body {
   margin: 0; background: var(--paper); color: var(--ink);
-  font-family: var(--font-body); font-size: var(--fs-body); line-height: 1.6;
+  font-family: var(--font-body); font-size: var(--fs-body); line-height: 1.55;
   -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-kerning: normal;
   overflow-x: clip;
 }
@@ -95,13 +97,12 @@ p { margin: 0; }
 .wrap { width: 100%; max-width: calc(var(--content) + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
 
 /* type -------------------------------------------------------------------- */
-.display, .h1, .h2, .h3 {
-  font-family: var(--font-display); margin: 0; text-wrap: balance;
-  font-variation-settings: "opsz" 96, "wdth" 100; letter-spacing: -0.02em; line-height: 0.98; font-weight: 600;
-}
-.h1 { font-size: var(--fs-h1); font-weight: 620; letter-spacing: -0.025em; }
-.h2 { font-size: var(--fs-h2); font-weight: 600; line-height: 1.02; }
-.h3 { font-size: var(--fs-h3); font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; font-variation-settings: "opsz" 32, "wdth" 100; }
+.display, .h1, .h2, .h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.03em; line-height: 0.98; font-weight: 700; }
+.h1 { font-size: var(--fs-h1); letter-spacing: -0.035em; line-height: 0.92; }
+.h2 { font-size: var(--fs-h2); line-height: 0.98; }
+.h3 { font-size: var(--fs-h3); line-height: 1.2; letter-spacing: -0.01em; font-weight: 600; }
+/* the pivot: one word in the owner's italic serif (used once on the home page, in the headline) */
+.pivot { font-family: var(--font-serif); font-style: italic; font-weight: 450; letter-spacing: -0.04em; font-variation-settings: "opsz" 72; }
 .eyebrow { font-size: var(--t-13); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink); margin: 0 0 var(--s-4); }
 .eyebrow-n { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.06em; margin-right: var(--s-2); color: var(--muted); }
 .lede { font-size: var(--fs-lede); line-height: 1.5; color: var(--ink-2); max-width: 58ch; margin: var(--s-5) 0 0; text-wrap: pretty; }

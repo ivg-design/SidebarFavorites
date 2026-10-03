@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Public_Sans, JetBrains_Mono } from "next/font/google";
+import { Schibsted_Grotesk, Newsreader, JetBrains_Mono } from "next/font/google";
 import { CANONICAL_HOST, OG_IMAGE, toCanonicalUrl } from "@/lib/seo";
 import { asset } from "@/lib/config";
 import "./globals.css";
 import "./changelog.css";
 
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage", subsets: ["latin"], axes: ["opsz", "wdth"], display: "swap",
-});
-const publicSans = Public_Sans({ variable: "--font-public-sans", subsets: ["latin"], display: "swap" });
+const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], display: "swap" });
+const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["italic", "normal"], axes: ["opsz"], display: "swap" });
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
 
 const TITLE = "SidebarFavorites: custom Finder sidebar icons for macOS";
@@ -30,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${publicSans.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${schibsted.variable} ${newsreader.variable} ${jetbrains.variable}`}>
       <body>
         <a className="skip" href="#main">Skip to content</a>
         {children}

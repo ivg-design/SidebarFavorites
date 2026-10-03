@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
+import Symbols from "@/components/Symbols";
 import CustomIcons from "@/components/CustomIcons";
 import Everywhere from "@/components/Everywhere";
 import BothIcons from "@/components/BothIcons";
@@ -18,6 +19,7 @@ export default async function Home() {
       <main id="main">
         <Hero release={release} />
         <HowItWorks />
+        <Symbols />
         <CustomIcons />
         <Everywhere />
         <BothIcons />
