@@ -24,12 +24,12 @@ export default function TopBar({ index, current }: { index: DocIndexEntry[]; cur
     <header className="dx-top">
       <div className="dx-top-in">
         <div className="dx-brand">
-          <a className="dx-brand-home" href={asset("/")} aria-label="SidebarFavorites home">
+          <a className="dx-brand-home" href={asset("/")} title="Home">
             <Image src={asset("/images/icon-180.png")} alt="" width={54} height={54} priority unoptimized />
             <span className="dx-brand-name">SidebarFavorites <span className="dx-brand-docs"><span aria-hidden="true">/ </span>Docs</span></span>
           </a>
         </div>
-        <button type="button" className="dx-search" data-testid="docs-search-open" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label="Search docs">
+        <button type="button" className="dx-search" data-testid="docs-search-open" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-keyshortcuts="Meta+K">
           <Search size={16} aria-hidden="true" />
           <span className="dx-search-label">Search docs…</span>
           <kbd>{mac ? "⌘K" : "Ctrl K"}</kbd>
