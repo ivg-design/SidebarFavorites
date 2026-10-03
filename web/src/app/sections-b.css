@@ -34,7 +34,7 @@
 
 /* under the hood */
 .uth { padding: clamp(80px, 10vw, 140px) 0; }
-.uth h2 { color: #FBF7F0; font-size: clamp(36px, 4.4vw, 60px); max-width: 18ch; }
+.uth h2 { color: #FBF7F0; font-size: clamp(36px, 4.4vw, 60px); max-width: 24ch; }
 .uth .lede { color: var(--muted-on-dark); max-width: 60ch; }
 .ledger { margin-top: clamp(48px, 6vw, 80px); border-top: 1px solid rgba(233,226,212,.14); }
 .led { display: grid; gap: 8px 40px; align-items: center; padding: 28px 0; border-bottom: 1px solid rgba(233,226,212,.14); }

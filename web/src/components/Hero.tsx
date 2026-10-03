@@ -20,7 +20,7 @@ export default function Hero({ release }: { release: SiteRelease }) {
             <h1 id="hero-title" className="display" aria-label="Your sidebar, finally legible.">
               {LINE1.map((w, i) => (
                 <span key={w}>
-                  <span className="w" aria-hidden="true" style={{ ["--i" as string]: i }}>{w}</span>{" "}
+                  <span className="w" aria-hidden="true" style={{ ["--i" as string]: i }}>{w}</span>{i === 0 ? <><br className="brk" />{" "}</> : " "}
                 </span>
               ))}
               <em>

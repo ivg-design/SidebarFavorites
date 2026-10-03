@@ -52,7 +52,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .skip:focus { top: 12px; }
 
 /* type */
-.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.04; text-wrap: balance; margin: 0; font-variation-settings: "opsz" 144; }
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.005em; line-height: 1.06; text-wrap: balance; margin: 0; font-variation-settings: "opsz" 72; }
 .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--coral-ink); margin: 0 0 20px; }
 .h-sec { font-size: clamp(36px, 4.4vw, 56px); }
 .lede { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.55; color: var(--muted); max-width: 52ch; margin: 24px 0 0; text-wrap: pretty; }

@@ -20,7 +20,7 @@
 .hero-fine { font-size: 14px; color: var(--muted); margin: 24px 0 0; max-width: 60ch; }
 
 /* finder mock */
-.finder-frame { position: relative; width: 100%; max-width: 640px; aspect-ratio: 640 / 540; }
+.finder-frame { position: relative; overflow-x: clip; width: 100%; max-width: 640px; aspect-ratio: 640 / 540; }
 .finder-scale { transform-origin: top left; width: 640px; height: 540px; position: absolute; left: 0; top: 0; }
 .finder-frame[data-ready="false"] .finder-scale { visibility: hidden; }
 .f-cap { position: absolute; left: calc(var(--gutter) + 8px); bottom: 14px; padding: 6px 12px; border-radius: 999px; background: var(--graphite); color: var(--cream-on-dark); font-size: 13px; pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity .3s var(--ease-quart), transform .3s var(--ease-quart); }
@@ -105,3 +105,6 @@
 .steps { padding: 0; }
 .ba h2, #how h2 { letter-spacing: -0.005em; font-variation-settings: "opsz" 72; }
 @media (max-width: 430px) { .hero-cta .brew-chip { font-size: 12px; padding: 0 12px; gap: 8px; } }
+
+.hero h1 .brk { display: none; }
+@media (min-width: 1024px) { .hero h1 .brk { display: inline; } }

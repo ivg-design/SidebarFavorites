@@ -45,11 +45,11 @@ for (const s of [32, 64, 180, 512]) {
   count++;
 }
 
-// Video poster: graphite field with the real manager window dimmed behind
+// Video poster: quiet graphite field; the real manager window sits faint on the right
 const W = 1280, H = 720;
-const win = await sharp(path.join(src, "SBFMainWindow.png")).resize({ height: 640 }).modulate({ brightness: 0.5 }).blur(6).toBuffer();
+const win = await sharp(path.join(src, "SBFMainWindow.png")).resize({ height: 560 }).ensureAlpha(0.2).toBuffer();
 await sharp({ create: { width: W, height: H, channels: 3, background: "#2A2722" } })
-  .composite([{ input: win, gravity: "east", blend: "over" }])
+  .composite([{ input: win, left: 820, top: 80 }])
   .webp({ quality: 74 }).toFile(path.join(out, "demo-poster.webp"));
 count++;
 console.log(`Generated ${count} image variants.`);
