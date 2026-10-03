@@ -1,8 +1,8 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type { gsap as Gsap } from "gsap";
+import type { ScrollTrigger as ST } from "gsap/ScrollTrigger";
 import { Download, RotateCcw } from "lucide-react";
 import { FolderGlyph, FolderTile, MacWindow, Pane, Sidebar, SideHeading, SideRow } from "../finder/Finder";
 import { FAVS, Glyph } from "../glyphs";
@@ -76,7 +76,7 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
   const [icons, setIcons] = useState<string[]>(() => FAVS.map(() => "folder"));
   const [rev, setRev] = useState<boolean[]>(() => WORD.split("").map(() => false));
   const [lit, setLit] = useState(false);
-  const [settled, setSettled] = useState(false);
+  const [colKey, setColKey] = useState(0);
   const [reset, setReset] = useState(true);
   const [done, setDone] = useState(false);
   const [sel, setSel] = useState(0);
@@ -93,12 +93,12 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
     const timers: ReturnType<typeof setTimeout>[] = [];
     const t = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
     if (reduce) {
-      t(() => { setReset(true); setIcons(FAVS.map((f) => f.glyph)); setRev(WORD.split("").map(() => true)); setLit(true); setSettled(true); setDone(true); }, 0);
+      t(() => { setReset(true); setIcons(FAVS.map((f) => f.glyph)); setRev(WORD.split("").map(() => true)); setLit(true); setDone(true); }, 0);
       t(() => setReset(false), 60);
       return () => timers.forEach(clearTimeout);
     }
-    t(() => { setReset(true); setIcons(FAVS.map(() => "folder")); setRev(WORD.split("").map(() => false)); setLit(false); setSettled(false); setDone(false); }, 0);
-    t(() => { setReset(false); setSettled(true); }, 60);
+    t(() => { setReset(true); setIcons(FAVS.map(() => "folder")); setRev(WORD.split("").map(() => false)); setLit(false); setDone(false); setColKey((k) => k + 1); }, 0);
+    t(() => setReset(false), 60);
     t(() => setLit(true), SAT_MS);
     FAVS.forEach((f, i) => t(() => {
       setIcons((p) => p.map((v, k) => (k === i ? f.glyph : v)));
@@ -144,14 +144,16 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
 
   // the zoom-out: the poster column scrubs down to its seat inside a real Finder window (desktop, motion allowed)
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
     const stage = stageRef.current, section = stage?.closest("section");
     const col = colRef.current, box = boxRef.current, head = headRef.current, tools = toolsRef.current;
     const rest = restRef.current, win = restRef.current?.querySelector<HTMLElement>(".mac-win"), how = howRef.current, shade = shadeRef.current;
     if (!shade || !stage || !section || !col || !box || !head || !tools || !rest || !win || !how) return;
     const mq = window.matchMedia(SCRUB_MQ);
-    let ctx: gsap.Context | undefined;
-    let st: ScrollTrigger | undefined;
+    // gsap is loaded on demand: phones and reduced-motion visitors never download it
+    let lib: { gsap: typeof Gsap; ScrollTrigger: typeof ST } | undefined;
+    let loading = false, dead = false;
+    let ctx: { revert(): void } | undefined;
+    let st: ST | undefined;
     const zNow = () => box.offsetWidth / SIDE_W;
     const target = () => {
       const s = box.getBoundingClientRect(), w = win.getBoundingClientRect(); // offset from the column's own seat
@@ -165,7 +167,21 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
     const build = () => {
       ctx?.revert(); ctx = undefined; st = undefined;
       col.inert = false; rest.inert = false; how.inert = false;
-      if (!mq.matches) return;
+      if (!mq.matches || dead) return;
+      if (!lib) {
+        if (loading) return;
+        loading = true;
+        Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(([g, s2]) => {
+          lib = { gsap: g.gsap, ScrollTrigger: s2.ScrollTrigger };
+          lib.gsap.registerPlugin(lib.ScrollTrigger);
+          loading = false;
+          build();
+          lib.ScrollTrigger.refresh();
+          if (location.hash === "#how") { toHow("instant"); t2 = setTimeout(() => toHow("instant"), 500); }
+        });
+        return;
+      }
+      const { gsap } = lib;
       ctx = gsap.context(() => {
         const tl = gsap.timeline({
           defaults: { ease: "none" },
@@ -187,11 +203,12 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
         setInert(st?.progress ?? 0);
       }, stage);
     };
-    build();
-    mq.addEventListener("change", build);
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    let t1: ReturnType<typeof setTimeout> | undefined, t2: ReturnType<typeof setTimeout> | undefined;
     // "#how" lives at the end of the scroll range: land on the resting state
     const toHow = (behavior: ScrollBehavior) => { if (st) window.scrollTo({ top: st.end, behavior }); };
+    build();
+    mq.addEventListener("change", build);
+    document.fonts?.ready.then(() => lib?.ScrollTrigger.refresh());
     const onClick = (e: MouseEvent) => {
       const a = (e.target as Element | null)?.closest?.("a");
       if (!a || !st || !mq.matches) return;
@@ -202,9 +219,8 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
       toHow("smooth");
     };
     document.addEventListener("click", onClick, true);
-    let t1: ReturnType<typeof setTimeout> | undefined, t2: ReturnType<typeof setTimeout> | undefined;
-    if (location.hash === "#how") { t1 = setTimeout(() => toHow("instant"), 60); t2 = setTimeout(() => toHow("instant"), 500); }
     return () => {
+      dead = true;
       clearTimeout(t1); clearTimeout(t2);
       document.removeEventListener("click", onClick, true);
       mq.removeEventListener("change", build);
@@ -225,7 +241,7 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
 
   const title = FAVS[sel].name;
   return (
-    <div className="hx-stage" ref={stageRef} data-done={done} data-lit={lit} data-settled={settled} data-reset={reset} data-phase="col" data-testid="hero-stage">
+    <div className="hx-stage" ref={stageRef} data-done={done} data-lit={lit} data-reset={reset} data-phase="col" data-testid="hero-stage">
       <div className="vivid hx-vivid" data-testid="hero-vivid" aria-hidden="true" />
 
       <div className="hx-shade" ref={shadeRef} aria-hidden="true" />
@@ -268,7 +284,7 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
 
         <div className="hx-colbox" ref={boxRef}>
           <div className="hx-col" ref={colRef} data-testid="hero-col">
-            <div className="hx-col-in">
+            <div className="hx-col-in" key={colKey}>
               <div className="hx-strip" aria-hidden="true"><span className="mac-lights"><i /><i /><i /></span></div>
               <Sidebar>
                 <SideRows src="col" icons={icons} sel={sel} open={open} onRow={onRow} />

@@ -83,7 +83,7 @@ export default function CopyButton({
   }
   return (
     <>
-      <button type="button" className="chip" data-testid="copy-chip" data-on={on} onClick={onClick} aria-label={ariaLabel}>
+      <button type="button" className="chip" data-testid="copy-chip" data-on={on} onClick={onClick} aria-label={`${ariaLabel ?? "Copy"}: ${label ?? text}`}>
         <span>{label ?? text}</span>
         {swap}
         <span className="copied-in" data-on={on} aria-hidden="true"><Check size={16} />Copied</span>

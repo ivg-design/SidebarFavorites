@@ -20,7 +20,8 @@ function Copy({ title, children, sticky, className = "" }: { title: string; chil
    Browse All… (SFSymbolBrowser) stays out: step 2's own capture shows the button, and #symbols is its section. */
 export default function HowItWorks() {
   return (
-    <section id="how-steps" className="sec" aria-label="How it works, step by step" data-testid="how">
+    <section id="how-steps" className="sec" aria-labelledby="how-steps-h" data-testid="how">
+      <h2 id="how-steps-h" className="sr-only">How it works, step by step</h2>
       <div className="wrap">
         <ol className="hw-steps">
           <li className="hw-step hw-s1" data-testid="how-step-1">

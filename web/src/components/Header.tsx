@@ -114,7 +114,7 @@ export default function Header() {
     <header className="nav" data-stuck={stuck && !dark} data-home={onHome} data-on-dark={dark} data-testid="header">
       <div className="wrap nav-in">
         <a className="nav-brand" href={asset("/")} aria-label="SidebarFavorites home">
-          <Image src={asset("/images/icon-64.png")} alt="" width={54} height={54} priority />
+          <Image src={asset("/images/icon-180.png")} alt="" width={54} height={54} priority />
           <span>SidebarFavorites</span>
         </a>
 

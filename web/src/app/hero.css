@@ -58,8 +58,8 @@
 .hx-col-in { position: absolute; inset: 0; overflow: hidden; border-radius: 0 11px 11px 0; font-family: var(--mac-font); font-size: 13px; line-height: 1.25; color: var(--mac-text);
   -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
   box-shadow: 0 0 0 .5px rgba(0,0,0,.7), 0 40px 80px -24px rgba(0,0,0,.6), 0 14px 28px -14px rgba(0,0,0,.5);
-  opacity: 0; translate: 0 24px; transition: opacity 700ms var(--ease), translate 700ms var(--ease); }
-.hx-stage[data-settled="true"] .hx-col-in { opacity: 1; translate: 0 0; }
+  animation: hx-settle 700ms var(--ease) both; } /* CSS-only: paints without waiting for JS; replay remounts the node */
+@keyframes hx-settle { from { opacity: 0; translate: 0 24px; } to { opacity: 1; translate: 0 0; } }
 .hx-strip { height: 52px; background: var(--mac-bar); display: flex; align-items: center; padding: 0 0 0 20px; border-bottom: 1px solid rgba(0,0,0,.45); }
 .hx-col .mac-side { height: 278px; overflow: hidden; }
 .hx-colbox .mac-lights { margin-right: 0; }
@@ -155,7 +155,6 @@
   .hx-h2 { font-size: clamp(32px, 3.4vw, 52px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hx-col-in { opacity: 1; translate: 0 0; transition: none; }
   .hx-ch { opacity: 1; filter: none; }
   .hx-f { opacity: 0; }
   .hx .hx-vivid { --sat: 1; transition: none; }

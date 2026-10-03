@@ -45,11 +45,11 @@ test("symbols: typing 'hammer' lights matches, dims the rest, updates the count"
   const r = await page.evaluate(() => {
     const hit = [...document.querySelectorAll(".sy-n[data-hit]")];
     const dim = document.querySelector(".sy-n:not([data-hit])");
-    return { hits: hit.length, hitOpacity: +getComputedStyle(hit[0]).opacity, dimOpacity: +getComputedStyle(dim).opacity, allMatch: hit.every((e) => e.textContent.toLowerCase().includes("hammer")) };
+    return { hits: hit.length, hitColor: getComputedStyle(hit[0]).color, dimColor: getComputedStyle(dim).color, allMatch: hit.every((e) => e.textContent.toLowerCase().includes("hammer")) };
   });
   assert.ok(r.hits >= 4 && r.allMatch, JSON.stringify(r));
-  assert.ok(r.hitOpacity >= 0.95, `hit opacity ${r.hitOpacity}`);
-  assert.ok(r.dimOpacity <= 0.25, `dim opacity ${r.dimOpacity}`);
+  const lum = (c) => c.match(/\d+/g).slice(0, 3).reduce((a, v) => a + +v, 0);
+  assert.ok(lum(r.hitColor) > lum(r.dimColor) + 150, `hit ${r.hitColor} vs dim ${r.dimColor}`);
   assert.match(await page.$eval(T("symbols-count"), (e) => e.textContent), /^\d+ of 9,184 names on the Mac that built this page$/);
   assert.equal((await anim(page, ".sy-row")).name, "none", "drift must stop while a query is active");
   await page.close();

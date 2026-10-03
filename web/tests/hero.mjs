@@ -31,7 +31,7 @@ test("hero: the move — rows, headline letters and colour resolve together, top
   await done(page);
   // replay in-page and sample every frame so the check does not depend on CDP latency
   const log = await page.evaluate(() => new Promise((resolve) => {
-    const rows = [...document.querySelectorAll('[data-testid^="hero-row-"]')];
+    let rows = [...document.querySelectorAll('[data-testid^="hero-row-"]')];
     const chs = [...document.querySelectorAll(".hx-ch")];
     const fs = [...document.querySelectorAll(".hx-f")];
     const vivid = document.querySelector('[data-testid="hero-vivid"]');
@@ -41,6 +41,7 @@ test("hero: the move — rows, headline letters and colour resolve together, top
     let skew = 0, endSat = 0;
     document.querySelector('[data-testid="hero-replay"]').click();
     const tick = () => {
+      rows = [...document.querySelectorAll('[data-testid^="hero-row-"]')]; // replay remounts the column
       if (!t0) { if (rows.every((r) => r.dataset.glyph === "folder")) { t0 = performance.now(); start.sat = +getComputedStyle(vivid).getPropertyValue("--sat"); } requestAnimationFrame(tick); return; }
       const t = performance.now() - t0;
       rows.forEach((r, i) => { if (firstRow[i] === null && r.dataset.glyph !== "folder") firstRow[i] = t; });

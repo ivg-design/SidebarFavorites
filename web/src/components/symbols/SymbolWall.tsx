@@ -36,7 +36,7 @@ function sample(): string[][] {
 /** Drift is a constant speed in px/s (10-16, per row); duration = one half's width / speed, so more names never drift faster.
  *  Width is estimated from JetBrains Mono's 0.6em advance at 13px plus the flex gap and the left padding. */
 const SPEEDS = [10, 13, 16, 11, 14, 12, 15, 10, 16, 13];
-const ADV = 7.8, GAP = 24, PAD = 80;
+const ADV = 7.2, GAP = 24, PAD = 80;
 const dur = (row: string[], r: number) => Math.round((row.reduce((w, n) => w + n.length * ADV + GAP, PAD)) / SPEEDS[r % SPEEDS.length]);
 
 export default function SymbolWall() {
