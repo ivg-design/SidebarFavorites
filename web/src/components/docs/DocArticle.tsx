@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { asset } from "@/lib/config";
 import { getDoc, neighbours, docUrl } from "@/content/docs";
 import DocsFooter from "./DocsFooter";
+import SoftBreaks from "./SoftBreaks";
 
 /** One docs page: breadcrumb, h1, lede, body, prev/next. */
 export default function DocArticle({ slug }: { slug: string }) {
@@ -21,6 +22,7 @@ export default function DocArticle({ slug }: { slug: string }) {
         <h1 className="dx-h1">{doc.title}</h1>
         <p className="dx-lede">{doc.description}</p>
         <div className="dx-prose"><Body /></div>
+        <SoftBreaks root=".dx-prose" />
         <nav className="dx-pn" aria-label="Previous and next page">
           {prev ? <a className="dx-prev" data-testid="docs-prev" href={asset(docUrl(prev.slug))} rel="prev"><ArrowLeft size={18} aria-hidden="true" /><span><small>{prev.group}</small>{prev.title}</span></a> : <span />}
           {next ? <a className="dx-next" data-testid="docs-next" href={asset(docUrl(next.slug))} rel="next"><span><small>{next.group}</small>{next.title}</span><ArrowRight size={18} aria-hidden="true" /></a> : <span />}

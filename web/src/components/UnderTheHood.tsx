@@ -22,6 +22,11 @@ const LEDGER = [
   { num: "1 request", body: <>Updates: one GitHub check per launch, no background checking, no automatic download. Offline, it says nothing.</> },
 ];
 
+/** Line breaks only after "." and "/" and before "(". */
+function softTrace(t: string) {
+  return t.split(/(?<=[./])|(?=\()/).flatMap((part, i) => (i ? [<wbr key={i} />, part] : [part]));
+}
+
 function Trace() {
   const ref = useRef<HTMLOListElement>(null);
   const seen = useInView(ref, { once: true, amount: 0.5 });
@@ -30,7 +35,7 @@ function Trace() {
       {TRACE.map((t, i) => (
         <li key={t} style={{ ["--i" as string]: i }}>
           <span className="uh-node" aria-hidden="true" />
-          <code>{t}</code>
+          <code>{softTrace(t)}</code>
         </li>
       ))}
     </ol>

@@ -23,7 +23,7 @@ test("everywhere: tabs select their sidebar rows and flip the word", async () =>
   const page = await open("/", { reduced: true });
   const expected = [
     ["Local folders.", ["desktop", "projects", "invoices"]],
-    ["iCloud & CloudStorage.", ["google-drive", "dropbox", "onedrive"]],
+    ["Cloud folders.", ["google-drive", "dropbox", "onedrive"]],
     ["Mounted disks.", ["work2tbssd"]],
     ["Network shares.", ["studio-nas"]],
   ];
@@ -57,13 +57,11 @@ test("hood numerals flip in and end on the exact strings", async () => {
   await page.close();
 });
 
-test("demo poster is served and the video has no <source> while no recording exists", async () => {
+test("no demo-video section is rendered while DEMO_VIDEO_SRC is null", async () => {
   const page = await open("/", { reduced: true });
-  const poster = await page.$eval('[data-testid="demo-video"] video', (v) => v.getAttribute("poster"));
-  assert.ok(poster.includes("demo-poster"));
-  const res = await fetch(new URL(poster, BASE));
-  assert.equal(res.status, 200);
-  assert.equal(await page.$eval('[data-testid="demo-video"] video', (v) => v.querySelectorAll("source").length), 0);
+  assert.equal(await page.$('[data-testid="demo-video"]'), null);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true);
   await page.close();
+  const res = await fetch(new URL("/shots/demo-poster.webp", BASE));
+  assert.equal(res.status, 200);
 });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import DocsShell from "@/components/docs/DocsShell";
 import { Link2 } from "lucide-react";
+import SoftBreaks from "@/components/docs/SoftBreaks";
 import DocsFooter from "@/components/docs/DocsFooter";
 import { docIndex } from "@/content/docs";
 import { parseChangelog } from "@/lib/changelog";
@@ -48,6 +49,7 @@ export default function Changelog() {
   return (
     <DocsShell index={docIndex} changelog={entries.map((e) => ({ id: `v${e.version}`, title: e.version }))}>
       <main id="main" className="cl-main" tabIndex={-1}>
+        <SoftBreaks root=".cl-main" />
         <header className="page-head">
           <h1 className="dx-h1">Changelog</h1>
           <p className="dx-lede">Every release of SidebarFavorites, newest first. Release notes and downloads are also on <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer">GitHub Releases</a>.</p>

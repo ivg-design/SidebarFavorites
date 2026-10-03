@@ -14,7 +14,7 @@ const ADVANCE_MS = 3000;
 
 const TABS = [
   { icon: Folder, label: "Local folders", word: "Local folders.", text: nb("Anything on your Mac. ~ paths welcome.") },
-  { icon: Cloud, label: "iCloud & CloudStorage", word: "iCloud & CloudStorage.", text: nb("Google Drive, Dropbox, OneDrive — the virtual FileProvider mounts older tools could never see.") },
+  { icon: Cloud, label: "iCloud & CloudStorage", word: "Cloud folders.", text: nb("Google Drive, Dropbox, OneDrive — the virtual FileProvider mounts older tools could never see.") },
   { icon: HardDrive, label: "Mounted disks", word: "Mounted disks.", text: nb("Finder already lists them under Locations; the app icons that row, or adds a Favorites row too.") },
   { icon: Server, label: "Network shares", word: "Network shares.", text: nb("Same as disks. Finder keeps owning the Locations row; the app only patches it in place.") },
 ] as const;
@@ -101,7 +101,9 @@ export default function Everywhere() {
                   </div>
                 ))}
               </Sidebar>
-              <Flip as="div" className="ev-word" text={TABS[sel].word} data-testid="everywhere-word" />
+              <div className="ev-col">
+                <Flip as="div" className="ev-word" text={TABS[sel].word} data-testid="everywhere-word" />
+              </div>
             </div>
           </Reveal>
           <Reveal className="ev-tabs-wrap" delay={0.06}>

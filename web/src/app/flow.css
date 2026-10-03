@@ -7,8 +7,8 @@
 @media (min-width: 640px) { .ev-panel { grid-template-columns: 252px minmax(0, 1fr); gap: 40px; padding: 40px; min-height: 480px; } }
 .ev-side { border-radius: 11px; border: 0; padding: 10px 8px 12px; box-shadow: 0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.07), 0 30px 70px -20px rgba(0,0,0,.6); }
 .ev-side .mac-row { transition: background-color .25s var(--ease-quart); }
-.ev-word { font-family: var(--font-display); font-weight: 600; font-variation-settings: "opsz" 144; font-size: clamp(34px, 9vw, 40px); line-height: 1.06; letter-spacing: -0.01em; color: #fff; display: grid; min-height: 2.2em; align-content: center; text-shadow: 0 2px 24px rgba(20,10,60,.35); }
-@media (min-width: 640px) { .ev-word { font-size: clamp(40px, 4.2vw, 56px); } }
+.ev-word { font-family: var(--font-display); font-weight: 600; font-variation-settings: "opsz" 144; font-size: clamp(32px, 22cqw, 56px); line-height: 1.06; letter-spacing: -0.01em; color: #fff; display: grid; min-height: 2.2em; align-content: center; text-shadow: 0 2px 24px rgba(20,10,60,.35); }
+.ev-col { container-type: inline-size; min-width: 0; }
 .ev-tabs { display: grid; gap: 4px; }
 .ev-tab { position: relative; display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 16px; border: 0; border-radius: 12px; background: transparent; text-align: left; font-size: 18px; font-weight: 600; color: var(--muted); overflow: hidden; transition: background-color .25s var(--ease-quart), color .25s var(--ease-quart); }
 .ev-tab:hover { color: var(--ink); background: rgba(30,27,22,.05); }

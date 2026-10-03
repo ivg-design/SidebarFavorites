@@ -108,17 +108,6 @@ test("install brew box copies all three commands", async () => {
   await page.close();
 });
 
-test("demo video placeholder is honest and keeps a <video> slot with a poster", async () => {
-  const page = await open("/", { reduced: true });
-  const poster = await page.$eval("[data-testid=demo-video] video", (v) => v.getAttribute("poster"));
-  assert.ok(poster?.includes("demo-poster"));
-  await page.$eval("[data-testid=demo-play]", (e) => e.scrollIntoView({ block: "center" }));
-  await page.click("[data-testid=demo-play]");
-  const txt = await page.$eval("[data-testid=demo-video]", (e) => e.textContent);
-  assert.match(txt, /being made|coming soon/i);
-  await page.close();
-});
-
 test("docs: Cmd/Ctrl+K opens search, finds a page, Enter navigates, Esc closes", async () => {
   const page = await open("/docs", { reduced: true });
   await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
