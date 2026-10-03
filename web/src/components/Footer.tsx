@@ -6,7 +6,7 @@ const cols: { h: string; links: [string, string, boolean?][] }[] = [
   { h: "Product", links: [["How it works", "/#how"], ["Custom icons", "/#custom"], ["Everywhere", "/#everywhere"], ["Both icons", "/#both"], ["Under the hood", "/#hood"], ["Install", "/#install"], ["Changelog", "/changelog"]] },
   { h: "Help", links: [["Quick start", "/docs"], ["Cloud folders", "/docs/cloud-folders"], ["Disks and shares", "/docs/disks-and-shares"], ["Uninstalling", "/docs/uninstalling"], ["Building from source", "/docs/building-from-source"], ["Nix flake", "/docs/nix-flake"]] },
   { h: "Resources", links: [["GitHub", REPO_URL, true], ["Report an issue", ISSUES_URL, true], ["Credits", "/docs/faq#credits"]] },
-  { h: "More from Forge", links: [["Forge hub", "https://forge.mograph.life/", true], ["WebWatcher", "https://forge.mograph.life/", true], ["Herald", "https://forge.mograph.life/", true], ["RAV", "https://forge.mograph.life/apps/rav/", true], ["LERP", "https://forge.mograph.life/apps/lerp/", true], ["fNav+", "https://forge.mograph.life/", true]] },
+  { h: "More from Forge", links: [["Forge hub", "https://forge.mograph.life/", true], ["RAV", "https://forge.mograph.life/apps/rav/", true], ["LERP", "https://forge.mograph.life/apps/lerp/", true], ["fNav+", "https://forge.mograph.life/apps/fnav/", true], ["eXLib", "https://forge.mograph.life/apps/exlib/", true]] },
 ];
 
 export default function Footer() {
