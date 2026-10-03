@@ -117,10 +117,10 @@
 
 /* code */
 .dx-code { position: relative; background: var(--graphite); color: var(--paper-on-dark); border-radius: var(--r-2); }
-.dx-code pre { margin: 0; padding: var(--s-4) var(--s-8) var(--s-4) var(--s-5); overflow-x: auto; font-family: var(--font-mono); font-size: var(--t-14); line-height: 1.7; tab-size: 2; border-radius: var(--r-2); }
+.dx-code pre { margin: 0; padding: var(--s-4) var(--s-8) var(--s-4) var(--s-5); overflow: visible; font-family: var(--font-mono); font-size: var(--t-14); line-height: 1.7; tab-size: 2; border-radius: var(--r-2); }
 .dx-code pre:focus-visible { outline-offset: 2px; }
-.dx-code code { font-family: inherit; white-space: pre; color: inherit; }
-.dx-line { display: block; min-height: 1.7em; }
+.dx-code code { font-family: inherit; white-space: pre-wrap; overflow-wrap: anywhere; color: inherit; }
+.dx-line { display: block; min-height: 1.7em; padding-left: 2ch; text-indent: -2ch; }
 .dx-code[data-prompt="true"] .dx-line::before { content: "$ "; color: var(--muted-on-dark); user-select: none; -webkit-user-select: none; }
 .dx-copy { position: absolute; top: var(--s-2); right: var(--s-2); display: inline-flex; align-items: center; gap: var(--s-2); height: 32px; min-width: 32px; padding: 0 var(--s-2); border-radius: var(--r-1); border: 1px solid rgba(233,226,212,.16); background: rgba(255,255,255,.04); color: var(--paper-on-dark); font-size: 12px; font-weight: 600; justify-content: center; transition: background-color .2s var(--ease), transform .2s var(--ease), border-color .2s; z-index: 1; }
 .dx-copy:hover { background: rgba(255,255,255,.1); border-color: rgba(233,226,212,.3); }
@@ -143,11 +143,10 @@
 .dx-prose .dx-callout a { color: var(--accent-ink); }
 
 /* table */
-.dx-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--surface); max-width: 100%; }
-.dx-table table { border-collapse: collapse; table-layout: auto; width: 100%; font-size: var(--t-14); line-height: 1.55; }
-.dx-table th { text-align: left; font-size: var(--t-13); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: var(--s-3) var(--s-4); background: var(--wash); white-space: nowrap; }
+.dx-table { overflow: visible; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--surface); max-width: 100%; }
+.dx-table table { border-collapse: collapse; table-layout: auto; width: 100%; max-width: 100%; font-size: var(--t-14); line-height: 1.55; }
+.dx-table th { text-align: left; font-size: var(--t-13); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: var(--s-3) var(--s-4); background: var(--wash); }
 .dx-table td { padding: var(--s-3) var(--s-4); border-top: 1px solid var(--line); vertical-align: top; }
-.dx-table td:first-child { white-space: nowrap; }
 
 /* prev / next */
 .dx-pn { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--line); }
@@ -198,9 +197,20 @@
 @media (prefers-reduced-motion: reduce) {
   .dx-pal, .dx-pal-panel, .dx-copy-text { animation: none !important; }
 }
-.dx-table code, .dx-prose .dx-table code { white-space: nowrap; overflow-wrap: normal; word-break: keep-all; }
-.dx-table td:last-child { min-width: 280px; }
-.dx-table table { min-width: max-content; }
+.dx-table code, .dx-prose .dx-table code { white-space: normal; overflow-wrap: break-word; word-break: normal; }
+.dx-table td, .dx-table th { overflow-wrap: break-word; min-width: 0; }
+@media (max-width: 640px) {
+  .dx-table[data-stack="true"] { border: 0; background: none; }
+  .dx-table[data-stack="true"] table, .dx-table[data-stack="true"] tbody, .dx-table[data-stack="true"] tr, .dx-table[data-stack="true"] td { display: block; width: 100%; }
+  .dx-table[data-stack="true"] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .dx-table[data-stack="true"] tr { border: 1px solid var(--line); border-radius: var(--r-2); background: var(--surface); margin-bottom: var(--s-3); overflow: hidden; }
+  .dx-table[data-stack="true"] td { border-top: 0; padding: var(--s-2) var(--s-4); }
+  .dx-table[data-stack="true"] td:first-child { width: 100%; }
+  .dx-table[data-stack="true"] td + td { border-top: 1px solid var(--line); }
+  .dx-table[data-stack="true"] td::before { content: attr(data-label); display: block; font-size: var(--t-13); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+}
 .dx-prose kbd, .cl-entry kbd { white-space: nowrap; }
-/* Inline code stays on one line, except on phones where a long path would force a sideways scroll. */
-@media (min-width: 561px) { .dx-prose code, .cl-entry code { white-space: nowrap; overflow-wrap: normal; } }
+/* Inline code wraps only when a token cannot fit on its own line: at <wbr> points first, anywhere as a last resort. */
+.dx-prose :not(pre) > code, .cl-entry code { white-space: normal; overflow-wrap: anywhere; }
+/* "Troubleshooting" must fit a 390 px column on one line; scale the h1 with the viewport on phones. */
+@media (max-width: 480px) { .dx-h1 { font-size: min(var(--t-44), 10.4vw); overflow-wrap: break-word; } }

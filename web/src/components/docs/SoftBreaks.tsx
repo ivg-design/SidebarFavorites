@@ -1,9 +1,9 @@
 "use client";
 import { useEffect } from "react";
 
-const BREAK = /[/.-]/;
+const BREAK = /[/._\-:=?&,]/;
 
-/** Inserts <wbr> after "/", "." and "-" in inline code so phones break paths at sensible points. */
+/** Inserts <wbr> after "/ . _ - : = ? & ," in inline code so phones break paths at sensible points. */
 export default function SoftBreaks({ root }: { root: string | string[] }) {
   const key = Array.isArray(root) ? root.join(",") : root;
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function SoftBreaks({ root }: { root: string | string[] }) {
           const text = node.data;
           if (!BREAK.test(text)) continue;
           const frag = document.createDocumentFragment();
-          text.split(/(?<=[/.-])/).forEach((part, i) => {
+          text.split(/(?<=[/._\-:=?&,])/).forEach((part, i) => {
             if (i) frag.appendChild(document.createElement("wbr"));
             frag.appendChild(document.createTextNode(part));
           });

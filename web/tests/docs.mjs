@@ -139,19 +139,33 @@ test("docs: opening the search palette moves nothing by a pixel (scrollbar gutte
   await page.close();
 });
 
-test("docs: table code tokens never wrap mid-word", async () => {
+test("docs: table code tokens break only at separators, short ones stay whole", async () => {
   for (const width of [1440, 390]) {
     const page = await open("/docs/config-json", { width });
-    const bad = await page.evaluate(() => [...document.querySelectorAll(".dx-table code")].filter((c) => c.getClientRects().length > 1).map((c) => c.textContent));
-    assert.deepEqual(bad, [], `wrapped at ${width}`);
+    const bad = await page.evaluate(() => [...document.querySelectorAll(".dx-table code")].filter((c) => {
+      if (c.getClientRects().length < 2) return false;
+      // wrapped: allowed only if long (>14 chars; spaces are break points too) and every line break falls after a separator
+      const t = c.textContent; if (t.length <= 14 && !/\s/.test(t)) return true;
+      const r = document.createRange(); let prevTop = null;
+      const walker = document.createTreeWalker(c, NodeFilter.SHOW_TEXT);
+      let prevChar = "";
+      for (let tn = walker.nextNode(); tn; tn = walker.nextNode()) for (let i = 0; i < tn.length; i++) {
+        r.setStart(tn, i); r.setEnd(tn, i + 1);
+        const top = Math.round(r.getBoundingClientRect().top);
+        if (prevTop !== null && top > prevTop + 2 && !/[\s/._\-:=?&,]/.test(prevChar)) return true;
+        prevTop = top; prevChar = tn.data[i];
+      }
+      return false;
+    }).map((c) => c.textContent));
+    assert.deepEqual(bad, [], `bad wrap at ${width}`);
     await page.close();
   }
 });
 
-test("docs: article is centred, tables set code nowrap, headings use the display font", async () => {
+test("docs: article is centred, tables never scroll, headings use the display font", async () => {
   const t = await open("/docs/config-json");
-  const code = await t.$$eval(".dx-table td code", (c) => c.map((x) => getComputedStyle(x).whiteSpace));
-  assert.ok(code.length > 0 && code.every((x) => x === "nowrap"), "table code: " + code);
+  const scr = await t.$$eval(".dx-table", (c) => c.map((x) => getComputedStyle(x).overflowX));
+  assert.ok(scr.length > 0 && scr.every((x) => x === "visible"), "table overflow: " + scr);
   await t.close();
   const page = await open("/docs/custom-svg-icons");
   const r = await page.evaluate(() => {
