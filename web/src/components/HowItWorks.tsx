@@ -1,62 +1,76 @@
-"use client";
-import { useRef } from "react";
-import { motion, useInView, useReducedMotion } from "framer-motion";
-import { asset } from "@/lib/config";
-import { EASE_QUART } from "./motion/Reveal";
+import type { ReactNode } from "react";
+import Shot from "./Shot";
+import { Reveal } from "./motion/Reveal";
+import SymbolPlayground from "./how/SymbolPlayground";
 import { nb } from "@/lib/nowrap";
-import "@/app/flow.css";
+import "@/app/how.css";
 
-interface Step { n: number; title: string; text: string; img: string; widths: [number, number]; w: number; h: number; pos: string; alt: string }
-
-const STEPS: Step[] = [
-  { n: 1, title: "Click + and pick the folder", img: "SBFMainWindow", widths: [430, 860], w: 860, h: 1124, pos: "50% 30%",
-    alt: "The SidebarFavorites window listing folders, each with its icon and an In Sidebar toggle",
-    text: nb("Browse, or type a path — ~ works. Local folders, iCloud Drive, Google Drive, Dropbox, OneDrive, mounted disks and network shares all count.") },
-  { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "22% 18%",
-    alt: "The SF Symbols browser showing a grid of symbols with a search field",
-    text: nb("Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the roughly 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG.") },
-  { n: 3, title: "Add", img: "SBFAddFavoriteWindow", widths: [480, 960], w: 960, h: 1930, pos: "50% 55%",
-    alt: "The Add Favorite window's Icon section with the SF Symbol type, symbol name and quick picks",
-    text: nb("The folder appears in Finder's sidebar with your icon. If Finder is still showing an old one, a banner offers Restart Finder — the app never restarts it on its own.") },
-];
-
-function StepCard({ s, i, reduce }: { s: Step; i: number; reduce: boolean }) {
-  const ref = useRef<HTMLLIElement>(null);
-  const seen = useInView(ref, { once: true, amount: 0.3 });
-  const in_ = seen || reduce;
-  const srcSet = s.widths.map((w) => `${asset(`/shots/${s.img}-w${w}.webp`)} ${w}w`).join(", ");
+function Copy({ n, title, children, sticky }: { n?: string; title: string; children: ReactNode; sticky?: boolean }) {
   return (
-    <li className="hw-step" ref={ref} data-in={in_} data-testid={`how-step-${s.n}`}>
-      <motion.div
-        className="hw-shot"
-        initial={false}
-        animate={{ opacity: in_ ? 1 : 0, y: in_ ? 0 : 12 }}
-        transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : i * 0.1, ease: EASE_QUART }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="hw-img" src={asset(`/shots/${s.img}-w${s.widths[1]}.webp`)} srcSet={srcSet}
-          sizes="(min-width: 834px) 33vw, 86vw" width={s.w} height={s.h} alt={s.alt} loading="lazy" decoding="async" style={{ objectPosition: s.pos }}
-        />
-      </motion.div>
-      <h3 className="hw-h"><span className="hw-n" aria-hidden="true"><span>{s.n}</span></span>{s.title}</h3>
-      <p>{s.text}</p>
-    </li>
+    <div className={`hw-copy${sticky ? " hw-sticky" : ""}`}>
+      {n && <p className="eyebrow"><span className="eyebrow-n">{n}</span></p>}
+      <h3 className="h3">{nb(title)}</h3>
+      <div className="prose hw-prose">{children}</div>
+    </div>
   );
 }
 
 export default function HowItWorks() {
-  const reduce = !!useReducedMotion();
   return (
-    <section id="how" className="sec sec-surface hw" aria-labelledby="how-title">
-      <div className="wrap hw-head">
-        <p className="eyebrow">How it works</p>
-        <h2 id="how-title" className="display h-sec">Pick a folder. Pick an icon. Add.</h2>
-        <p className="lede">Three fields and a button. The name follows the folder because Finder always labels a favorite with its real name — so you only ever choose the glyph.</p>
-      </div>
-      <div className="wrap hw-wrap">
-        <ol className="hw-steps" data-testid="how-steps">
-          {STEPS.map((s, i) => <StepCard key={s.n} s={s} i={i} reduce={reduce} />)}
+    <section id="how" className="sec" aria-labelledby="how-h" data-testid="how">
+      <div className="wrap">
+        <div className="sec-head">
+          <p className="eyebrow">How it works</p>
+          <h2 className="h2" id="how-h">{nb("Pick a folder. Pick an icon. Add.")}</h2>
+          <p className="lede">{nb("Three fields and a button. The name follows the folder, because Finder always labels a favorite with its real name, so you only ever choose the glyph.")}</p>
+        </div>
+
+        <ol className="hw-steps">
+          <li className="hw-step" data-testid="how-step-1">
+            <Reveal>
+              <div className="cols">
+                <Copy n="01" title="Click + and pick the folder">
+                  <p>{nb("Browse, or type a path (~ works). Local folders, iCloud Drive, ~/Library/CloudStorage (Google Drive, Dropbox, OneDrive…), mounted disks and network shares all count.")}</p>
+                </Copy>
+                <Shot name="SBFMainWindow" alt="The SidebarFavorites manager window listing folders, each with its icon and an In Sidebar toggle"
+                  caption={nb("The manager window. + adds a favorite, or press ⌘N.")} />
+              </div>
+            </Reveal>
+          </li>
+
+          <li className="hw-step" data-testid="how-step-2">
+            <Reveal>
+              <div className="cols cols-rev">
+                <Copy n="02" title="Choose the icon" sticky>
+                  <p>{nb("Type an SF Symbol name like hammer.fill or star.circle, click a quick pick, or Browse All… to search every symbol this Mac can draw (about 8,300) by name or keyword, so “bin” finds trash. Or Import SVG… for your own artwork.")}</p>
+                  <SymbolPlayground />
+                </Copy>
+                <Shot name="SBFAddFavoriteWindow" alt="The Add Favorite window: folder path, icon mode, SF Symbol name with quick picks, and a Preview of the sidebar row"
+                  caption={nb("The Add Favorite window. The Preview shows the glyph enlarged and at true sidebar size.")} />
+              </div>
+            </Reveal>
+            <Reveal>
+              <div className="cols hw-sub">
+                <Copy title="Browse All…">
+                  <p>{nb("Search the whole catalog, not just the quick picks. Names and keywords both match.")}</p>
+                </Copy>
+                <Shot name="SFSymbolBrowser" alt="The SF Symbols browser: a search field above a grid of symbols"
+                  caption={nb("Browse All… lists every SF Symbol this Mac can draw.")} />
+              </div>
+            </Reveal>
+          </li>
+
+          <li className="hw-step" data-testid="how-step-3">
+            <Reveal>
+              <div className="cols cols-rev">
+                <Copy n="03" title="Add">
+                  <p>{nb("The folder appears in Finder's sidebar with your icon. If Finder still shows an old one, a banner offers Restart Finder. The app never restarts Finder on its own.")}</p>
+                </Copy>
+                <Shot name="example" alt="A real Finder sidebar with custom icons: Desktop, home, github, Mograph-work, Projects, Downloads, Applications, Documents"
+                  caption={nb("A real Finder sidebar, after Add.")} />
+              </div>
+            </Reveal>
+          </li>
         </ol>
       </div>
     </section>
