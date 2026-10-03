@@ -46,3 +46,4 @@
   .uh-g { width: 3ch; }
   .uh-elbow::after { width: 1.6ch; }
 }
+.uh-chain > span { display: inline-block; white-space: nowrap; } /* each "→ step" wraps as one unit on phones */
