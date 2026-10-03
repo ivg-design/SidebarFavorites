@@ -14,7 +14,7 @@ const FALLBACK: SiteRelease = {
   version: "1.2.2",
   dmgName: "SidebarFavorites-1.2.2.dmg",
   dmgUrl: `${REPO_URL}/releases/download/v1.2.2/SidebarFavorites-1.2.2.dmg`,
-  sizeLabel: "13 MB",
+  sizeLabel: "14 MB",
   date: "2026-08-01",
 };
 

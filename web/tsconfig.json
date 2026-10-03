@@ -50,7 +50,9 @@
     ".next-docs/types/**/*.ts",
     ".next-docs/dev/types/**/*.ts",
     ".next-flow/types/**/*.ts",
-    ".next-flow/dev/types/**/*.ts"
+    ".next-flow/dev/types/**/*.ts",
+    ".next-rive/types/**/*.ts",
+    ".next-rive/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

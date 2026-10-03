@@ -5,6 +5,7 @@ import {
   Github, Gamepad2, Terminal, Wrench, Leaf, Sun, Coffee, Globe, Lock, House, Monitor, FileStack, Download, Server, CloudUpload,
   type LucideIcon,
 } from "lucide-react";
+import { SF_PATHS, SfGlyph } from "./glyphs-sf";
 
 /** Stand-ins for SF Symbols. Names mirror the SF Symbol they imitate. */
 export const GLYPHS: Record<string, LucideIcon> = {
@@ -33,6 +34,7 @@ export const FAVS: Fav[] = [
 
 
 export function Glyph({ name, size = 16, strokeWidth = 1.75, className }: { name: string; size?: number; strokeWidth?: number; className?: string }) {
+  if (SF_PATHS[name]) return <SfGlyph name={name} size={size} className={className} />;
   const Ic = GLYPHS[name] ?? Folder;
   return <Ic size={size} strokeWidth={strokeWidth} aria-hidden="true" className={className} />;
 }
