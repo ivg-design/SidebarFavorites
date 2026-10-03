@@ -54,11 +54,11 @@
 /* tools under the window (inside the band) */
 .hx-tools { position: absolute; left: 0; right: 0; top: 100%; margin-top: var(--s-4); display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
 .hx-hint { font-size: var(--t-14); color: rgba(255,255,255,.88); text-shadow: 0 1px 2px rgba(0,0,0,.25); min-height: 24px; }
-.hx-replay { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 36px; padding: 0 var(--s-3); border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.18); color: #fff; font-size: var(--t-14); font-weight: 600; backdrop-filter: blur(8px); transition: background-color 150ms, opacity 150ms; }
+.hx-replay { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0 var(--s-3); border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.18); color: #fff; font-size: var(--t-14); font-weight: 600; backdrop-filter: blur(8px); transition: background-color 150ms, opacity 150ms; }
 .hx-replay:hover { background: rgba(0,0,0,.32); }
 .hx-replay:disabled { opacity: .45; cursor: default; }
 .hx-replay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-.hx-stage { margin-bottom: calc(36px + var(--s-4)); }
+.hx-stage { margin-bottom: calc(44px + var(--s-4)); }
 
 @media (prefers-reduced-motion: reduce) {
   .hx-win { opacity: 1; translate: 0 0; transition: none; }
