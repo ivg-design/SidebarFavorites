@@ -25,7 +25,7 @@ export default function TopBar({ index, current }: { index: DocIndexEntry[]; cur
       <div className="dx-top-in">
         <div className="dx-brand">
           <a className="dx-brand-home" href={asset("/")} aria-label="SidebarFavorites home">
-            <Image src={asset("/images/icon-180.png")} alt="" width={59} height={59} priority unoptimized />
+            <Image src={asset("/images/icon-180.png")} alt="" width={54} height={54} priority unoptimized />
             <span className="dx-brand-name">SidebarFavorites <span className="dx-brand-docs"><span aria-hidden="true">/ </span>Docs</span></span>
           </a>
         </div>

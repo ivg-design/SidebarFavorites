@@ -3,7 +3,7 @@
 .nav[data-stuck="true"] { box-shadow: 0 1px 0 var(--line); }
 .nav-in { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
 .nav-brand { display: inline-flex; align-items: center; gap: var(--s-3); font-weight: 600; font-size: var(--t-16); line-height: 1; min-height: 44px; white-space: nowrap; }
-.nav-brand img { border-radius: var(--r-1); }
+.nav-brand img { width: 54px; height: 54px; border-radius: 12px; } /* owner rule: the icon fills the 64px bar minus 5px top and bottom */
 .nav-end { display: flex; align-items: center; gap: var(--s-4); }
 .nav-links { display: none; }
 .nav-plain, .nav-links a { font-size: var(--t-14); color: var(--muted); transition: color var(--t-fast) var(--ease-quart); }

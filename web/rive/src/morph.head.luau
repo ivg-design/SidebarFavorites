@@ -1,6 +1,0 @@
--- folder-morph: one light vector silhouette that morphs between a folder and eight glyphs.
--- Every shape is 8 contours x 96 points (slot 0 body, 1-2 extra parts, 3-7 holes), so the
--- morph is true point-wise path interpolation, not a crossfade. A critically damped spring
--- drives progress from the shape on screen when `target` changed to the new one.
--- ViewModel "Morph": number `target` (0 folder, 1 hammer, 2 note, 3 palette, 4 plane,
--- 5 branch, 6 cloud, 7 camera, 8 document+magnifier), boolean `auto` (cycle after 2.5 s idle).

@@ -14,7 +14,7 @@ export default function Footer() {
     <footer className="foot" data-testid="footer">
       <div className="wrap foot-grid">
         <div className="foot-brand">
-          <Image src={asset("/images/icon-64.png")} alt="" width={40} height={40} />
+          <Image src={asset("/images/icon-64.png")} alt="" width={56} height={56} />
           <b>SidebarFavorites</b>
           <p className="fine">{nb("Finder sidebar icons for macOS, by IVG Design. MIT license.")}</p>
           <p className="fine">{nb("© 2026 IVG Design")}</p>

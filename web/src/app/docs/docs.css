@@ -6,7 +6,7 @@
 .dx-top-in { display: grid; grid-template-columns: 1fr minmax(0, 320px) 1fr; align-items: center; gap: var(--s-4); height: 64px; box-sizing: border-box; padding: 0 var(--s-5); max-width: 1440px; margin-inline: auto; }
 .dx-brand { display: flex; align-items: center; min-width: 0; }
 .dx-brand-home { display: inline-flex; align-items: center; gap: var(--s-3); min-width: 0; font-family: var(--font-display); font-variation-settings: "opsz" 32; font-weight: 600; font-size: var(--t-17); letter-spacing: -0.02em; }
-.dx-brand-home img { width: 59px; height: 59px; flex: none; border-radius: 12px; }
+.dx-brand-home img { width: 54px; height: 54px; flex: none; border-radius: 12px; }
 .dx-brand-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dx-brand-docs { color: var(--muted); font-weight: 400; }
 .dx-search { display: flex; align-items: center; gap: var(--s-2); height: 40px; padding: 0 var(--s-3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-2); color: var(--muted); font-size: var(--t-14); text-align: left; width: 100%; transition: border-color var(--t-base) var(--ease-quart); }

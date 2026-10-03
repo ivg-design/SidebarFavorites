@@ -17,3 +17,4 @@
 .in-link { text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
 .in-link:hover { color: var(--accent-ink); }
 .in .cols > * { min-width: 0; }
+@media (max-width: 420px) { .in-lines { font-size: var(--t-13); } } /* the three brew lines fit a 390px phone without scrolling */
