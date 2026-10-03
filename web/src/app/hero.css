@@ -35,8 +35,8 @@
 /* picker: a dark macOS-style popover beside the row */
 .hx-pop { position: absolute; z-index: 5; width: 272px; padding: var(--s-3); border-radius: 12px; background: rgba(40,40,44,.96); color: var(--mac-text);
   font-family: var(--mac-font); box-shadow: 0 0 0 .5px rgba(0,0,0,.8), inset 0 0 0 .5px rgba(255,255,255,.14), 0 24px 48px -16px rgba(0,0,0,.7);
-  backdrop-filter: blur(18px); animation: hx-pop-in 180ms var(--ease-quint); transform-origin: top left; }
-@keyframes hx-pop-in { from { opacity: 0; scale: .98; } to { opacity: 1; scale: 1; } }
+  backdrop-filter: blur(18px); animation: hx-pop-in 180ms var(--ease-quint); transform-origin: top left; transform: scale(var(--z, 1)); }
+@keyframes hx-pop-in { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
 .hx-pop-h { margin: 0 0 var(--s-2); font-size: 12px; font-weight: 600; color: var(--mac-dim); }
 .hx-pop-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 .hx-opt { display: grid; place-items: center; height: 38px; border-radius: 7px; background: rgba(255,255,255,.05); color: var(--mac-glyph); border: 0; transition: background-color 120ms var(--ease-quart); }
@@ -47,7 +47,7 @@
 .hx-opt .mac-folder { width: 18px; height: 18px; }
 .hx-pop-f { margin: var(--s-3) 0 0; font-size: 11px; line-height: 1.4; color: var(--mac-dim); }
 @media (max-width: 599px) {
-  .hx-pop { position: fixed; left: var(--s-3) !important; right: var(--s-3); top: auto !important; bottom: var(--s-3); width: auto; z-index: 70; transform-origin: bottom center; }
+  .hx-pop { position: fixed; left: var(--s-3) !important; right: var(--s-3); top: auto !important; bottom: var(--s-3); width: auto; z-index: 70; transform: none; }
   .hx-opt { height: 44px; }
 }
 

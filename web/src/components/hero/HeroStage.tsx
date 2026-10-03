@@ -88,12 +88,13 @@ export default function HeroStage() {
     const stage = stageRef.current, row = rowEl(open), pop = popRef.current;
     if (!stage || !row || !pop) return;
     const s = stage.getBoundingClientRect(), r = row.getBoundingClientRect();
-    const left = Math.min(r.right - s.left + 10, s.width - pop.offsetWidth - 8);
-    const top = Math.max(8, Math.min(r.top - s.top - 10, s.height - pop.offsetHeight - 8));
+    const pw = pop.offsetWidth * z, ph = pop.offsetHeight * z; // the picker is scaled with the window
+    const left = Math.min(r.right - s.left + 10, s.width - pw - 8);
+    const top = Math.max(8, Math.min(r.top - s.top - 10, s.height - ph - 8));
     setPos({ top, left });
     const cur = PICKS.indexOf(icons[open]);
     requestAnimationFrame(() => optRefs.current[cur >= 0 ? cur : 0]?.focus());
-  }, [open, icons, rowEl]);
+  }, [open, icons, rowEl, z]);
 
   useEffect(() => {
     if (open === null) return;
