@@ -5,9 +5,11 @@ import { asset } from "@/lib/config";
 import "./globals.css";
 import "./changelog.css";
 
-const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], display: "swap" });
-const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["italic", "normal"], axes: ["opsz"], display: "swap" });
-const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
+// Fonts are the mobile LCP budget: three static Schibsted cuts instead of the variable file, Newsreader italic only
+// (the only serif on the site is the one italic word), and the mono is not preloaded (nothing above the fold needs it first).
+const schibsted = Schibsted_Grotesk({ variable: "--font-schibsted", subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
+const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["italic"], axes: ["opsz"], display: "swap" });
+const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"], weight: ["400", "500"], display: "swap", preload: false });
 
 const TITLE = "SidebarFavorites: custom Finder sidebar icons for macOS";
 const DESC = "Give the folders in Finder's sidebar the icons you want. Any SF Symbol or your own SVG, no extension, no daemon, no login item. Free, MIT, macOS 13+.";

@@ -200,6 +200,12 @@ test("hero: zoom-out — the column scrubs into the resting Finder window and th
   assert.ok((await op(".hx-head")) < 0.01, "headline gone by 50%");
   const z50 = await page.$eval('[data-testid="hero-col"]', (e) => e.getBoundingClientRect().width / 204);
   assert.ok(z50 < 2 && z50 > 1.3, `column should be shrinking, z=${z50}`);
+  // 80%: one camera move — the window's chrome is already fading in around the seat while the column is still the only sidebar
+  await instant(page, end * 0.8);
+  await sleep(1500);
+  assert.ok((await op('[data-testid="hero-rest"]')) > 0.5, "window chrome arriving by 80%");
+  assert.equal(await page.$eval('[data-testid="hero-col"]', (e) => getComputedStyle(e).visibility), "visible", "column still shown before the swap");
+  assert.equal(await page.$eval('[data-testid="hero-rest-row-3"]', (e) => getComputedStyle(e).visibility), "hidden", "the window's own sidebar stays empty until the swap");
   // 100%: the poster column's rows land exactly on the resting window's rows (the swap is invisible)
   await instant(page, end);
   await sleep(1600);
@@ -210,7 +216,8 @@ test("hero: zoom-out — the column scrubs into the resting Finder window and th
   for (const r of d) assert.ok(r.dx < 2 && r.dy < 2 && r.dw < 2, `column and window sidebar do not coincide: ${JSON.stringify(d)}`);
   assert.ok((await op('[data-testid="hero-rest"]')) > 0.98, "window at rest");
   assert.ok((await op(".hx-how")) > 0.98, "How copy visible");
-  assert.ok((await op('[data-testid="hero-col"]')) < 0.02, "poster column gone");
+  assert.equal(await page.$eval('[data-testid="hero-col"]', (e) => getComputedStyle(e).visibility), "hidden", "poster column gone (hard swap)");
+  assert.equal(await page.$eval('[data-testid="hero-rest-row-3"]', (e) => getComputedStyle(e).visibility), "visible", "resting sidebar shown after the swap");
   const how = await page.$eval("#how", (e) => { const r = e.getBoundingClientRect(); return { t: r.top, b: r.bottom, l: r.left, r: r.right, vh: innerHeight, vw: innerWidth, txt: e.textContent }; });
   assert.equal(how.txt, "Pick a folder. Pick an icon. Add.");
   assert.ok(how.t > 64 && how.b < how.vh && how.l >= 0 && how.r <= how.vw, `#how must be on screen: ${JSON.stringify(how)}`);

@@ -9,6 +9,7 @@ import { FAVS, Glyph } from "../glyphs";
 import CopyButton from "../CopyButton";
 import { nb } from "@/lib/nowrap";
 import RowGlyph from "./RowGlyph";
+import { QUICK_PICKS, QUICK_COLS } from "../how/SymbolPlayground";
 
 /* Native metrics (13 px Finder): sidebar 204 wide; strip 52 + sidebar 278 = 330 tall. One transform (--z) scales them. */
 const SIDE_W = 204;
@@ -18,6 +19,11 @@ const STAGGER_MS = 90;       // rows top to bottom; folder k of the headline and
 const SAT_MS = 900;          // colour starts arriving with the first row (CSS transition is 1000 ms)
 const DONE_MS = 2300;
 const SCRUB_MQ = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
+// the zoom-out's beats, as fractions of the scrub
+const LAND = 0.84;   // the column reaches its seat inside the window
+const CHROME = 0.5;  // the window's toolbar and pane start fading in around the seat
+const SWAP = 0.9;    // column → resting sidebar, same pixels
+const COPY = 0.76;   // "Pick a folder. Pick an icon. Add." rises
 const CONTENTS: Record<string, string[]> = {
   Forge: ["Dies", "Blanks", "Orders", "Quotes", "Photos", "Archive", "Drawings", "Suppliers", "Jigs", "Invoices"],
   Samples: ["Kicks", "Snares", "Pads", "Field", "Vocals", "Loops", "FX", "Bass", "Keys", "Stems"],
@@ -28,13 +34,9 @@ const CONTENTS: Record<string, string[]> = {
   Shoots: ["2026-01 Studio", "2026-02 Loft", "Selects", "RAW", "Edits", "Delivered", "Proofs", "Lightroom", "Backdrops", "LUTs"],
   Invoices: ["2024", "2025", "2026", "Paid", "Overdue", "Templates", "Drafts", "Credit notes", "Receipts", "Tax"],
 };
-/** The app's quick-pick grid: the grey folder default plus seventeen glyphs, 6 × 3. */
-const PICKS = [
-  "folder", "hammer.fill", "music.note", "paintpalette", "paperplane.fill", "arrow.triangle.branch",
-  "icloud", "camera", "doc.text.magnifyingglass", "star.fill", "heart.fill", "bookmark.fill",
-  "flag.fill", "tag.fill", "archivebox.fill", "briefcase.fill", "doc.text", "photo",
-];
-const COLS = 6;
+/** The app's quick picks: its 24 names in its 8-column grid (AddEditFavoriteSheet.swift), shared with the How section. */
+const PICKS: readonly string[] = QUICK_PICKS;
+const COLS = QUICK_COLS;
 
 type Src = "col" | "rest";
 interface OpenState { i: number; src: Src }
@@ -159,10 +161,11 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
       const s = box.getBoundingClientRect(), w = win.getBoundingClientRect(); // offset from the column's own seat
       return { x: w.left - s.left, y: w.top - s.top, sc: w.width / win.offsetWidth };
     };
+    // the hard swap: at SWAP the travelling column and the resting sidebar occupy the same pixels; one is shown, never both
     const setInert = (p: number) => {
-      col.inert = p >= 0.8; rest.inert = p < 0.8; how.inert = p < 0.8;
+      col.inert = p >= SWAP; rest.inert = p < SWAP; how.inert = p < SWAP;
       tools.style.pointerEvents = p > 0.3 ? "none" : "";
-      stage.dataset.phase = p >= 0.8 ? "rest" : "col";
+      stage.dataset.phase = p >= SWAP ? "rest" : "col";
     };
     const build = () => {
       ctx?.revert(); ctx = undefined; st = undefined;
@@ -191,13 +194,15 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
             onRefresh: (self) => setInert(self.progress),
           },
         });
-        tl.fromTo(head, { y: 0, opacity: 1 }, { y: -48, opacity: 0, duration: 0.35 }, 0)
-          .fromTo(tools, { opacity: 1 }, { opacity: 0, duration: 0.35 }, 0)
-          .fromTo(col, { x: 0, y: 0, scale: zNow }, { x: () => target().x, y: () => target().y, scale: () => target().sc, duration: 1 }, 0)
-          .fromTo(col, { opacity: 1 }, { opacity: 0, duration: 0.1 }, 0.9)
-          .fromTo(rest, { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.7)
-          .fromTo(shade, { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.65)
-          .fromTo(how, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 0.65);
+        // one camera move: the headline leaves first; the column travels to its seat and lands at LAND; from CHROME the
+        // window's toolbar and pane fade in around that seat (its own sidebar stays hidden until the swap, see hero.css);
+        // at SWAP the column is replaced by the resting sidebar on the same pixels; the copy lands last.
+        tl.fromTo(head, { y: 0, opacity: 1 }, { y: -48, opacity: 0, duration: 0.3 }, 0)
+          .fromTo(tools, { opacity: 1 }, { opacity: 0, duration: 0.3 }, 0)
+          .fromTo(col, { x: 0, y: 0, scale: zNow }, { x: () => target().x, y: () => target().y, scale: () => target().sc, duration: LAND }, 0)
+          .fromTo(shade, { opacity: 0 }, { opacity: 1, duration: 0.3 }, CHROME)
+          .fromTo(rest, { opacity: 0 }, { opacity: 1, duration: LAND - CHROME }, CHROME)
+          .fromTo(how, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1 - COPY }, COPY);
         st = tl.scrollTrigger;
         gsap.set(col, { transformOrigin: "0 0" });
         setInert(st?.progress ?? 0);
@@ -325,13 +330,13 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
           style={{ top: pos.top, left: pos.left, ["--pz" as string]: pos.sc } as CSSProperties} data-testid="hero-pop"
         >
           <p className="hx-pop-h">Icon for {FAVS[open.i].name}</p>
-          <div className="hx-pop-grid" role="listbox" aria-label="Quick picks">
+          <div className="hx-pop-grid" role="listbox" aria-label="Quick picks" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
             {PICKS.map((g, k) => (
               <button
                 key={g} ref={(el) => { optRefs.current[k] = el; }} type="button" role="option" aria-selected={icons[open.i] === g}
                 className="hx-opt" data-testid={`hero-pick-${g}`} title={g} onKeyDown={(e) => gridKeys(e, k)} onClick={() => pick(open.i, g)}
               >
-                {g === "folder" ? <RowGlyph name="folder" /> : <Glyph name={g} size={18} />}
+                <Glyph name={g} size={18} />
               </button>
             ))}
           </div>
