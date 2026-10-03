@@ -1,8 +1,11 @@
 "use client";
-// OWNER: worker D. Copies `text`; icon flips copy -> check and a "Copied" pop shows for 1.2 s.
-// `variant="chip"` (hero brew chip, shows the text) or `variant="box"` (small button in the brew box).
+// Copies `text` (clipboard API, textarea fallback). The copied state lasts 1.6 s and is announced politely.
+// variant "chip": a mono chip showing the text (hero); the confirmation covers the chip, nothing floats.
+// variant "box": a small ghost button with a label; the label and icon swap copy -> Copied in place.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
+
+const COPIED_MS = 1600;
 
 async function copyText(text: string): Promise<boolean> {
   try {
@@ -49,32 +52,43 @@ export default function CopyButton({
     if (!ok) return;
     setOn(true);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setOn(false), 1200);
+    timer.current = setTimeout(() => setOn(false), COPIED_MS);
   }, [text]);
 
-  const button = (
-    <button type="button" className={variant === "chip" ? "brew-chip" : "cp"} data-testid={variant === "chip" ? "copy-chip" : "copy-box"} onClick={onClick} aria-label={ariaLabel}>
-      <span>{label ?? text}</span>
-      <span className="swap" data-on={on} aria-hidden="true">
-        <Copy className="a" size={16} />
-        <Check className="b" size={16} />
-      </span>
-    </button>
-  );
-  const pop = (
-    <>
-      <span className="copied-pop" data-on={on} aria-hidden="true">Copied</span>
-      <span className="sr-only" role="status" aria-live="polite">{on ? "Copied to clipboard" : ""}</span>
-    </>
+  const status = <span className="sr-only" role="status" aria-live="polite">{on ? "Copied to clipboard" : ""}</span>;
+  const swap = (
+    <span className="swap" aria-hidden="true">
+      <Copy className="a" size={16} />
+      <Check className="b" size={16} />
+    </span>
   );
 
-  if (variant === "box") return <>{button}{pop}</>;
-  // chip: the confirmation replaces the command inside the chip for 1.2 s (nothing floats over neighbouring buttons)
+  if (variant === "box") {
+    const t = (show: boolean) => ({ opacity: show ? 1 : 0, transition: "opacity var(--t-base) var(--ease-quart)" });
+    return (
+      <>
+        <button type="button" className="btn btn-ghost btn-sm" data-testid="copy-box" data-on={on} onClick={onClick} aria-label={ariaLabel}>
+          <span aria-hidden="true" style={{ display: "inline-grid" }}>
+            <span style={{ gridArea: "1 / 1", ...t(!on) }}>{label ?? "Copy"}</span>
+            <span style={{ gridArea: "1 / 1", ...t(on) }}>Copied</span>
+          </span>
+          <span className="swap" aria-hidden="true" style={{ position: "relative", width: 16, height: 16, flex: "none" }}>
+            <Copy size={16} style={{ position: "absolute", inset: 0, ...t(!on) }} />
+            <Check size={16} style={{ position: "absolute", inset: 0, ...t(on) }} />
+          </span>
+        </button>
+        {status}
+      </>
+    );
+  }
   return (
-    <span style={{ position: "relative", display: "inline-flex", maxWidth: "100%" }}>
-      {button}
-      <span className="copied-in" data-on={on} aria-hidden="true"><Check size={16} />Copied to clipboard</span>
-      <span className="sr-only" role="status" aria-live="polite">{on ? "Copied to clipboard" : ""}</span>
-    </span>
+    <>
+      <button type="button" className="chip" data-testid="copy-chip" data-on={on} onClick={onClick} aria-label={ariaLabel}>
+        <span>{label ?? text}</span>
+        {swap}
+        <span className="copied-in" data-on={on} aria-hidden="true"><Check size={16} />Copied</span>
+      </button>
+      {status}
+    </>
   );
 }

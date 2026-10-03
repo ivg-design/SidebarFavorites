@@ -1,0 +1,19 @@
+/* Install: prose beside a dark terminal block. Prefix in- */
+.in-prose { margin-top: var(--s-5); }
+.in-uninstall { margin-top: var(--s-6); max-width: 62ch; }
+.in-term { background: var(--graphite); color: var(--paper-on-dark); border-radius: var(--r-3); padding: var(--s-4) var(--s-5) var(--s-5); }
+.in-term-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-3); }
+.in-term-label { font-size: var(--t-13); color: var(--muted-on-dark); letter-spacing: .06em; text-transform: uppercase; }
+.in-term .btn-ghost { border-color: rgba(255,255,255,.25); color: var(--paper-on-dark); }
+.in-term .btn-ghost:hover { border-color: var(--paper-on-dark); }
+.in-term :focus-visible { outline-color: var(--paper-on-dark); }
+.in-lines { margin: 0; font-size: var(--t-14); line-height: 1.9; overflow-x: auto; white-space: pre; }
+.in-p { color: var(--muted-on-dark); user-select: none; }
+.in-trust { margin-top: var(--s-4); max-width: 52ch; }
+.in-or { display: flex; align-items: center; gap: var(--s-4); margin-block: var(--s-6); color: var(--muted); font-size: var(--t-14); }
+.in-or::before, .in-or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.in-dmg { max-width: 100%; white-space: normal; text-align: center; padding-block: var(--s-3); }
+.in-after { margin-top: var(--s-4); }
+.in-link { text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.in-link:hover { color: var(--accent-ink); }
+.in .cols > * { min-width: 0; }
