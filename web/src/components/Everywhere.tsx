@@ -93,7 +93,7 @@ export default function Everywhere() {
                     <SideHeading>{s.heading}</SideHeading>
                     {s.rows.map((r) => (
                       <SideRow
-                        key={r.key} data-testid={`everywhere-row-${r.key}`} selected={r.custom && r.tab === sel} custom={r.custom}
+                        key={r.key} data-testid={`everywhere-row-${r.key}`} selected={r.custom && r.tab === sel}
                         icon={<Glyph name={r.glyph} size={16} strokeWidth={1.6} />} label={r.label} tabIndex={-1}
                         trailing={r.key === "work2tbssd" ? <Eject /> : undefined} type="button" onClick={() => choose(r.tab)}
                       />
@@ -123,7 +123,7 @@ export default function Everywhere() {
             <p role="tabpanel" id={`${uid}-p`} aria-labelledby={`${uid}-t${sel}`} className="ev-desc" data-testid="everywhere-desc" key={sel}>{TABS[sel].text}</p>
           </Reveal>
         </div>
-        <Reveal><p className="fine ev-fine">{nb("Finder’s own synthesised rows — iCloud Drive, Computer, AirDrop, Network, the cloud-provider rows — cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.")}</p></Reveal>
+        <Reveal><p className="fine ev-fine">{nb("Finder’s own synthesised rows — iCloud Drive, Computer, AirDrop, Network, the cloud-provider rows — cannot take aicon at all; macOS stores one and never draws it, so the app leaves them alone.")}</p></Reveal>
       </div>
     </section>
   );

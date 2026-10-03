@@ -1,9 +1,6 @@
 import Header from "@/components/Header";
-import FavoritesRail from "@/components/rail/FavoritesRail";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
-import BeforeAfter from "@/components/BeforeAfter";
-import DemoVideo from "@/components/DemoVideo";
 import HowItWorks from "@/components/HowItWorks";
 import CustomIcons from "@/components/CustomIcons";
 import Everywhere from "@/components/Everywhere";
@@ -18,20 +15,15 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <div className="shell">
-        <FavoritesRail release={release} />
-        <main id="main" className="shell-main">
-          <Hero release={release} />
-          <BeforeAfter />
-          <DemoVideo />
-          <HowItWorks />
-          <CustomIcons />
-          <Everywhere />
-          <BothIcons />
-          <UnderTheHood />
-          <Install release={release} />
-        </main>
-      </div>
+      <main id="main">
+        <Hero release={release} />
+        <HowItWorks />
+        <CustomIcons />
+        <Everywhere />
+        <BothIcons />
+        <UnderTheHood />
+        <Install release={release} />
+      </main>
       <Footer />
       <StructuredData release={release} />
     </>
