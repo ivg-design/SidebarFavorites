@@ -113,7 +113,16 @@ export default function Header() {
   return (
     <header className="nav" data-stuck={stuck && !dark} data-home={onHome} data-on-dark={dark} data-testid="header">
       <div className="wrap nav-in">
-        <a className="nav-brand" href={asset("/")} aria-label="SidebarFavorites home">
+        <a className="nav-brand" data-testid="brand-home" href={asset("/")} onClick={(e) => {
+            // Already on the landing page: go to the very top and drop any #section, instead of a no-op or a reload.
+            const here = window.location.pathname.replace(/\/$/, "");
+            const home = asset("/").replace(/\/$/, "");
+            if (here === home && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+              e.preventDefault();
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+              window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+            }
+          }} aria-label="SidebarFavorites home">
           <Image src={asset("/images/icon-108.png")} alt="" width={54} height={54} priority />
           <span>SidebarFavorites</span>
         </a>
