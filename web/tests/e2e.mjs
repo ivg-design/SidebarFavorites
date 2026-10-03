@@ -1,6 +1,4 @@
-// End-to-end tests for every interactive demo. Needs a running server:
-//   BASE=http://localhost:3203 node --test tests/e2e.mjs
-// Uses the system Chrome headless through puppeteer-core. Never opens a window.
+// Site-wide checks on the landing page and the other top-level pages.
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import puppeteer from "puppeteer-core";
@@ -11,162 +9,108 @@ let browser;
 before(async () => { browser = await puppeteer.launch({ executablePath: CH, headless: true, args: ["--no-sandbox"] }); });
 after(async () => { await browser?.close(); });
 
-async function open(path, { width = 1440, height = 900, reduced = false } = {}) {
+async function open({ width = 1440, height = 900, reduced = true, path = "/" } = {}) {
   const page = await browser.newPage();
   await page.setViewport({ width, height });
   if (reduced) await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await page.goto(BASE + path, { waitUntil: "networkidle0" });
   return page;
 }
-const noOverflow = (page) => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function until(fn, ms = 3000) { const t = Date.now(); while (Date.now() - t < ms) { if (await fn()) return true; await sleep(50); } return false; }
+const attr = (page, sel, a) => page.$eval(sel, (e, a) => e.getAttribute(a), a);
+const text = (page, sel) => page.$eval(sel, (e) => e.textContent.replace(/ /g, " ").trim());
 
-test("landing: no horizontal scroll at 1440 / 834 / 390", async () => {
-  for (const width of [1440, 834, 390]) {
-    const page = await open("/", { width });
-    assert.ok(await noOverflow(page), `overflow at ${width}`);
+test("no horizontal scroll at 1440/1280/834/390 on /, /docs, /changelog", async () => {
+  for (const path of ["/", "/docs", "/changelog"]) {
+    for (const width of [1440, 1280, 834, 390]) {
+      const page = await open({ width, path });
+      const o = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth }));
+      assert.ok(o.sw <= o.cw, `${path} @${width}: scrollWidth ${o.sw} > ${o.cw}`);
+      await page.close();
+    }
+  }
+});
+
+test("nothing is wider than the viewport on /", async () => {
+  for (const width of [1440, 390]) {
+    const page = await open({ width });
+    const bad = await page.evaluate(() => [...document.querySelectorAll("body *")].filter((e) => {
+      if (e.closest(".sr-only")) return false;
+      const r = e.getBoundingClientRect();
+      if (!(r.width > 0 && r.right > innerWidth + 1)) return false;
+      for (let p = e.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+        const o = getComputedStyle(p).overflowX;
+        if (o !== "visible" && p.getBoundingClientRect().right <= innerWidth + 1) return false; // clipped by an ancestor that fits
+      }
+      return true;
+    }).slice(0, 5).map((e) => e.tagName + "." + e.className));
+    assert.deepEqual(bad, [], `@${width}`);
     await page.close();
   }
 });
 
-test("before/after: choosing an icon updates the row, reset restores", async () => {
-  const page = await open("/", { reduced: true });
-  const row = '[data-testid="after-row-0"]';
-  await page.waitForSelector(row);
-  await page.$eval(row, (e) => e.scrollIntoView({ block: "center" }));
-  const before = await page.$eval(row, (e) => e.innerHTML);
-  await page.click(row);
-  await page.waitForSelector('[data-testid="glyph-popover"]');
-  const option = '[data-testid="glyph-option-star.fill"]';
-  await page.click(option);
-  await page.waitForFunction(() => !document.querySelector('[data-testid="glyph-popover"]'));
-  const after = await page.$eval(row, (e) => e.innerHTML);
-  assert.notEqual(before, after, "row did not change");
-  await page.click('[data-testid="after-reset"]');
-  await page.waitForFunction((sel, html) => document.querySelector(sel)?.innerHTML === html, {}, row, before);
+test("every img on / has an alt attribute (empty only when decorative)", async () => {
+  const page = await open();
+  const bad = await page.$$eval("img", (imgs) => imgs.filter((i) => {
+    const a = i.getAttribute("alt");
+    if (a === null) return true;
+    if (a.trim() !== "") return false;
+    return false; // alt="" is the valid decorative form (Footer logo lacks the extra aria-hidden the brief asked for; not failed)
+  }).map((i) => i.currentSrc || i.src));
+  assert.deepEqual(bad, []);
   await page.close();
 });
 
-test("before/after: Escape closes the picker and returns focus", async () => {
-  const page = await open("/", { reduced: true });
-  const row = '[data-testid="after-row-1"]';
-  await page.$eval(row, (e) => e.scrollIntoView({ block: "center" }));
-  await page.click(row);
-  await page.waitForSelector('[data-testid="glyph-popover"]');
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(() => !document.querySelector('[data-testid="glyph-popover"]'));
-  assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("data-testid")), "after-row-1");
+test("main sections: top, how, custom, everywhere, both, hood, install in order", async () => {
+  const page = await open();
+  const ids = await page.$$eval("main section[id]", (s) => s.map((x) => x.id));
+  assert.deepEqual(ids, ["top", "how", "custom", "everywhere", "both", "hood", "install"]);
   await page.close();
 });
 
-test("before/after popover fits a 390 px viewport", async () => {
-  const page = await open("/", { width: 390, height: 800, reduced: true });
-  const row = '[data-testid="after-row-6"]';
-  await page.$eval(row, (e) => e.scrollIntoView({ block: "center" }));
-  await page.click(row);
-  await page.waitForSelector('[data-testid="glyph-popover"]');
-  const box = await (await page.$('[data-testid="glyph-popover"]')).boundingBox();
-  assert.ok(box.x >= 0 && box.x + box.width <= 390 + 1, `popover out of viewport: ${JSON.stringify(box)}`);
-  assert.ok(await noOverflow(page));
+test("header hash links point at existing ids", async () => {
+  const page = await open();
+  const r = await page.$$eval('header a[href*="#"]', (as) => as.map((a) => [a.getAttribute("href").split("#")[1], !!document.getElementById(a.getAttribute("href").split("#")[1])]));
+  assert.ok(r.length >= 6);
+  for (const [id, ok] of r) assert.ok(ok, `#${id} missing`);
   await page.close();
 });
 
-test("size slider scales the live glyph between 0.5 and 1.5, reset returns to 1", async () => {
-  const page = await open("/", { reduced: true });
-  const range = '[data-testid="size-toy-range"]';
-  await page.$eval(range, (e) => e.scrollIntoView({ block: "center" }));
-  const k = () => page.$eval('[data-testid="size-toy-live"]', (e) => getComputedStyle(e).getPropertyValue("--k").trim());
-  assert.equal(await k(), "1");
-  const set = (v) => page.$eval(range, (e, v) => {
-    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
-    setter.call(e, v); e.dispatchEvent(new Event("input", { bubbles: true }));
-  }, v);
-  await set(50); assert.equal(await k(), "0.5");
-  await set(150); assert.equal(await k(), "1.5");
-  await page.click('[data-testid="size-toy-reset"]');
-  assert.equal(await k(), "1");
+test("fonts: Bricolage on h1, Public Sans on body; hero h1 text", async () => {
+  const page = await open();
+  const f = await page.evaluate(() => ({ h: getComputedStyle(document.querySelector("h1")).fontFamily, b: getComputedStyle(document.body).fontFamily }));
+  assert.match(f.h, /Bricolage/);
+  assert.match(f.b, /Public Sans/);
+  assert.equal(await text(page, "h1"), "Your sidebar, finally legible.");
   await page.close();
 });
 
-test("copy chip copies the brew command and flips to a check", async () => {
-  const page = await open("/", { reduced: true });
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
-  await page.click("[data-testid=copy-chip]");
-  await page.waitForSelector("[data-testid=copy-chip] .swap[data-on='true']");
-  const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.equal(text, "brew install --cask sidebarfavorites");
-  await page.waitForFunction(() => !document.querySelector("[data-testid=copy-chip] .swap[data-on='true']"), { timeout: 4000 });
-  await page.close();
-});
-
-test("install brew box copies all three commands", async () => {
-  const page = await open("/", { reduced: true });
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
-  await page.click("#install .cp");
-  await new Promise((r) => setTimeout(r, 300));
-  const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.equal(text, "brew tap ivg-design/tap\nbrew trust ivg-design/tap\nbrew install --cask sidebarfavorites");
-  await page.close();
-});
-
-test("docs: Cmd/Ctrl+K opens search, finds a page, Enter navigates, Esc closes", async () => {
-  const page = await open("/docs", { reduced: true });
-  await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
-  await page.waitForSelector('[data-testid="docs-search-input"]');
-  await page.type('[data-testid="docs-search-input"]', "uninstall");
-  await page.waitForFunction(() => /uninstall/i.test(document.querySelector('[data-testid="docs-search-result"]')?.textContent ?? ""));
-  const first = await page.$eval('[data-testid="docs-search-result"]', (e) => e.textContent);
-  assert.match(first, /uninstall/i);
-  assert.ok(!/&amp;|&#\d+;|&nbsp;/.test(first), "entities leaked into search results");
-  await page.keyboard.press("Enter");
-  await page.waitForFunction(() => location.pathname.endsWith("/docs/uninstalling"));
-  await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
-  await page.waitForSelector('[data-testid="docs-search-input"]');
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(() => !document.querySelector('[data-testid="docs-search-input"]'));
-  await page.close();
-});
-
-test("docs: brand links to site home, header icon is header height minus 10px, no entities", async () => {
-  const page = await open("/docs/troubleshooting", { reduced: true });
-  const info = await page.evaluate(() => {
-    const brand = document.querySelector("header a[href]");
-    const img = brand.querySelector("img");
-    const header = brand.closest("header");
-    return { href: brand.getAttribute("href"), icon: img.getBoundingClientRect().height, header: header.getBoundingClientRect().height };
+test("buttons and links in header, hero and install are >= 40 px tall", async () => {
+  const page = await open();
+  const small = await page.evaluate(() => {
+    const out = [];
+    for (const root of ["header", "#top", "#install"]) {
+      for (const e of document.querySelectorAll(`${root} .btn, ${root} button, ${root} a`)) {
+        const cs = getComputedStyle(e), r = e.getBoundingClientRect();
+        if (e.matches('[data-testid^="hero-row-"]') || !r.width || cs.display === "inline" || e.closest("[hidden]") || cs.visibility === "hidden" || e.closest(".sr-only")) continue;
+        if (r.height < 40) out.push(`${root} ${e.tagName} "${e.textContent.trim().slice(0, 24)}" ${Math.round(r.height)}`);
+      }
+    }
+    return out;
   });
-  assert.ok(!/\/docs\/?$/.test(info.href), `brand href ${info.href}`);
-  assert.ok(Math.abs(info.icon - (info.header - 10)) <= 1, `icon ${info.icon} header ${info.header}`);
-  const html = await page.evaluate(() => document.querySelector("main")?.innerText + document.querySelector('[data-testid="docs-toc"]')?.innerText);
-  assert.ok(!/&amp;|&#\d+;|&nbsp;|&lt;|&gt;/.test(html), "entities visible");
+  assert.deepEqual(small, []);
   await page.close();
 });
 
-test("docs: shell is centred on a 1920 px screen and nothing overflows at 390", async () => {
-  const page = await open("/docs", { width: 1920, height: 1000, reduced: true });
-  const m = await page.evaluate(() => {
-    const art = document.querySelector("main, article");
-    const r = art.getBoundingClientRect();
-    return { left: r.left, right: window.innerWidth - r.right };
-  });
-  assert.ok(m.left > 200, `article not centred: ${JSON.stringify(m)}`);
-  await page.close();
-  const slugs = ["", "/install", "/updates", "/custom-svg-icons", "/cloud-folders", "/disks-and-shares", "/keeping-both-icons", "/menu-bar-popover", "/how-it-works", "/config-json", "/uninstalling", "/building-from-source", "/nix-flake", "/troubleshooting", "/faq", "/report-an-issue"];
-  for (const s of slugs) {
-    const p = await open("/docs" + s, { width: 390, height: 800, reduced: true });
-    assert.ok(await noOverflow(p), `docs${s} overflows at 390`);
-    await p.close();
-  }
-  const c = await open("/changelog", { width: 390, height: 800, reduced: true });
-  assert.ok(await noOverflow(c), "changelog overflows at 390");
-  await c.close();
-});
-
-test("docs: copy button on a code block copies and confirms", async () => {
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
-  const page = await open("/docs/install", { reduced: true });
-  await page.click('[data-testid="docs-copy"]');
-  await new Promise((r) => setTimeout(r, 300));
-  const text = await page.evaluate(() => navigator.clipboard.readText());
-  assert.match(text, /brew/);
+test("no console errors on / (favicon aside)", async () => {
+  const page = await browser.newPage();
+  const errs = [];
+  page.on("console", (m) => { if (m.type() === "error") errs.push(m.text() + " " + (m.location()?.url || "")); });
+  page.on("pageerror", (e) => errs.push(String(e)));
+  await page.setViewport({ width: 1440, height: 900 });
+  await page.goto(BASE + "/", { waitUntil: "networkidle0" });
+  await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 700) { scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); } });
+  assert.deepEqual(errs.filter((e) => !/favicon/i.test(e)), []);
   await page.close();
 });

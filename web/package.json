@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:e2e": "node --test tests/e2e.mjs"
+    "test:e2e": "node --test tests/*.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
