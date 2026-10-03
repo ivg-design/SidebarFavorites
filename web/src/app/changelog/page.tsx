@@ -59,7 +59,7 @@ export default function Changelog() {
           <article className="cl-entry" key={e.version} id={`v${e.version}`}>
             <div>
               <h2 className="cl-ver">{e.version}<a className="dx-anchor" href={`#v${e.version}`} aria-label={`Link to version ${e.version}`}><Link2 size={15} aria-hidden="true" /></a></h2>
-              <time className="cl-date" dateTime={e.date === "Unreleased" ? undefined : e.date}>{formatDate(e.date)}</time>
+              <time className="cl-date fine" dateTime={e.date === "Unreleased" ? undefined : e.date}>{formatDate(e.date)}</time>
             </div>
             <div>
               {e.intro && <p className="cl-intro"><Inline text={e.intro} /></p>}
