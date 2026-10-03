@@ -68,7 +68,7 @@
 .dx-crumbs ol { list-style: none; display: flex; flex-wrap: wrap; gap: 0 8px; margin: 0; padding: 0; font-size: 13px; color: var(--muted); }
 .dx-crumbs li + li::before { content: "›"; margin-right: 8px; }
 .dx-crumbs li:last-child { color: #3b362e; }
-.dx-h1 { font-family: var(--font-display); font-variation-settings: "opsz" 144; font-weight: 500; font-size: clamp(34px, 4.4vw, 44px); line-height: 1.08; letter-spacing: -0.02em; margin: 24px 0 0; text-wrap: balance; }
+.dx-h1 { font-family: var(--font-display); font-variation-settings: "opsz" 96; font-weight: 500; font-size: clamp(34px, 4.4vw, 44px); line-height: 1.08; letter-spacing: -0.005em; margin: 24px 0 0; text-wrap: balance; }
 .dx-lede { font-size: 17.5px; line-height: 1.6; color: var(--muted); margin: 20px 0 0; max-width: 832px; text-wrap: pretty; }
 .dx-prose { margin-top: 32px; font-size: 17px; line-height: 1.7; color: #2f2b24; }
 .dx-prose > * + * { margin-top: 16px; }

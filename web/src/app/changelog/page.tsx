@@ -21,11 +21,11 @@ export const metadata: Metadata = {
 
 /** Inline **bold**, `code` and [text](url) only. */
 function Inline({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
+  const parts = text.split(/(\*\*(?:[^*]|\*(?!\*))+\*\*|\*[^*\s][^*]*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
   return (
     <>
       {parts.map((p, i) => {
-        if (p.startsWith("**") && p.endsWith("**") && p.length > 4) return <strong key={i}>{p.slice(2, -2)}</strong>;
+        if (p.startsWith("**") && p.endsWith("**") && p.length > 4) return <strong key={i}><Inline text={p.slice(2, -2)} /></strong>;
         if (/^\*[^*].*\*$/.test(p)) return <em key={i}>{p.slice(1, -1)}</em>;
         if (p.startsWith("`") && p.endsWith("`") && p.length > 2) return <code key={i}>{p.slice(1, -1)}</code>;
         const m = p.match(/^\[([^\]]+)\]\(([^)]+)\)$/);

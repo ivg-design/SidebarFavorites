@@ -9,7 +9,7 @@ export default function UnderTheHood() {
         <Reveal>
           <p className="eyebrow">Under the hood</p>
           <h2 className="display h-sec">No extension. No daemon. No login item.</h2>
-          <p className="lede">Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them.</p>
+          <p className="lede">Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them. That is the whole mechanism for a normal favorite.</p>
         </Reveal>
         <ol className="ledger">
           <li className="led">
@@ -18,7 +18,7 @@ export default function UnderTheHood() {
           </li>
           <li className="led">
             <div className="num" aria-label="0 processes"><span aria-hidden="true"><CountUp from={9} to={0} /> processes</span></div>
-            <p>Nothing runs after you quit. Icons survive reboots and Finder restarts on their own.</p>
+            <p>Nothing runs after you quit. Icons survive reboots and Finder restarts on their own. (Both icons mode adds one small opt-in helper per favorite.)</p>
           </li>
           <li className="led">
             <div className="num" aria-label="1 file"><span aria-hidden="true"><CountUp from={0} to={1} /> file</span></div>

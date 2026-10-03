@@ -12,7 +12,7 @@ const STEPS: Step[] = [
     text: "Browse, or type a path — ~ works. Local folders, iCloud Drive, Google Drive, Dropbox, OneDrive, mounted disks and network shares all count." },
   { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "50% 22%",
     alt: "The SF Symbols browser showing a grid of symbols with a search field",
-    text: "Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG." },
+    text: "Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the roughly 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG." },
   { n: 3, title: "Add", img: "SBFAddFavoriteWindow", widths: [480, 960], w: 960, h: 1930, pos: "50% 57%",
     alt: "The Add Favorite window's Icon section with the SF Symbol type, symbol name and quick picks",
     text: "The folder appears in Finder's sidebar with your icon. If Finder is still showing an old one, a banner offers Restart Finder — the app never restarts it on its own." },

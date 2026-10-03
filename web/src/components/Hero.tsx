@@ -32,7 +32,7 @@ export default function Hero({ release }: { release: SiteRelease }) {
               </em>
             </h1>
             <p className="hero-sub">
-              Finder gives every favorite the same grey folder. SidebarFavorites puts the icon you want on each one — any of 8,300 SF Symbols, or any SVG you own — so you find the folder before you read the name.
+              Finder gives every favorite the same grey folder. SidebarFavorites puts the icon you want on each one — any of about 8,300 SF Symbols, or any SVG you own — so you find the folder before you read the name.
             </p>
             <div className="hero-cta">
               <a className="btn btn-coral" href={release.dmgUrl}>

@@ -1,8 +1,9 @@
 /* OWNER: worker C (docs + changelog) */
 /* misc pages */
 .page-head { padding: clamp(48px, 7vw, 96px) 0 24px; }
-.cl-entry { display: grid; gap: 20px 48px; padding: 40px 0; border-top: 1px solid var(--line); }
-@media (min-width: 900px) { .cl-entry { grid-template-columns: 200px 1fr; } }
+.cl-entry { grid-template-columns: minmax(0, 1fr); display: grid; gap: 20px 48px; padding: 40px 0; border-top: 1px solid var(--line); }
+@media (min-width: 900px) { .cl-entry { grid-template-columns: 200px minmax(0, 1fr); } }
+.cl-entry code, .cl-entry li { overflow-wrap: anywhere; }
 .cl-ver { font-family: var(--font-display); font-weight: 600; font-size: 34px; letter-spacing: -0.02em; line-height: 1; }
 .cl-date { color: var(--muted); font-size: 14px; margin-top: 8px; }
 .cl-entry h3 { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--coral-ink); margin: 28px 0 10px; font-weight: 700; }

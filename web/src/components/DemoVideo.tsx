@@ -32,12 +32,12 @@ export default function DemoVideo() {
           {!playing && (
             <button type="button" className="video-over" onClick={start} aria-label="Play demo video">
               <span className="play"><Play size={34} strokeWidth={2} aria-hidden="true" /></span>
-              <h3>Watch: a grey sidebar becomes legible in 30 seconds</h3>
+              <h3>{src ? "Watch: a grey sidebar becomes legible in 30 seconds" : "Demo recording coming soon"}</h3>
               <p aria-live="polite">{pending ? PENDING : SUB}</p>
             </button>
           )}
         </div>
-        <p className="video-cap">Short demo, muted autoplay loop with captions; click for sound.</p>
+        <p className="video-cap">{src ? "Short demo, muted autoplay loop with captions; click for sound." : "The 30-second demo (a grey sidebar becomes legible) is still to be recorded."}</p>
       </div>
     </section>
   );

@@ -18,5 +18,5 @@
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .read { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .reset { border: 0; background: none; font: inherit; font-size: 13px; color: var(--coral-ink); padding: 6px 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.reset:disabled { opacity: .45; cursor: default; text-decoration: none; }
+.reset:disabled { cursor: default; text-decoration: none; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .live { will-change: auto; } }

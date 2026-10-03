@@ -80,7 +80,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: 10px; font-weight: 600; font-size: 16px; border: 1px solid transparent; transition: transform .2s var(--ease-quart), background-color .2s, box-shadow .2s; will-change: transform; }
 .btn:active { transform: translateY(1px) scale(0.985); }
-.btn-ink { background: var(--ink); color: var(--bg); min-height: 40px; padding: 0 16px; font-size: 15px; }
+.btn-ink { background: var(--ink); color: var(--bg); min-height: 44px; padding: 0 16px; font-size: 15px; }
 .btn-ink:hover { background: #38342d; }
 .btn-coral { background: var(--coral); color: #fff; min-height: 56px; padding: 0 28px; font-size: 18px; box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 8px 20px -8px rgba(232,84,47,.55); }
 .btn-coral:hover { background: #d94a26; transform: translateY(-1px); }
@@ -116,7 +116,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .foot-brand p { color: var(--muted); font-size: 14px; margin: 0 0 10px; max-width: 34ch; }
 .foot h4 { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 14px; font-weight: 700; }
 .foot ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
-.foot li a { font-size: 14px; display: inline-block; padding: 5px 0; }
+.foot li a { font-size: 14px; display: inline-block; padding: 10px 0; }
 .foot li a:hover { color: var(--coral-ink); }
 .foot-cols { display: contents; }
 @media (max-width: 899px) { .foot-links { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px 24px; } }

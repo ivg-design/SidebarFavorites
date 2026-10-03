@@ -45,11 +45,11 @@ for (const s of [32, 64, 180, 512]) {
   count++;
 }
 
-// Video poster: quiet graphite field; the real manager window sits faint on the right
+// Video poster: plain graphite field with a faint coral glow (the wireframe's dark block)
 const W = 1280, H = 720;
-const win = await sharp(path.join(src, "SBFMainWindow.png")).resize({ height: 560 }).ensureAlpha(0.2).toBuffer();
+const glow = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><defs><radialGradient id="g" cx="50%" cy="46%" r="55%"><stop offset="0" stop-color="#E8542F" stop-opacity=".16"/><stop offset="1" stop-color="#E8542F" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#g)"/></svg>`);
 await sharp({ create: { width: W, height: H, channels: 3, background: "#2A2722" } })
-  .composite([{ input: win, left: 820, top: 80 }])
-  .webp({ quality: 74 }).toFile(path.join(out, "demo-poster.webp"));
+  .composite([{ input: glow }])
+  .webp({ quality: 80 }).toFile(path.join(out, "demo-poster.webp"));
 count++;
 console.log(`Generated ${count} image variants.`);
