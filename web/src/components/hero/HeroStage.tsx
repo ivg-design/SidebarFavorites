@@ -8,7 +8,7 @@ import RowGlyph from "./RowGlyph";
 
 /* Native window metrics; the stage scales the whole window with one transform. */
 const WIN_W = 980;
-const WIN_H = 560;
+const WIN_H = 452;
 const SIDE_W = 204;
 const SETTLE_MS = 700;      // window rise
 const FIRST_MS = 900;       // first row resolves
@@ -19,14 +19,14 @@ const SYSTEM_TOP = [
 ];
 const SYSTEM_BOTTOM = [{ name: "Downloads", glyph: "arrow.down.circle" }];
 const CONTENTS: Record<string, string[]> = {
-  Forge: ["Dies", "Blanks", "Orders", "Quotes", "Photos", "Archive"],
-  Samples: ["Kicks", "Snares", "Pads", "Field", "Vocals", "Loops"],
-  Brand: ["Logo", "Type", "Colour", "Decks", "Social", "Print"],
-  "Launch 2026": ["Plan", "Site", "Press", "Video", "Budget", "Legal"],
-  Repos: ["sidebarfavorites", "fnav-plus", "lerp", "rav", "exlib", "tap"],
-  "Google Drive": ["Shared", "Clients", "Invoices", "Scans", "Backups", "Misc"],
-  Shoots: ["2026-01 Studio", "2026-02 Loft", "Selects", "RAW", "Edits", "Delivered"],
-  Invoices: ["2024", "2025", "2026", "Paid", "Overdue", "Templates"],
+  Forge: ["Dies", "Blanks", "Orders", "Quotes", "Photos", "Archive", "Drawings", "Suppliers", "Jigs", "Invoices", "Scrap", "Notes"],
+  Samples: ["Kicks", "Snares", "Pads", "Field", "Vocals", "Loops", "FX", "Bass", "Keys", "Stems", "Bounces", "Old"],
+  Brand: ["Logo", "Type", "Colour", "Decks", "Social", "Print", "Guidelines", "Icons", "Photos", "Motion", "Web", "Archive"],
+  "Launch 2026": ["Plan", "Site", "Press", "Video", "Budget", "Legal", "Partners", "Assets", "Timeline", "Scripts", "Decks", "Done"],
+  Repos: ["sidebarfavorites", "fnav-plus", "lerp", "rav", "exlib", "tap", "herald", "web-watcher", "rfp", "nemo", "bakerboy", "scratch"],
+  "Google Drive": ["Shared", "Clients", "Invoices", "Scans", "Backups", "Misc", "Contracts", "Receipts", "Photos", "Forms", "Exports", "Old"],
+  Shoots: ["2026-01 Studio", "2026-02 Loft", "Selects", "RAW", "Edits", "Delivered", "Proofs", "Lightroom", "Backdrops", "LUTs", "Client", "Archive"],
+  Invoices: ["2024", "2025", "2026", "Paid", "Overdue", "Templates", "Drafts", "Credit notes", "Receipts", "Tax", "Quotes", "Sent"],
 };
 /** The app's quick-pick grid: the grey folder default plus seventeen glyphs, 6 × 3. */
 const PICKS = [
@@ -105,7 +105,7 @@ export default function HeroStage() {
   }, [open, close, rowEl]);
 
   const pick = (i: number, glyph: string) => { setIcons((p) => p.map((v, k) => (k === i ? glyph : v))); close(true); };
-  const gridKeys = (e: KeyboardEvent<HTMLDivElement>, idx: number) => {
+  const gridKeys = (e: KeyboardEvent<HTMLButtonElement>, idx: number) => {
     const n = PICKS.length;
     const map: Record<string, number> = { ArrowRight: idx + 1, ArrowLeft: idx - 1, ArrowDown: idx + COLS, ArrowUp: idx - COLS, Home: 0, End: n - 1 };
     const next = map[e.key];
