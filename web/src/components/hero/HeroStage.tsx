@@ -10,7 +10,6 @@ import RowGlyph from "./RowGlyph";
 const WIN_W = 980;
 const WIN_H = 452;
 const SIDE_W = 204;
-const SETTLE_MS = 700;      // window rise
 const FIRST_MS = 900;       // first row resolves
 const STAGGER_MS = 90;      // rows top to bottom
 const SYSTEM_TOP = [
@@ -69,10 +68,10 @@ export default function HeroStage() {
 
   // the move: window settles, then each favorite's grey folder resolves into its glyph, top to bottom
   useEffect(() => {
-    if (reduce) { setSettled(true); setIcons(FAVS.map((f) => f.glyph)); setDone(true); return; }
-    setSettled(false); setDone(false); setIcons(FAVS.map(() => "folder"));
     const timers: ReturnType<typeof setTimeout>[] = [];
-    timers.push(setTimeout(() => setSettled(true), 30));
+    if (reduce) { timers.push(setTimeout(() => { setSettled(true); setIcons(FAVS.map((f) => f.glyph)); setDone(true); }, 0)); return () => timers.forEach(clearTimeout); }
+    timers.push(setTimeout(() => { setSettled(false); setDone(false); setIcons(FAVS.map(() => "folder")); }, 0));
+    timers.push(setTimeout(() => setSettled(true), 40));
     FAVS.forEach((f, i) => timers.push(setTimeout(() => setIcons((p) => p.map((v, k) => (k === i ? f.glyph : v))), FIRST_MS + i * STAGGER_MS)));
     timers.push(setTimeout(() => setDone(true), FIRST_MS + FAVS.length * STAGGER_MS + 420));
     return () => timers.forEach(clearTimeout);
