@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { Play } from "lucide-react";
 import { DEMO_VIDEO_SRC, asset } from "@/lib/config";
+import "@/app/flow.css";
 
 const PENDING = "The recording is being made. Check back soon.";
 const SUB = "Add a folder → pick a symbol → done. Then an SVG import with the size slider.";
@@ -20,9 +21,9 @@ export default function DemoVideo() {
   };
 
   return (
-    <section className="demo" aria-label="Demo video">
+    <section className="dv" aria-label="Demo video">
       <div className="wrap">
-        <div className="video-shell">
+        <div className="dv-shell" data-testid="demo-video">
           <video
             ref={ref} poster={asset("/shots/demo-poster.webp")} preload="none" playsInline muted loop
             controls={playing} aria-label="SidebarFavorites demo: a grey sidebar becomes legible in 30 seconds"
@@ -30,14 +31,14 @@ export default function DemoVideo() {
             {src && <source src={src} type="video/mp4" />}
           </video>
           {!playing && (
-            <button type="button" className="video-over" onClick={start} aria-label="Play demo video">
-              <span className="play"><Play size={34} strokeWidth={2} aria-hidden="true" /></span>
+            <button type="button" className="dv-over" onClick={start} aria-label="Play demo video" data-testid="demo-play">
+              <span className="dv-play"><Play size={34} strokeWidth={2} fill="currentColor" aria-hidden="true" /></span>
               <h3>{src ? "Watch: a grey sidebar becomes legible in 30 seconds" : "Demo recording coming soon"}</h3>
               <p aria-live="polite">{pending ? PENDING : SUB}</p>
             </button>
           )}
         </div>
-        <p className="video-cap">{src ? "Short demo, muted autoplay loop with captions; click for sound." : "The 30-second demo (a grey sidebar becomes legible) is still to be recorded."}</p>
+        <p className="dv-cap">{src ? "Short demo, muted autoplay loop with captions; click for sound." : "The 30-second demo (a grey sidebar becomes legible) is still to be recorded."}</p>
       </div>
     </section>
   );

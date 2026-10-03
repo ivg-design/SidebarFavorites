@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { Bug, Braces, ChevronDown, CircleHelp, Cloud, Copy, Cpu, Download, FileCode, Hammer, HardDrive, LifeBuoy, PanelTop, RefreshCw, Rocket, Snowflake, Trash2, type LucideIcon } from "lucide-react";
 import { asset, basePath, REPO_URL } from "@/lib/config";
 import { DOC_GROUPS, type DocIndexEntry } from "@/content/docs/types";
 import TopBar from "./TopBar";
@@ -13,6 +13,16 @@ function currentSlug(pathname: string): string {
   return p.split("/").pop() ?? "quick-start";
 }
 
+/** One grey 16 px glyph per page, like a Finder Favorites row. */
+const ICONS: Record<string, LucideIcon> = {
+  "quick-start": Rocket, install: Download, updates: RefreshCw, "custom-svg-icons": FileCode, "cloud-folders": Cloud,
+  "disks-and-shares": HardDrive, "keeping-both-icons": Copy, "menu-bar-popover": PanelTop, "how-it-works": Cpu,
+  "config-json": Braces, uninstalling: Trash2, "building-from-source": Hammer, "nix-flake": Snowflake,
+  troubleshooting: LifeBuoy, faq: CircleHelp, "report-an-issue": Bug,
+};
+
+export interface TocItem { id: string; title: string }
+
 function Nav({ index, slug }: { index: DocIndexEntry[]; slug: string }) {
   return (
     <nav aria-label="Documentation">
@@ -20,11 +30,17 @@ function Nav({ index, slug }: { index: DocIndexEntry[]; slug: string }) {
         <div className="dx-group" key={g}>
           <h2 className="dx-group-title">{g}</h2>
           <ul>
-            {index.filter((p) => p.group === g).map((p) => (
+            {index.filter((p) => p.group === g).map((p) => {
+              const Icon = ICONS[p.slug] ?? FileCode;
+              return (
               <li key={p.slug}>
-                <a href={asset(p.url)} aria-current={p.slug === slug ? "page" : undefined}>{p.navTitle ?? p.title}</a>
+                <a className="dx-row" href={asset(p.url)} aria-current={p.slug === slug ? "page" : undefined}>
+                  <span className="dx-row-ic" aria-hidden="true"><Icon size={16} strokeWidth={1.75} /></span>
+                  <span className="dx-row-lab">{p.navTitle ?? p.title}</span>
+                </a>
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       ))}
@@ -32,10 +48,10 @@ function Nav({ index, slug }: { index: DocIndexEntry[]; slug: string }) {
   );
 }
 
-function Toc({ entry }: { entry: DocIndexEntry }) {
-  const [active, setActive] = useState(entry.sections[0]?.id ?? "");
+function Toc({ sections, title }: { sections: TocItem[]; title: string }) {
+  const [active, setActive] = useState(sections[0]?.id ?? "");
   useEffect(() => {
-    const ids = entry.sections.map((s) => s.id);
+    const ids = sections.map((s) => s.id);
     let frame = 0;
     const measure = () => {
       frame = 0;
@@ -52,13 +68,13 @@ function Toc({ entry }: { entry: DocIndexEntry }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => { if (frame) cancelAnimationFrame(frame); window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
-  }, [entry]);
+  }, [sections]);
 
   return (
     <nav className="dx-toc-nav" data-testid="docs-toc" aria-label="On this page">
-      <h2 className="dx-toc-title">On this page</h2>
+      <h2 className="dx-toc-title">{title}</h2>
       <ul>
-        {entry.sections.map((s) => (
+        {sections.map((s) => (
           <li key={s.id}><a href={`#${s.id}`} aria-current={s.id === active ? "location" : undefined}>{s.title}</a></li>
         ))}
       </ul>
@@ -66,10 +82,11 @@ function Toc({ entry }: { entry: DocIndexEntry }) {
   );
 }
 
-export default function DocsShell({ index, children }: { index: DocIndexEntry[]; children: React.ReactNode }) {
+export default function DocsShell({ index, children, changelog }: { index: DocIndexEntry[]; children: React.ReactNode; changelog?: TocItem[] }) {
   const pathname = usePathname();
-  const slug = currentSlug(pathname);
+  const slug = changelog ? "" : currentSlug(pathname);
   const entry = useMemo(() => index.find((p) => p.slug === slug) ?? index[0], [index, slug]);
+  const tocItems = changelog ?? entry.sections;
   const [picker, setPicker] = useState(false);
 
   useEffect(() => {
@@ -81,10 +98,12 @@ export default function DocsShell({ index, children }: { index: DocIndexEntry[];
 
   return (
     <div className="dx">
-      <TopBar index={index} />
+      <TopBar index={index} current={changelog ? "changelog" : undefined} />
       <div className="dx-mnav">
         <button type="button" className="dx-mnav-btn" aria-expanded={picker} aria-controls="dx-mnav-panel" onClick={() => setPicker((o) => !o)}>
-          <span><span className="dx-mnav-group">{entry.group}</span> <span aria-hidden="true">›</span> <b>{entry.navTitle ?? entry.title}</b></span>
+          {changelog
+            ? <span><span className="dx-mnav-group">Site</span> <span aria-hidden="true">›</span> <b>Changelog</b></span>
+            : <span><span className="dx-mnav-group">{entry.group}</span> <span aria-hidden="true">›</span> <b>{entry.navTitle ?? entry.title}</b></span>}
           <ChevronDown size={18} aria-hidden="true" />
         </button>
         {picker && (
@@ -99,7 +118,7 @@ export default function DocsShell({ index, children }: { index: DocIndexEntry[];
       <div className="dx-body">
         <aside className="dx-rail"><Nav index={index} slug={slug} /></aside>
         <div className="dx-main-wrap">{children}</div>
-        <aside className="dx-toc" key={entry.slug}><Toc entry={entry} /></aside>
+        <aside className="dx-toc" key={changelog ? "changelog" : entry.slug}><Toc sections={tocItems} title={changelog ? "Versions" : "On this page"} /></aside>
       </div>
     </div>
   );

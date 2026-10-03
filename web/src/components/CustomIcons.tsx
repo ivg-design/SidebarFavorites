@@ -2,6 +2,7 @@ import { Eye, SlidersHorizontal, RefreshCw, TriangleAlert, Info } from "lucide-r
 import { asset } from "@/lib/config";
 import { Reveal } from "./motion/Reveal";
 import SizeToy from "./SizeToy";
+import "../app/demos.css";
 
 const BULLETS = [
   [Eye, "Live preview, enlarged and in a mock sidebar row at the real 16 pt"],
@@ -10,40 +11,36 @@ const BULLETS = [
   [TriangleAlert, "Tells you what it dropped: photos, un-outlined text, colour, hairlines — warnings, not rejections"],
 ] as const;
 
-function Shot({ name, alt }: { name: string; alt: string }) {
-  return (
-    <div className="tall">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={asset(`/shots/${name}-w420.webp`)} srcSet={`${asset(`/shots/${name}-w420.webp`)} 420w, ${asset(`/shots/${name}-w840.webp`)} 840w`}
-        sizes="(min-width:1024px) 320px, 45vw" width={320} height={440} alt={alt} loading="lazy" decoding="async" />
-    </div>
-  );
-}
-
 export default function CustomIcons() {
+  const n = "custom-svg-settings";
   return (
     <section id="custom" className="sec">
-      <div className="wrap ci-grid">
-        <Reveal className="ci-copy">
+      <div className="wrap ci2-grid">
+        <div className="ci2-left">
+        <Reveal className="ci2-copy">
           <p className="eyebrow">Custom icons</p>
           <h2 className="display h-sec">Any SVG. Nothing to prepare.</h2>
           <p className="lede">A logo, an icon you drew, anything made of vector shapes. No SF Symbols template, no guide boxes, no naming field. The app flattens the file to a single outline and builds the symbol around it — compiled by the asset-catalog engine that ships with macOS, so no Xcode.</p>
-          <ul className="ci-list">
+          <ul className="ci2-list">
             {BULLETS.map(([Icon, t]) => (
               <li key={t}><Icon size={20} aria-hidden="true" /><span>{t}</span></li>
             ))}
           </ul>
-          <div className="callout">
+          <div className="ci2-callout">
             <Info size={18} aria-hidden="true" />
             <p>Sidebar icons are always monochrome. Finder draws a flat silhouette tinted to match the sidebar — that is a macOS rule, not a limit of this app. The preview shows the silhouette, so no surprises.</p>
           </div>
         </Reveal>
-        <Reveal className="ci-side" delay={0.08}>
-          <div className="ci-shots">
-            <Shot name="svg-import" alt="Add Favorite sheet with the Custom SVG type and an Import SVG button, previewing the imported icon" />
-            <Shot name="custom-svg-settings" alt="Custom SVG settings showing the size slider and the enlarged preview in a mock sidebar row" />
-          </div>
-          <SizeToy />
+        <Reveal className="ci2-toy" delay={0.04}><SizeToy /></Reveal>
+        </div>
+        <Reveal className="ci2-side" delay={0.08}>
+          <figure className="ci2-shot">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset(`/shots/${n}-w420.webp`)} srcSet={`${asset(`/shots/${n}-w420.webp`)} 420w, ${asset(`/shots/${n}-w840.webp`)} 840w`}
+              sizes="(min-width:1024px) 480px, 100vw" width={420} height={714}
+              alt="The app's Edit Favorite sheet with the Custom SVG type: a GitHub mark, the Size slider at 90 %, and the Preview showing the enlarged icon and a mock sidebar row"
+              loading="lazy" decoding="async" />
+          </figure>
         </Reveal>
       </div>
     </section>

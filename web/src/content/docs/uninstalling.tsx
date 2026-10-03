@@ -25,7 +25,7 @@ export function Body() {
         <li>Optionally delete <code>~/Library/Application Support/SidebarFavorites</code>.</li>
       </ol>
       <H2 id="order">Why the order matters</H2>
-      <Callout kind="warn">Do step 1 before step 2 if you used <strong>Both icons</strong> mode.</Callout>
+      <Callout kind="warn" title="Order matters.">Do step 1 before step 2 if you used <strong>Both icons</strong> mode.</Callout>
       <p>Dragging the app to the Trash runs none of its code, so its helpers stay registered and keep appearing in System Settings until you remove them there or delete <code>~/Library/Application Support/SidebarFavorites</code>. Each one says in its description that it is safe to disable if SidebarFavorites is gone.</p>
     </>
   );

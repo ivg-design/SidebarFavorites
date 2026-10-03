@@ -3,17 +3,18 @@ import { useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { asset } from "@/lib/config";
 import { EASE_QUART } from "./motion/Reveal";
+import "@/app/flow.css";
 
 interface Step { n: number; title: string; text: string; img: string; widths: [number, number]; w: number; h: number; pos: string; alt: string }
 
 const STEPS: Step[] = [
-  { n: 1, title: "Click + and pick the folder", img: "SBFMainWindow", widths: [430, 860], w: 860, h: 1124, pos: "50% 28%",
+  { n: 1, title: "Click + and pick the folder", img: "SBFMainWindow", widths: [430, 860], w: 860, h: 1124, pos: "50% 30%",
     alt: "The SidebarFavorites window listing folders, each with its icon and an In Sidebar toggle",
     text: "Browse, or type a path — ~ works. Local folders, iCloud Drive, Google Drive, Dropbox, OneDrive, mounted disks and network shares all count." },
-  { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "50% 22%",
+  { n: 2, title: "Choose the icon", img: "SFSymbolBrowser", widths: [560, 1119], w: 1119, h: 1197, pos: "50% 20%",
     alt: "The SF Symbols browser showing a grid of symbols with a search field",
     text: "Type an SF Symbol name, click a quick pick, or Browse All… to search every one of the roughly 8,300 symbols this Mac can draw — by name or keyword, so “bin” finds trash. Or import any SVG." },
-  { n: 3, title: "Add", img: "SBFAddFavoriteWindow", widths: [480, 960], w: 960, h: 1930, pos: "50% 57%",
+  { n: 3, title: "Add", img: "SBFAddFavoriteWindow", widths: [480, 960], w: 960, h: 1930, pos: "50% 55%",
     alt: "The Add Favorite window's Icon section with the SF Symbol type, symbol name and quick picks",
     text: "The folder appears in Finder's sidebar with your icon. If Finder is still showing an old one, a banner offers Restart Finder — the app never restarts it on its own." },
 ];
@@ -24,20 +25,20 @@ function StepCard({ s, i, reduce }: { s: Step; i: number; reduce: boolean }) {
   const in_ = seen || reduce;
   const srcSet = s.widths.map((w) => `${asset(`/shots/${s.img}-w${w}.webp`)} ${w}w`).join(", ");
   return (
-    <li className="step" ref={ref} data-in={in_}>
+    <li className="hw-step" ref={ref} data-in={in_} data-testid={`how-step-${s.n}`}>
       <motion.div
-        className="shot"
+        className="hw-shot"
         initial={false}
         animate={{ opacity: in_ ? 1 : 0, y: in_ ? 0 : 12 }}
         transition={{ duration: reduce ? 0 : 0.6, delay: reduce ? 0 : i * 0.1, ease: EASE_QUART }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={asset(`/shots/${s.img}-w${s.widths[1]}.webp`)} srcSet={srcSet}
-          sizes="(min-width: 834px) 33vw, 100vw" width={s.w} height={s.h} alt={s.alt}
-          loading="lazy" decoding="async" style={{ objectPosition: s.pos }}
+          className="hw-img" src={asset(`/shots/${s.img}-w${s.widths[1]}.webp`)} srcSet={srcSet}
+          sizes="(min-width: 834px) 33vw, 86vw" width={s.w} height={s.h} alt={s.alt} loading="lazy" decoding="async" style={{ objectPosition: s.pos }}
         />
       </motion.div>
-      <h3 className="step-h"><span className="step-n" aria-hidden="true"><span>{s.n}</span></span>{s.title}</h3>
+      <h3 className="hw-h"><span className="hw-n" aria-hidden="true"><span>{s.n}</span></span>{s.title}</h3>
       <p>{s.text}</p>
     </li>
   );
@@ -46,12 +47,14 @@ function StepCard({ s, i, reduce }: { s: Step; i: number; reduce: boolean }) {
 export default function HowItWorks() {
   const reduce = !!useReducedMotion();
   return (
-    <section id="how" className="sec sec-surface" aria-labelledby="how-title">
-      <div className="wrap">
+    <section id="how" className="sec sec-surface hw" aria-labelledby="how-title">
+      <div className="wrap hw-head">
         <p className="eyebrow">How it works</p>
-        <h2 id="how-title" className="display">Pick a folder. Pick an icon. Add.</h2>
+        <h2 id="how-title" className="display h-sec">Pick a folder. Pick an icon. Add.</h2>
         <p className="lede">Three fields and a button. The name follows the folder because Finder always labels a favorite with its real name — so you only ever choose the glyph.</p>
-        <ol className="steps">
+      </div>
+      <div className="wrap hw-wrap">
+        <ol className="hw-steps" data-testid="how-steps">
           {STEPS.map((s, i) => <StepCard key={s.n} s={s} i={i} reduce={reduce} />)}
         </ol>
       </div>

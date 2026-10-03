@@ -3,8 +3,6 @@ import { Fraunces, Public_Sans, JetBrains_Mono } from "next/font/google";
 import { CANONICAL_HOST, OG_IMAGE, toCanonicalUrl } from "@/lib/seo";
 import { asset } from "@/lib/config";
 import "./globals.css";
-import "./sections-a.css";
-import "./sections-b.css";
 import "./changelog.css";
 
 const fraunces = Fraunces({

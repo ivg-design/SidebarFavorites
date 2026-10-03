@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+import { decodeEntities } from "@/content/docs/types";
 
 export interface ChangelogSection { title: string; items: string[] }
 export interface ChangelogEntry { version: string; date: string; intro: string; sections: ChangelogSection[] }
@@ -44,5 +45,9 @@ export function parseChangelog(): ChangelogEntry[] {
     open = true;
   }
   if (cur) entries.push(cur);
-  return entries;
+  return entries.map((e) => ({
+    ...e,
+    intro: decodeEntities(e.intro),
+    sections: e.sections.map((x) => ({ title: decodeEntities(x.title), items: x.items.map(decodeEntities) })),
+  }));
 }

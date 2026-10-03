@@ -1,0 +1,27 @@
+<Rive version="1" kind="fragment">
+    <Artboard defaultStateMachineId="0:7" viewModelId="0:40" viewModelInstanceId="0:41" clip="true" width="240" height="240" styleId="0:5" name="FolderMorph" id="0:2">
+        <LayoutComponentStyle name="Artboard Style" id="0:5"/>
+        <LayoutComponent width="240" height="240" styleId="0:11" name="Root Layout" id="0:10">
+            <LayoutComponentStyle layoutWidthScaleType="1" layoutHeightScaleType="1" widthUnitsValue="3" heightUnitsValue="3" name="Layout Style" id="0:11"/>
+            <ScriptedLayout scriptAssetId="0:80" name="Morph" id="0:12"/>
+        </LayoutComponent>
+        <StateMachine name="Morph SM" id="0:7">
+            <StateMachineLayer name="Layer 1" id="0:8">
+                <AnyState x="200" y="-120" id="0:81"/>
+                <ExitState x="400" y="-120" id="0:82"/>
+                <EntryState id="0:83"/>
+            </StateMachineLayer>
+        </StateMachine>
+    </Artboard>
+
+    <ViewModel defaultInstanceId="0:41" name="Morph" id="0:40">
+        <ViewModelPropertyNumber name="target" id="0:45"/>
+        <ViewModelPropertyBoolean name="auto" id="0:46"/>
+        <ViewModelInstance exports="true" name="Default" id="0:41">
+            <ViewModelInstanceNumber propertyValue="0" viewModelPropertyId="0:45" id="0:84"/>
+            <ViewModelInstanceBoolean propertyValue="true" viewModelPropertyId="0:46" id="0:85"/>
+        </ViewModelInstance>
+    </ViewModel>
+
+    <ScriptAsset file="morph.luau" name="morph" id="0:80"/>
+</Rive>

@@ -2,7 +2,7 @@
 import {
   Hammer, Music, Palette, Rocket, GitBranch, Cloud, Camera, ReceiptText, Folder,
   Star, Heart, Bookmark, Flag, Tag, Archive, Briefcase, FileText, Image as ImageIcon, Video,
-  Gamepad2, Terminal, Wrench, Leaf, Sun, Coffee, Globe, Lock, House, Monitor, FileStack, Download,
+  Github, Gamepad2, Terminal, Wrench, Leaf, Sun, Coffee, Globe, Lock, House, Monitor, FileStack, Download, Server, CloudUpload,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,7 +14,7 @@ export const GLYPHS: Record<string, LucideIcon> = {
   "tag.fill": Tag, "archivebox.fill": Archive, "briefcase.fill": Briefcase, "doc.text": FileText,
   "photo": ImageIcon, "video.fill": Video, "gamecontroller": Gamepad2, "terminal": Terminal,
   "wrench.fill": Wrench, "leaf": Leaf, "sun.max": Sun, "cup.and.saucer": Coffee, "globe": Globe,
-  "lock.fill": Lock, house: House, desktopcomputer: Monitor, "doc.on.doc": FileStack, "arrow.down.circle": Download,
+  "lock.fill": Lock, house: House, desktopcomputer: Monitor, "doc.on.doc": FileStack, "arrow.down.circle": Download, "externaldrive.connected.to.line.below": Server, "icloud.and.arrow.up": CloudUpload, "custom.github": Github,
 };
 
 export interface Fav { name: string; glyph: string }

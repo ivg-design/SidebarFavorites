@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fragment } from "react";
-import TopBar from "@/components/docs/TopBar";
+import DocsShell from "@/components/docs/DocsShell";
+import { Link2 } from "lucide-react";
 import DocsFooter from "@/components/docs/DocsFooter";
 import { docIndex } from "@/content/docs";
 import { parseChangelog } from "@/lib/changelog";
@@ -45,8 +46,7 @@ function formatDate(d: string): string {
 export default function Changelog() {
   const entries = parseChangelog();
   return (
-    <div className="dx">
-      <TopBar index={docIndex} current="changelog" />
+    <DocsShell index={docIndex} changelog={entries.map((e) => ({ id: `v${e.version}`, title: e.version }))}>
       <main id="main" className="cl-main" tabIndex={-1}>
         <header className="page-head">
           <h1 className="dx-h1">Changelog</h1>
@@ -56,7 +56,7 @@ export default function Changelog() {
         {entries.map((e) => (
           <article className="cl-entry" key={e.version} id={`v${e.version}`}>
             <div>
-              <h2 className="cl-ver">{e.version}</h2>
+              <h2 className="cl-ver">{e.version}<a className="dx-anchor" href={`#v${e.version}`} aria-label={`Link to version ${e.version}`}><Link2 size={15} aria-hidden="true" /></a></h2>
               <time className="cl-date" dateTime={e.date === "Unreleased" ? undefined : e.date}>{formatDate(e.date)}</time>
             </div>
             <div>
@@ -82,6 +82,6 @@ export default function Changelog() {
         ))}
       </main>
       <DocsFooter />
-    </div>
+    </DocsShell>
   );
 }

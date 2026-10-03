@@ -10,7 +10,7 @@ const cols: { h: string; links: [string, string, boolean?][] }[] = [
 
 export default function Footer() {
   return (
-    <footer className="foot">
+    <footer className="foot shell-foot">
       <div className="wrap foot-grid">
         <div className="foot-brand">
           <Image src={asset("/images/icon-64.png")} alt="" width={40} height={40} />

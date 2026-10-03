@@ -1,5 +1,6 @@
 import type { DocMeta } from "./types";
 import Figure from "@/components/docs/Figure";
+import Callout from "@/components/docs/Callout";
 import { H2, H3 } from "@/components/docs/Headings";
 import DocLink from "@/components/docs/DocLink";
 
@@ -23,7 +24,8 @@ export function Body() {
   return (
     <>
       <H2 id="the-problem">The problem</H2>
-      <p>Some folders already have <strong>an icon of their own</strong>, the kind you paste into Get Info, usually so the folder is recognisable in the Dock. On macOS 26 that icon fights the sidebar: Finder redraws the row from the folder&rsquo;s own icon whenever the folder changes, and the sidebar glyph disappears.</p>
+      <p>Some folders already have <strong>an icon of their own</strong>, the kind you paste into Get Info, usually so the folder is recognisable in the Dock.</p>
+      <Callout kind="warn" title="A macOS 26 rule.">That icon fights the sidebar: Finder redraws the row from the folder&rsquo;s own icon whenever the folder changes, and the sidebar glyph disappears.</Callout>
       <H2 id="three-choices">The three choices</H2>
       <p>When you add such a folder, the app says so and offers three ways out.</p>
       <Figure shot="SBFAddFavoriteWithExistingIcon" alt="The editor warning that the folder has its own icon, with three radio choices" caption="The choice offered for a folder with its own icon." max={504} />

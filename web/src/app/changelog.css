@@ -2,7 +2,7 @@
 /* misc pages */
 .page-head { padding: clamp(48px, 7vw, 96px) 0 24px; }
 .cl-entry { grid-template-columns: minmax(0, 1fr); display: grid; gap: 20px 48px; padding: 40px 0; border-top: 1px solid var(--line); }
-@media (min-width: 900px) { .cl-entry { grid-template-columns: 200px minmax(0, 1fr); } }
+@media (min-width: 1100px) { .cl-entry { grid-template-columns: 160px minmax(0, 1fr); } }
 .cl-entry code, .cl-entry li { overflow-wrap: anywhere; }
 .cl-ver { font-family: var(--font-display); font-weight: 600; font-size: 34px; letter-spacing: -0.02em; line-height: 1; }
 .cl-date { color: var(--muted); font-size: 14px; margin-top: 8px; }
@@ -13,16 +13,19 @@
 .cl-entry li code, .cl-intro code { font-family: var(--font-mono); font-size: .88em; background: var(--sidebar); padding: 1px 5px; border-radius: 4px; }
 .cl-intro { color: var(--muted); max-width: 70ch; margin: 0 0 20px; }
 
-.cl-main { max-width: 1040px; margin-inline: auto; padding: 0 var(--gutter) 64px; outline: none; }
+.cl-main { outline: none; }
 .cl-main .page-head { padding: 56px 0 32px; }
 .cl-main .dx-lede a, .cl-intro a, .cl-entry li a { color: var(--coral-ink); text-decoration: underline; text-underline-offset: 3px; }
 .cl-ver { margin: 0; }
 .cl-entry li ul { margin-top: 8px; padding-left: 18px; }
 .cl-entry li strong { color: var(--ink); font-weight: 650; }
 .cl-date { display: block; }
-@media (min-width: 900px) { .cl-entry > div:first-child { position: sticky; top: 96px; align-self: start; } }
+@media (min-width: 1100px) { .cl-entry > div:first-child { position: sticky; top: 96px; align-self: start; } }
 .cl-entry { scroll-margin-top: 80px; }
 @media (max-width: 899px) { .cl-ver { font-size: 30px; } .cl-entry { padding: 32px 0; } }
 .cl-entry ul { list-style: disc; }
 .cl-entry li ul { list-style: circle; }
 .cl-entry em { font-style: italic; }
+.cl-ver:hover .dx-anchor, .cl-ver .dx-anchor:focus-visible { opacity: 1; }
+@media (max-width: 900px) { .dx-main-wrap > .cl-main { padding: 0 var(--gutter) 56px; } }
+@media (max-width: 1180px) and (min-width: 901px) { .dx-main-wrap > .cl-main { padding-inline: 48px; } }

@@ -1,17 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { asset, REPO_URL } from "@/lib/config";
-
-const LINKS = [
-  ["How it works", "#how"], ["Custom icons", "#custom"], ["Everywhere", "#everywhere"],
-  ["Both icons", "#both"], ["Under the hood", "#hood"], ["Install", "#install"],
-] as const;
+import RailList from "@/components/rail/RailList";
 
 export default function Header() {
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const on = () => setStuck(window.scrollY > 8);
@@ -19,6 +16,22 @@ export default function Header() {
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); btn.current?.focus(); } };
+    const wide = window.matchMedia("(min-width: 1180px)");
+    const onWide = () => { if (wide.matches) setOpen(false); };
+    window.addEventListener("keydown", key);
+    wide.addEventListener("change", onWide);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", key);
+      wide.removeEventListener("change", onWide);
+    };
+  }, [open]);
 
   return (
     <header className="nav" data-stuck={stuck}>
@@ -29,24 +42,21 @@ export default function Header() {
           </span>
           <span>SidebarFavorites</span>
         </a>
-        <nav className="nav-links" aria-label="Page sections">
-          {LINKS.slice(0, 5).map(([l, h]) => <a key={h} href={h}>{l}</a>)}
-          <a href={asset("/docs")}>Docs</a>
-          <a href="#install">Install</a>
-        </nav>
-        <div className="nav-right">
-          <a className="gh" href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-          <a className="btn btn-ink" href="#install">Install</a>
-          <button type="button" className="menu-btn" aria-expanded={open} aria-controls="mnav" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((o) => !o)}>
+        <div className="hd-right">
+          <nav className="hd-links" aria-label="Site">
+            <a href={asset("/docs")}>Docs</a>
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          </nav>
+          <a className="hd-gh" href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          <a className="btn btn-ink" href="#install" data-testid="hd-install">Install</a>
+          <button ref={btn} type="button" className="hd-menu" data-testid="hd-menu" aria-expanded={open} aria-controls="hd-panel" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen((o) => !o)}>
             {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
       {open && (
-        <nav id="mnav" className="menu-panel" aria-label="Page sections">
-          {LINKS.map(([l, h]) => <a key={h} href={h} onClick={() => setOpen(false)}>{l}</a>)}
-          <a href={asset("/docs")}>Docs</a>
-          <a href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <nav id="hd-panel" className="hd-panel" data-testid="hd-panel" aria-label="Page sections">
+          <RailList idPrefix="hd" onNavigate={() => setOpen(false)} />
         </nav>
       )}
     </header>

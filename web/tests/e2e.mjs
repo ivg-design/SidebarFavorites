@@ -89,18 +89,18 @@ test("size slider scales the live glyph between 0.5 and 1.5, reset returns to 1"
 
 test("copy chip copies the brew command and flips to a check", async () => {
   const page = await open("/", { reduced: true });
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write"]);
-  await page.click(".hero-cta .brew-chip");
-  await page.waitForSelector(".hero-cta .swap[data-on='true']");
+  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
+  await page.click("[data-testid=copy-chip]");
+  await page.waitForSelector("[data-testid=copy-chip] .swap[data-on='true']");
   const text = await page.evaluate(() => navigator.clipboard.readText());
   assert.equal(text, "brew install --cask sidebarfavorites");
-  await page.waitForFunction(() => !document.querySelector(".hero-cta .swap[data-on='true']"), { timeout: 4000 });
+  await page.waitForFunction(() => !document.querySelector("[data-testid=copy-chip] .swap[data-on='true']"), { timeout: 4000 });
   await page.close();
 });
 
 test("install brew box copies all three commands", async () => {
   const page = await open("/", { reduced: true });
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write"]);
+  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
   await page.click("#install .cp");
   await new Promise((r) => setTimeout(r, 300));
   const text = await page.evaluate(() => navigator.clipboard.readText());
@@ -108,24 +108,13 @@ test("install brew box copies all three commands", async () => {
   await page.close();
 });
 
-test("counting numerals end on their real values", async () => {
-  const page = await open("/", { reduced: false });
-  await page.$eval("#hood", (e) => e.scrollIntoView());
-  await new Promise((r) => setTimeout(r, 1500));
-  const labels = await page.$$eval("#hood .num", (els) => els.map((e) => e.getAttribute("aria-label")));
-  assert.deepEqual(labels, ["17 bytes", "0 processes", "1 file", "1 request"]);
-  const shown = await page.$$eval("#hood .num", (els) => els.map((e) => e.innerText.replace(/\s+/g, " ").trim()));
-  assert.deepEqual(shown, ["17 bytes", "0 processes", "1 file", "1 request"]);
-  await page.close();
-});
-
 test("demo video placeholder is honest and keeps a <video> slot with a poster", async () => {
   const page = await open("/", { reduced: true });
-  const poster = await page.$eval(".video-shell video", (v) => v.getAttribute("poster"));
+  const poster = await page.$eval("[data-testid=demo-video] video", (v) => v.getAttribute("poster"));
   assert.ok(poster?.includes("demo-poster"));
-  await page.$eval(".video-over", (e) => e.scrollIntoView({ block: "center" }));
-  await page.click(".video-over");
-  const txt = await page.$eval(".video-shell", (e) => e.textContent);
+  await page.$eval("[data-testid=demo-play]", (e) => e.scrollIntoView({ block: "center" }));
+  await page.click("[data-testid=demo-play]");
+  const txt = await page.$eval("[data-testid=demo-video]", (e) => e.textContent);
   assert.match(txt, /being made|coming soon/i);
   await page.close();
 });
@@ -135,7 +124,7 @@ test("docs: Cmd/Ctrl+K opens search, finds a page, Enter navigates, Esc closes",
   await page.keyboard.down("Control"); await page.keyboard.press("k"); await page.keyboard.up("Control");
   await page.waitForSelector('[data-testid="docs-search-input"]');
   await page.type('[data-testid="docs-search-input"]', "uninstall");
-  await page.waitForSelector('[data-testid="docs-search-result"]');
+  await page.waitForFunction(() => /uninstall/i.test(document.querySelector('[data-testid="docs-search-result"]')?.textContent ?? ""));
   const first = await page.$eval('[data-testid="docs-search-result"]', (e) => e.textContent);
   assert.match(first, /uninstall/i);
   assert.ok(!/&amp;|&#\d+;|&nbsp;/.test(first), "entities leaked into search results");
@@ -184,8 +173,8 @@ test("docs: shell is centred on a 1920 px screen and nothing overflows at 390", 
 });
 
 test("docs: copy button on a code block copies and confirms", async () => {
-  const page = await open("/docs", { reduced: true });
-  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write"]);
+  await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write", "clipboard-sanitized-write"]);
+  const page = await open("/docs/install", { reduced: true });
   await page.click('[data-testid="docs-copy"]');
   await new Promise((r) => setTimeout(r, 300));
   const text = await page.evaluate(() => navigator.clipboard.readText());

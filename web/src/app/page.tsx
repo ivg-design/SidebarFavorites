@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import FavoritesRail from "@/components/rail/FavoritesRail";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import BeforeAfter from "@/components/BeforeAfter";
@@ -17,17 +18,20 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <main id="main">
-        <Hero release={release} />
-        <BeforeAfter />
-        <DemoVideo />
-        <HowItWorks />
-        <CustomIcons />
-        <Everywhere />
-        <BothIcons />
-        <UnderTheHood />
-        <Install release={release} />
-      </main>
+      <div className="shell">
+        <FavoritesRail release={release} />
+        <main id="main" className="shell-main">
+          <Hero release={release} />
+          <BeforeAfter />
+          <DemoVideo />
+          <HowItWorks />
+          <CustomIcons />
+          <Everywhere />
+          <BothIcons />
+          <UnderTheHood />
+          <Install release={release} />
+        </main>
+      </div>
       <Footer />
       <StructuredData release={release} />
     </>

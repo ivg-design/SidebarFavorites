@@ -53,7 +53,7 @@ export default function CopyButton({
   }, [text]);
 
   const button = (
-    <button type="button" className={variant === "chip" ? "brew-chip" : "cp"} onClick={onClick} aria-label={ariaLabel}>
+    <button type="button" className={variant === "chip" ? "brew-chip" : "cp"} data-testid={variant === "chip" ? "copy-chip" : "copy-box"} onClick={onClick} aria-label={ariaLabel}>
       <span>{label ?? text}</span>
       <span className="swap" data-on={on} aria-hidden="true">
         <Copy className="a" size={16} />

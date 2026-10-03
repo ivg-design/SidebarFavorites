@@ -36,7 +36,21 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     ".next*/types/**/*.ts",
-    ".next*/dev/types/**/*.ts"
+    ".next*/dev/types/**/*.ts",
+    ".next-g/types/**/*.ts",
+    ".next-g/dev/types/**/*.ts",
+    ".next-f/types/**/*.ts",
+    ".next-f/dev/types/**/*.ts",
+    ".next-rail/types/**/*.ts",
+    ".next-rail/dev/types/**/*.ts",
+    ".next-hero/types/**/*.ts",
+    ".next-hero/dev/types/**/*.ts",
+    ".next-demos/types/**/*.ts",
+    ".next-demos/dev/types/**/*.ts",
+    ".next-docs/types/**/*.ts",
+    ".next-docs/dev/types/**/*.ts",
+    ".next-flow/types/**/*.ts",
+    ".next-flow/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

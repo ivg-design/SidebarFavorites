@@ -45,7 +45,7 @@ export function Body() {
       </ul>
       <p>These are warnings, not rejections. See <DocLink to="troubleshooting" hash="svg-warnings">Troubleshooting</DocLink> if an icon does not look the way you expected.</p>
       <H2 id="monochrome">Icons are monochrome</H2>
-      <Callout>Sidebar icons are always monochrome. Finder draws them as a flat silhouette tinted to match the sidebar. Colour is impossible there. That is a macOS rule, not a limitation of this app. The preview shows you the silhouette, so there are no surprises.</Callout>
+      <Callout kind="warn" title="A macOS rule.">Sidebar icons are always monochrome. Finder draws them as a flat silhouette tinted to match the sidebar. Colour is impossible there. That is a macOS rule, not a limitation of this app. The preview shows you the silhouette, so there are no surprises.</Callout>
     </>
   );
 }

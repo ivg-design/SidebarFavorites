@@ -1,0 +1,23 @@
+/* Per-character 3D flip. Same mechanism as the lerp word spinner: the face sits on a drum of radius .5em. */
+.flip { display: inline-grid; perspective: 800px; }
+.flip-layer { grid-area: 1 / 1; display: block; }
+.flip-w { display: inline-block; white-space: nowrap; }
+.flip-char { display: inline-block; transform-style: preserve-3d; backface-visibility: hidden; opacity: 1; transform: rotateX(0) translateZ(.5em); }
+.flip-out { pointer-events: none; }
+.flip-out .flip-char { animation: flip-out 500ms var(--flip-d, 0ms) cubic-bezier(.4, 0, .2, 1) forwards; }
+.flip-in .flip-char { opacity: 0; transform: rotateX(-90deg) translateZ(.5em); animation: flip-in 500ms var(--flip-d, 0ms) cubic-bezier(.4, 0, .2, 1) forwards; }
+.flip-pre .flip-char { opacity: 0; transform: rotateX(-90deg) translateZ(.5em); }
+
+@keyframes flip-out {
+  from { transform: rotateX(0) translateZ(.5em); opacity: 1; }
+  to { transform: rotateX(90deg) translateZ(.5em); opacity: 0; }
+}
+@keyframes flip-in {
+  from { transform: rotateX(-90deg) translateZ(.5em); opacity: 0; }
+  to { transform: rotateX(0) translateZ(.5em); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-out { display: none; }
+  .flip-in .flip-char, .flip-pre .flip-char { animation: none; opacity: 1; transform: rotateX(0) translateZ(.5em); }
+}
