@@ -1,76 +1,47 @@
-"use client";
-import { useRef } from "react";
-import { useInView } from "framer-motion";
-import { asset } from "@/lib/config";
 import { Reveal } from "./motion/Reveal";
-import { FlipIn } from "./flip/Flip";
+import Shot from "./Shot";
+import HoodTree from "./hood/HoodTree";
+import { HOOD_CHAIN } from "./hood/nodes";
 import { nb } from "@/lib/nowrap";
-import "@/app/flow.css";
-
-const TRACE = [
-  "Favorites row",
-  "com.apple.LSSharedFileList.OverrideIcon.OSType",
-  "Launch Services",
-  "SidebarFavoritesIcons.app (UTI per favorite)",
-  "SF Symbol",
-];
-
-const LEDGER = [
-  { num: "17 bytes", body: <>The helper bundle’s “executable” is a <code>#!/bin/sh</code> no-op. It exists so macOS registers the bundle. It is never launched.</> },
-  { num: "0 processes", body: <>{nb("Nothing runs after you quit. Icons survive reboots and Finder restarts on their own. ")}{nb("(Both icons mode adds one small opt-in helper per favorite.)")}</> },
-  { num: "1 file", body: <>Configuration is <code>~/Library/Application Support/SidebarFavorites/config.json</code>; imported artwork sits in <code>Icons/</code> beside it.</> },
-  { num: "1 request", body: <>Updates: one GitHub check per launch, no background checking, no automatic download. Offline, it says nothing.</> },
-];
-
-/** Line breaks only after "." and "/" and before "(". */
-function softTrace(t: string) {
-  return t.split(/(?<=[./])|(?=\()/).flatMap((part, i) => (i ? [<wbr key={i} />, part] : [part]));
-}
-
-function Trace() {
-  const ref = useRef<HTMLOListElement>(null);
-  const seen = useInView(ref, { once: true, amount: 0.5 });
-  return (
-    <ol className="uh-trace" ref={ref} data-in={seen} aria-label="How a favorite gets its icon" data-testid="hood-trace">
-      {TRACE.map((t, i) => (
-        <li key={t} style={{ ["--i" as string]: i }}>
-          <span className="uh-node" aria-hidden="true" />
-          <code>{softTrace(t)}</code>
-        </li>
-      ))}
-    </ol>
-  );
-}
+import "@/app/hood.css";
 
 export default function UnderTheHood() {
   return (
-    <section id="hood" className="sec-graphite uth uh">
+    <section id="hood" className="sec sec-dark uh" aria-labelledby="hood-h">
       <div className="wrap">
-        <Reveal>
+        <Reveal className="sec-head">
           <p className="eyebrow">Under the hood</p>
-          <h2 className="display h-sec">No extension. No daemon. No login item.</h2>
-          <p className="lede">{nb("Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them. That is the whole mechanism for a normal favorite.")}</p>
+          <h2 className="h2" id="hood-h">No extension. No daemon. No login item.</h2>
+          <p className="lede">{nb("Every row in Finder’s Favorites can carry a private per-item property holding a four-character code that Launch Services resolves to an icon. SidebarFavorites allocates one code per favorite and installs a single tiny helper bundle that declares them.")}</p>
         </Reveal>
-        <Trace />
-        <ol className="uh-ledger">
-          {LEDGER.map((l, i) => (
-            <li className="uh-row" key={l.num}>
-              <FlipIn as="div" className="uh-num" text={l.num} perChar={40} delayStart={i * 120} data-testid={`hood-num-${i}`} />
-              <p>{l.body}</p>
-            </li>
-          ))}
-        </ol>
-        <Reveal className="uh-pop">
-          <div className="uh-shot">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset("/shots/SBFTaskbarPopOver-w292.webp")} srcSet={`${asset("/shots/SBFTaskbarPopOver-w292.webp")} 292w, ${asset("/shots/SBFTaskbarPopOver-w584.webp")} 584w`}
-              sizes="300px" width={292} height={Math.round(292 * 1.15)} alt="The SidebarFavorites menu bar popover listing every favorite with its icon" loading="lazy" decoding="async" />
-          </div>
-          <div>
-            <h3>Every favorite one click away in the menu bar, with its icon.</h3>
-            <p>The app is only needed to add, edit or remove a favorite. Keep it in the menu bar for quick access, or quit it — the icons stay.</p>
-          </div>
+
+        <Reveal className="uh-block">
+          <HoodTree />
         </Reveal>
+
+        <Reveal className="uh-block">
+          <p className="uh-chain mono" data-testid="uh-chain">
+            {HOOD_CHAIN.map((s, i) => (
+              <span key={s}>{i > 0 && <span className="uh-arrow" aria-hidden="true"> → </span>}<span className="uh-step">{nb(s)}</span></span>
+            ))}
+          </p>
+        </Reveal>
+
+        <div className="cols uh-block uh-updates">
+          <Reveal>
+            <Shot name="SBFTaskbarPopOver" alt="The SidebarFavorites menu bar popover listing five favorites, each with its icon, above Open, Refresh All, Preferences and Quit."
+              caption={nb("Every favorite one click away in the menu bar, with its icon. The app is only needed to add, edit or remove a favorite: quit it and the icons stay.")} />
+          </Reveal>
+          <Reveal delay={0.08} className="uh-upd">
+            <h3 className="h3">{nb("Updates: one check per launch")}</h3>
+            <div className="prose">
+              <p>{nb("The app asks GitHub once per launch whether a newer release exists. Download opens the release page; Later dismisses the notice until the next launch.")}</p>
+              <p>{nb("Nothing is automatic: no background checking, no download, nothing installed behind your back. Offline, it says nothing at all.")}</p>
+            </div>
+            <Shot name="SBFUpdateNotification" alt="The update notice over the manager window: a new version is available, with Later and Download buttons."
+              caption={nb("The whole update mechanism: a notice with two buttons.")} />
+          </Reveal>
+        </div>
       </div>
     </section>
   );
