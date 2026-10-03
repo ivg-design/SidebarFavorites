@@ -42,10 +42,10 @@ export default function NotFound() {
           </MacWindow>
         </Vivid>
         <div className="nf-copy">
-          <h1 className="display nf-h1">Nothing here.</h1>
-          <p>{nb("The page moved or never existed. The sidebar on the left still works.")}</p>
+          <h1 className="h1">Nothing here.</h1>
+          <p className="lede">{nb("The page moved or never existed. The sidebar on the left still works.")}</p>
           <div className="nf-actions">
-            <a className="btn btn-coral" href={asset("/")}>Back to the site</a>
+            <a className="btn btn-primary btn-lg" href={asset("/")}>Back to the site</a>
             <a className="nf-link" href={asset("/docs")}>Read the docs</a>
           </div>
         </div>
