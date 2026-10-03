@@ -1,1 +1,66 @@
-/* hero v2: owned by the design lead */
+/* Hero v2 (design lead). Prefix hx-.
+   Headline block on paper at full width, then a full-bleed vivid band holding one Finder window
+   at native metrics scaled by --z (transform only). The move: rows resolve folder → glyph. */
+.hx { padding-top: var(--s-7); }
+.hx-head { display: grid; gap: var(--s-6); padding-bottom: var(--s-7); align-items: end; }
+.hx-lead { min-width: 0; }
+.hx-h1 { max-width: 12ch; }
+.hx-aside { min-width: 0; display: grid; gap: var(--s-5); }
+.hx-lede { margin: 0; max-width: 46ch; }
+.hx-cta { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
+.hx-fine { max-width: 44ch; }
+@media (min-width: 1024px) {
+  .hx { padding-top: var(--s-8); }
+  .hx-head { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--s-8); padding-bottom: var(--s-8); }
+  .hx-aside { padding-bottom: var(--s-2); }
+}
+
+/* band */
+.hx-band { padding-block: var(--s-7); overflow: hidden; }
+@media (min-width: 1024px) { .hx-band { padding-block: var(--s-8); } }
+.hx-band > .wrap { overflow: visible; }
+.hx-stage { position: relative; width: 100%; }
+.hx-win { position: absolute; left: 0; top: 0; transform: scale(var(--z, 1)); transform-origin: top left; opacity: 0; translate: 0 20px;
+  transition: opacity 700ms var(--ease-quint), translate 700ms var(--ease-quint); will-change: opacity, translate; }
+.hx-win[data-settled="true"] { opacity: 1; translate: 0 0; }
+.hx-win .mac-win { height: 100%; display: grid; grid-template-rows: 52px minmax(0, 1fr); }
+.hx-win .mac-body { min-height: 0; }
+.hx-win .mac-side { overflow: hidden; }
+.hx-win .mac-pane { overflow: hidden; }
+
+/* row glyph: two stacked layers (see RowGlyph) */
+.hx-rg { display: grid; width: 16px; height: 16px; }
+.hx-rg-l { grid-area: 1 / 1; display: grid; place-items: center; }
+
+/* picker: a dark macOS-style popover beside the row */
+.hx-pop { position: absolute; z-index: 5; width: 272px; padding: var(--s-3); border-radius: 12px; background: rgba(40,40,44,.96); color: var(--mac-text);
+  font-family: var(--mac-font); box-shadow: 0 0 0 .5px rgba(0,0,0,.8), inset 0 0 0 .5px rgba(255,255,255,.14), 0 24px 48px -16px rgba(0,0,0,.7);
+  backdrop-filter: blur(18px); animation: hx-pop-in 180ms var(--ease-quint); transform-origin: top left; }
+@keyframes hx-pop-in { from { opacity: 0; scale: .98; } to { opacity: 1; scale: 1; } }
+.hx-pop-h { margin: 0 0 var(--s-2); font-size: 12px; font-weight: 600; color: var(--mac-dim); }
+.hx-pop-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.hx-opt { display: grid; place-items: center; height: 38px; border-radius: 7px; background: rgba(255,255,255,.05); color: var(--mac-glyph); border: 0; transition: background-color 120ms var(--ease-quart); }
+.hx-opt:hover { background: rgba(255,255,255,.12); }
+.hx-opt[aria-selected="true"] { background: var(--mac-blue); color: #fff; }
+.hx-opt:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.hx-opt .hx-rg { width: 18px; height: 18px; }
+.hx-opt .mac-folder { width: 18px; height: 18px; }
+.hx-pop-f { margin: var(--s-3) 0 0; font-size: 11px; line-height: 1.4; color: var(--mac-dim); }
+@media (max-width: 599px) {
+  .hx-pop { position: fixed; left: var(--s-3) !important; right: var(--s-3); top: auto !important; bottom: var(--s-3); width: auto; z-index: 70; transform-origin: bottom center; }
+  .hx-opt { height: 44px; }
+}
+
+/* tools under the window (inside the band) */
+.hx-tools { position: absolute; left: 0; right: 0; top: 100%; margin-top: var(--s-4); display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
+.hx-hint { font-size: var(--t-14); color: rgba(255,255,255,.88); text-shadow: 0 1px 2px rgba(0,0,0,.25); min-height: 24px; }
+.hx-replay { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 36px; padding: 0 var(--s-3); border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.18); color: #fff; font-size: var(--t-14); font-weight: 600; backdrop-filter: blur(8px); transition: background-color 150ms, opacity 150ms; }
+.hx-replay:hover { background: rgba(0,0,0,.32); }
+.hx-replay:disabled { opacity: .45; cursor: default; }
+.hx-replay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.hx-stage { margin-bottom: calc(36px + var(--s-4)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-win { opacity: 1; translate: 0 0; transition: none; }
+  .hx-pop { animation: none; }
+}
