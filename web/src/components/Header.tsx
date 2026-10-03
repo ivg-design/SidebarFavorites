@@ -1,9 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { asset, REPO_URL } from "@/lib/config";
-import { useHeroBus } from "./hero-bus";
 
 const LINKS = [
   ["How it works", "#how"], ["Custom icons", "#custom"], ["Everywhere", "#everywhere"],
@@ -11,10 +10,8 @@ const LINKS = [
 ] as const;
 
 export default function Header() {
-  const { fireEgg } = useHeroBus();
   const [stuck, setStuck] = useState(false);
   const [open, setOpen] = useState(false);
-  const clicks = useRef<number[]>([]);
 
   useEffect(() => {
     const on = () => setStuck(window.scrollY > 8);
@@ -23,22 +20,15 @@ export default function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
-  // Easter egg: five clicks on the icon within 2.5 s.
-  const onIcon = () => {
-    const now = Date.now();
-    clicks.current = [...clicks.current.filter((t) => now - t < 2500), now];
-    if (clicks.current.length >= 5) { clicks.current = []; fireEgg(); }
-  };
-
   return (
     <header className="nav" data-stuck={stuck}>
       <div className="wrap nav-in">
-        <span className="brand">
-          <button type="button" className="brand-icon" onClick={onIcon} aria-label="SidebarFavorites app icon">
+        <a className="brand" href={asset("/")} aria-label="SidebarFavorites, back to top">
+          <span className="brand-icon">
             <Image src={asset("/images/icon-64.png")} alt="" width={36} height={36} priority />
-          </button>
-          <a href={asset("/")}>SidebarFavorites</a>
-        </span>
+          </span>
+          <span>SidebarFavorites</span>
+        </a>
         <nav className="nav-links" aria-label="Page sections">
           {LINKS.slice(0, 5).map(([l, h]) => <a key={h} href={h}>{l}</a>)}
           <a href={asset("/docs")}>Docs</a>

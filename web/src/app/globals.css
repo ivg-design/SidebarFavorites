@@ -63,8 +63,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav[data-stuck="true"] { box-shadow: 0 1px 0 var(--line); }
 .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 76px; }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
-.brand-icon { border: 0; background: none; padding: 0; border-radius: 9px; line-height: 0; transition: transform .2s var(--ease-quart); }
-.brand-icon:active { transform: scale(0.94); }
+.brand-icon { display: block; border-radius: 9px; line-height: 0; }
 .brand-icon img { border-radius: 9px; }
 .nav-links { display: none; gap: clamp(18px, 2.2vw, 32px); font-size: 15px; color: var(--muted); }
 .nav-links a { padding: 8px 0; transition: color .2s; }
