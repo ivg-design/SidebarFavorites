@@ -1,14 +1,10 @@
-import nextPlugin from "@next/eslint-plugin-next";
+import coreWebVitals from "eslint-config-next/core-web-vitals";
+import typescript from "eslint-config-next/typescript";
 
-export default [
-  {
-    ignores: [
-      ".next/**",
-      "node_modules/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
-  },
-  nextPlugin.configs["core-web-vitals"],
+const config = [
+  { ignores: [".next*/**", "node_modules/**", "out/**", "build/**", "next-env.d.ts", ".screenshots/**"] },
+  ...coreWebVitals,
+  ...typescript,
 ];
+
+export default config;
