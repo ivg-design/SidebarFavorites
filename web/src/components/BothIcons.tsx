@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { nb } from "@/lib/nowrap";
 import { Reveal } from "./motion/Reveal";
-import { FolderGlyph, FolderIcon, FolderTile, MacWindow, Pane, SideHeading, SideRow, Sidebar, Vivid } from "./finder/Finder";
+import { FolderIcon, FolderTile, MacWindow, Pane, SideHeading, SideRow, Sidebar, Vivid } from "./finder/Finder";
 import { Glyph } from "./glyphs";
 import Shot from "./Shot";
 import { OwnFolderIcon, OwnFolderRow } from "./both/OwnIcons";
