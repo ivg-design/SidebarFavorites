@@ -1,0 +1,34 @@
+{
+  "name": "sidebarfavorites-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "content:sync": "node scripts/sync-content.mjs",
+    "images:build": "node scripts/generate-images.mjs",
+    "prebuild": "npm run content:sync && npm run images:build",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.563.0",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "16.3.5",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "sharp": "0.35.4",
+    "tailwindcss": "^4",
+    "typescript": "5.9.3"
+  },
+  "overrides": { "postcss": "8.5.23", "sharp": "0.35.4" }
+}
