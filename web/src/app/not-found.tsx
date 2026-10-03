@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, Github, History, House } from "lucide-react";
+import { Glyph } from "@/components/glyphs";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { FolderGlyph, MacWindow, Pane, SideHeading, Sidebar, Vivid } from "@/components/finder/Finder";
@@ -10,10 +10,10 @@ import "./not-found.css";
 export const metadata: Metadata = { title: "Not found" };
 
 const ROWS = [
-  { label: "Home", href: asset("/"), Icon: House, ext: false },
-  { label: "Docs", href: asset("/docs"), Icon: BookOpen, ext: false },
-  { label: "Changelog", href: asset("/changelog"), Icon: History, ext: false },
-  { label: "GitHub", href: REPO_URL, Icon: Github, ext: true },
+  { label: "Home", href: asset("/"), glyph: "house", ext: false },
+  { label: "Docs", href: asset("/docs"), glyph: "book", ext: false },
+  { label: "Changelog", href: asset("/changelog"), glyph: "clock.arrow.circlepath", ext: false },
+  { label: "GitHub", href: REPO_URL, glyph: "custom.github", ext: true },
 ];
 
 export default function NotFound() {
@@ -25,9 +25,9 @@ export default function NotFound() {
           <MacWindow title="Not found" sideWidth={168}>
             <Sidebar>
               <SideHeading>Favorites</SideHeading>
-              {ROWS.map(({ label, href, Icon, ext }) => (
+              {ROWS.map(({ label, href, glyph, ext }) => (
                 <a key={label} className="mac-row nf-row" href={href} data-testid={`nf-row-${label.toLowerCase()}`} {...(ext ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
-                  <span className="ic"><Icon size={16} strokeWidth={1.75} aria-hidden="true" /></span>
+                  <span className="ic"><Glyph name={glyph} size={16} /></span>
                   <span className="lab">{label}</span>
                 </a>
               ))}

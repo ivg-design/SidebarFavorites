@@ -15,7 +15,8 @@ const MORPH_INDEX: Record<string, number> = {
  *  A lucide crossfade sits underneath until the .riv has loaded (and for glyphs the file lacks). */
 export default function BigGlyph({ glyph, size = 200 }: { glyph: string; size?: number }) {
   const reduce = !!useReducedMotion();
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(false);   // canvas shown: the file is in and the first morph has settled
+  const [handed, setHanded] = useState(false); // fallback removed: the canvas has finished fading in over it
   const [wanted, setWanted] = useState(false);
   const target = MORPH_INDEX[glyph];
   const useRive = target !== undefined;
@@ -27,7 +28,13 @@ export default function BigGlyph({ glyph, size = 200 }: { glyph: string; size?: 
     const t = setTimeout(() => { if (w.requestIdleCallback) w.requestIdleCallback(start, { timeout: 2500 }); else start(); }, 600);
     return () => clearTimeout(t);
   }, []);
-  const showFallback = !useRive || !ready;
+  // Handoff: the file loads at shape 0 (folder) and morphs to `target` in ~450 ms, so the canvas stays hidden for
+  // 500 ms after load, then fades in over the identical silhouette, and only then does the fallback unmount.
+  const onLoaded = () => {
+    window.setTimeout(() => setReady(true), reduce ? 0 : 500);
+    window.setTimeout(() => setHanded(true), reduce ? 0 : 850);
+  };
+  const showFallback = !useRive || !handed;
   const duration = reduce ? 0 : 0.22;
   return (
     <div className="hx-big" data-testid="hero-big" data-glyph={glyph} data-rive={useRive && ready} style={{ width: size, height: size }} aria-hidden="true">
@@ -40,7 +47,7 @@ export default function BigGlyph({ glyph, size = 200 }: { glyph: string; size?: 
           </motion.span>
         </AnimatePresence>
       )}
-      {useRive && wanted && <FolderMorph className="hx-big-rive" target={target} auto={false} onReady={() => setReady(true)} />}
+      {useRive && wanted && <FolderMorph className="hx-big-rive" target={target} auto={false} onReady={onLoaded} />}
     </div>
   );
 }

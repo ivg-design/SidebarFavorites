@@ -99,6 +99,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .swap[data-on="true"] .b { opacity: 1; transform: scale(1); }
 .copied-pop { font-size: 12px; font-weight: 600; opacity: 0; transform: translateY(4px); transition: opacity .15s var(--ease-quart), transform .15s var(--ease-quart); position: absolute; right: 12px; top: -26px; background: var(--ink); color: var(--bg); padding: 3px 8px; border-radius: 6px; pointer-events: none; }
 .copied-pop[data-on="true"] { opacity: 1; transform: none; transition-duration: .3s; }
+.copied-in { position: absolute; inset: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; background: var(--ink); color: var(--bg); font-family: var(--font-body); font-size: 14px; font-weight: 600; opacity: 0; transform: scale(.97); pointer-events: none; transition: opacity .15s var(--ease-quart), transform .15s var(--ease-quart); }
+.copied-in[data-on="true"] { opacity: 1; transform: none; transition-duration: .25s; }
 
 /* sections */
 .sec { padding: var(--section-y) 0; }

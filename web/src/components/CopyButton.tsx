@@ -69,10 +69,12 @@ export default function CopyButton({
   );
 
   if (variant === "box") return <>{button}{pop}</>;
+  // chip: the confirmation replaces the command inside the chip for 1.2 s (nothing floats over neighbouring buttons)
   return (
     <span style={{ position: "relative", display: "inline-flex", maxWidth: "100%" }}>
       {button}
-      {pop}
+      <span className="copied-in" data-on={on} aria-hidden="true"><Check size={16} />Copied to clipboard</span>
+      <span className="sr-only" role="status" aria-live="polite">{on ? "Copied to clipboard" : ""}</span>
     </span>
   );
 }

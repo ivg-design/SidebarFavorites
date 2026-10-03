@@ -1,14 +1,14 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Clock, FileText, LayoutGrid, Monitor, Radio, ArrowDownCircle } from "lucide-react";
 import { FolderGlyph, FolderTile, MacWindow, Pane, Sidebar, SideHeading, SideRow } from "../finder/Finder";
 import { FAVS, Glyph } from "../glyphs";
 import BigGlyph from "./BigGlyph";
 
 const SYSTEM = [
-  { name: "AirDrop", Icon: Radio }, { name: "Recents", Icon: Clock }, { name: "Applications", Icon: LayoutGrid },
-  { name: "Desktop", Icon: Monitor }, { name: "Documents", Icon: FileText }, { name: "Downloads", Icon: ArrowDownCircle },
+  { name: "AirDrop", glyph: "dot.radiowaves.left.and.right" }, { name: "Recents", glyph: "clock" },
+  { name: "Applications", glyph: "square.grid.2x2" }, { name: "Desktop", glyph: "desktopcomputer" },
+  { name: "Documents", glyph: "doc.text" }, { name: "Downloads", glyph: "arrow.down.circle" },
 ];
 const PLAIN_TILES = ["Archive", "Notes", "Receipts", "Scans", "Drafts", "Exports", "Misc"];
 const WINDOW_W = 700;
@@ -66,8 +66,8 @@ export default function HeroStage() {
         <MacWindow title={FAVS[sel].name} titleTestId="hero-title" sideWidth={196}>
           <Sidebar>
             <SideHeading>Favorites</SideHeading>
-            {SYSTEM.map(({ name, Icon }) => (
-              <SideRow key={name} icon={<Icon size={16} strokeWidth={1.6} aria-hidden="true" />} label={name} />
+            {SYSTEM.map(({ name, glyph }) => (
+              <SideRow key={name} icon={<Glyph name={glyph} size={16} />} label={name} />
             ))}
             {FAVS.map((f, i) => (
               <SideRow

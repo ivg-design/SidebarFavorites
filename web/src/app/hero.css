@@ -28,12 +28,13 @@
 /* copy */
 .hx-copy .eyebrow { margin-bottom: 18px; }
 .hx-h1 { font-size: clamp(64px, 14cqw, 88px); line-height: .95; letter-spacing: 0; font-variation-settings: "opsz" 96; }
+.hx-h1 > span { display: inline; }
 .hx-h1 em { display: block; font-style: italic; font-weight: 400; color: var(--coral); margin-top: .06em; }
 .hx-w { display: inline-block; animation: hx-rise .6s var(--ease-quart) calc(var(--i) * 60ms + 80ms) both; }
 @keyframes hx-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-.hx-sub { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.6; color: var(--muted); margin: 28px 0 0; max-width: 52ch; text-wrap: pretty; }
-.hx-cta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; align-items: center; }
-.hx-fine { font-size: 14px; color: var(--muted); margin: 24px 0 0; max-width: 56ch; }
+.hx-sub { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.55; color: var(--muted); margin: 26px 0 0; max-width: 52ch; text-wrap: pretty; }
+.hx-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; align-items: center; }
+.hx-fine { font-size: 14px; color: var(--muted); margin: 18px 0 0; max-width: 56ch; }
 
 /* tablet: panel full width, headline below */
 @media (min-width: 834px) and (max-width: 1179px) { .hx-stage { height: 600px; } }
@@ -54,15 +55,21 @@
 }
 
 /* desktop: asymmetric, window crosses the panel's right edge */
+/* desktop with the rail: the headline is a deliberate four-word stack (Your / sidebar, / finally / legible.)
+   sized so eyebrow -> brew chip fit a 900px-tall viewport beside a 600px stage */
 @media (min-width: 1180px) {
-  .hx { padding-top: 32px; }
-  .hx-grid { grid-template-columns: 54% minmax(0, 1fr); column-gap: 104px; align-items: center; }
-  .hx-stage { height: 640px; margin-left: calc(var(--gutter) * -1); width: calc(100% + var(--gutter)); overflow: visible; border-radius: 0; clip-path: inset(0 -80px 0 0); }
-  .hx-win { top: 56px; left: auto; right: -56px; margin-left: 0; transform-origin: top right; }
-  .hx-h1 { font-size: clamp(64px, 26cqw, 112px); }
+  .hx { padding-top: 24px; }
+  .hx-grid { grid-template-columns: 54% minmax(0, 1fr); column-gap: 96px; align-items: center; }
+  .hx-stage { height: 600px; margin-left: calc(var(--gutter) * -1); width: calc(100% + var(--gutter)); overflow: visible; border-radius: 0; clip-path: inset(0 -80px 0 0); }
+  .hx-win { top: 40px; left: auto; right: -56px; margin-left: 0; transform-origin: top right; }
+  .hx-h1 { font-size: clamp(60px, 24cqw, 104px); line-height: .93; }
+  .hx-h1 > span { display: block; }
+  .hx-h1 em { margin-top: .04em; }
+  .hx-sub { font-size: clamp(17px, 1.25vw, 19px); margin-top: 22px; }
+  .hx-cta { margin-top: 24px; }
 }
 
-@media (min-width: 1180px) and (max-width: 1359px) { .hx-grid { grid-template-columns: 52% minmax(0, 1fr); column-gap: 80px; } }
+@media (min-width: 1180px) and (max-width: 1359px) { .hx-grid { grid-template-columns: 52% minmax(0, 1fr); column-gap: 72px; } }
 @container (max-width: 400px) { .hx-cta .brew-chip { font-size: 11.5px; padding: 0 12px; gap: 8px; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -70,5 +77,5 @@
 }
 /* rive morph canvas fills the focal box; the lucide fallback sits in the same grid cell */
 .hx-big > .hx-big-rive, .hx-big > canvas { grid-area: 1 / 1; width: 100% !important; height: 100% !important; display: block; }
-.hx-big > canvas[data-loaded="false"] { opacity: 0; }
-.hx-big > canvas { transition: opacity .3s var(--ease-quart); }
+.hx-big > canvas { opacity: 0; transition: opacity .3s var(--ease-quart); }
+.hx-big[data-rive="true"] > canvas { opacity: 1; }
