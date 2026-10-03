@@ -166,3 +166,22 @@ of that move.
 Section rhythm: **feature** sections `--sec-feature` (clamp 96→128) top and bottom; **beat** sections
 (denser, e.g. How it works) `--sec-beat` (clamp 64→96); **band** sections (full-bleed colour: hero panel,
 install) `--sec-band` (clamp 112→160). Gutter `clamp(16px, 5.5vw, 80px)`, content max 1280 px.
+
+## After (status at the end of the v2 build)
+
+Captures: `.reviews/v2/after/home-{1440,1280,834,390}.png`, `home-1440-reduced.png`, `docs-1440.png`.
+Horizontal overflow: 0 at 390, none elsewhere. Build and lint clean; 57 puppeteer tests green
+(`BASE=http://localhost:3243 node --test tests/*.mjs`).
+
+| finding | after |
+|---|---|
+| rail steals the hero | no rail; 64 px top bar; hero head at full width (h1 column 8/12, ~830 px); one Finder window at 1.3× in a full-bleed band |
+| "legible" illegible | Bricolage Grotesque 620, upright, ink on paper, 92 px, two lines, no entrance animation; the chip and buttons use the same scale |
+| padding patched per section | one scale `--s-1…--s-11`; `.sec` / `.sec-beat` / `.sec-band`; no other spacing values in any section css |
+| screenshots shrunk/cropped/mixed | `Shot` at 0.65× source px everywhere (559–740 px wide at 1440), whole windows, one labelled detail crop (the Both-icons dialog); stale list in `screenshots-needed.md` |
+| hero animation crude | window settles (700 ms quint), rows cross-dissolve folder → glyph (420 ms, blur 1.5 px, 90 ms stagger), then stop; CSS, no Rive; reduced motion = end state |
+| hover that does nothing | every demo changes the mock: hero picker, symbol-name field, mark → silhouette + warnings, size slider → true-scale row, kinds + Locations-only switch, three-way choice, bundle listing |
+
+Weakest points, honestly: the hero window is a rebuilt Finder, not a capture (a real 2x Finder window from the owner would be
+better in step 03 and in docs); step 03 leans on the owner's small `example.png` crop; three captures still show `1.2.0 (47)`;
+the Everywhere mock leaves a lot of gradient around it on wide screens; the Under-the-hood listing is text-heavy by design.
