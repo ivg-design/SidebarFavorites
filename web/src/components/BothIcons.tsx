@@ -71,10 +71,12 @@ export default function BothIcons() {
               ))}
             </div>
             <figure className="bi2-fig">
+              <span className="bi2-crop">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={asset(`/shots/${n}-w504.webp`)} srcSet={`${asset(`/shots/${n}-w504.webp`)} 504w, ${asset(`/shots/${n}-w1008.webp`)} 1008w`}
-                sizes="220px" width={504} height={1142} alt="Add Favorite sheet warning that the folder has a custom icon of its own, with the choices Keep both icons, Remove its icon and Leave as is" loading="lazy" decoding="async" />
-              <figcaption>The dialog that offers the choice.</figcaption>
+                sizes="(min-width:1024px) 520px, calc(100vw - 32px)" width={504} height={192} alt="Cropped from the Add Favorite sheet: an orange warning that this folder has a custom icon of its own, above the three choices Keep both icons, Remove its icon and Leave as is" loading="lazy" decoding="async" />
+              </span>
+              <figcaption>The dialog that offers the choice — cropped to the part the demo mirrors.</figcaption>
             </figure>
           </div>
         </Reveal>

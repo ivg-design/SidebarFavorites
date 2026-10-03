@@ -149,9 +149,14 @@ export default function BeforeAfter() {
                           data-testid={`after-row-${i}`} aria-haspopup="listbox" aria-expanded={open === i}
                           aria-controls={open === i ? popId : undefined} aria-label={`${f.name}, change icon`}
                           onClick={() => (open === i ? close(true) : setOpen(i))}
+                          trailing={<svg className="ba2-chev" viewBox="0 0 8 12" aria-hidden="true" focusable="false"><path d="M1.5 1.5 L6 6 L1.5 10.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                         />
                       ))}
                     </Sidebar>
+                    <p className="ba2-hint" data-testid="after-hint">
+                      <svg viewBox="0 0 12 14" aria-hidden="true" focusable="false"><path d="M2 1 L2 11.2 L4.6 8.8 L6.4 12.6 L8 11.9 L6.2 8.2 L9.6 8.2 Z" fill="currentColor" /></svg>
+                      Click a row to change its icon
+                    </p>
                   </div>
                 </div>
               </Vivid></div>
@@ -183,7 +188,7 @@ export default function BeforeAfter() {
               )}
             </div>
             <p className="ba2-cap">
-              <span>Click a row and choose its icon. That is the whole app.</span>
+              <span>That is the whole app.</span>
               {changed && <button type="button" className="ba2-reset" data-testid="after-reset" onClick={() => { close(false); setIcons(DEFAULTS); }}>Reset</button>}
             </p>
           </div>

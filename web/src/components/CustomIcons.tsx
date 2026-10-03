@@ -32,7 +32,6 @@ export default function CustomIcons() {
             <p>Sidebar icons are always monochrome. Finder draws a flat silhouette tinted to match the sidebar — that is a macOS rule, not a limit of this app. The preview shows the silhouette, so no surprises.</p>
           </div>
         </Reveal>
-        <Reveal className="ci2-toy" delay={0.04}><SizeToy /></Reveal>
         </div>
         <Reveal className="ci2-side" delay={0.08}>
           <figure className="ci2-shot">
@@ -43,6 +42,7 @@ export default function CustomIcons() {
               loading="lazy" decoding="async" />
           </figure>
         </Reveal>
+        <Reveal className="ci2-toy" delay={0.12}><SizeToy /></Reveal>
       </div>
     </section>
   );

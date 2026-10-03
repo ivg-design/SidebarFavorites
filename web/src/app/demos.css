@@ -20,7 +20,7 @@
 .ba2-side .note-coral { margin-top: 16px; }
 .ba2-stage { position: relative; min-width: 0; }
 .ba2-panel { border-radius: 24px; padding: clamp(16px, 4vw, 44px); min-height: 400px; display: grid; align-content: center; box-shadow: 0 30px 60px -34px rgba(42,39,34,.55); }
-.ba2-pair { display: grid; grid-template-columns: minmax(0, 300px) 88px minmax(0, 300px); gap: 12px; align-items: center; justify-content: center; }
+.ba2-pair { display: grid; grid-template-columns: minmax(0, 300px) 88px minmax(0, 300px); gap: 12px; align-items: start; justify-content: center; }
 .ba2-col { min-width: 0; }
 .ba2-label { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
 .ba2-label i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.55); }
@@ -30,7 +30,12 @@
 .ba2-card .mac-row { height: 28px; font-size: 15px; }
 .ba2-card .mac-row .ic svg { width: 17px; height: 17px; }
 .ba2-card .mac-row .ic { height: 17px; }
-.ba2-chip { display: grid; place-items: center; height: 44px; border-radius: 22px; background: rgba(255,253,249,.94); box-shadow: 0 8px 20px -8px rgba(0,0,0,.4); }
+.ba2-hint { display: flex; align-items: center; justify-content: center; gap: 7px; width: fit-content; max-width: 100%; margin: 12px auto 0; padding: 6px 12px; border-radius: 999px; background: rgba(20,20,22,.6); color: #fff; font-size: 12px; line-height: 1.3; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.ba2-hint svg { flex: none; width: 10px; height: 12px; }
+.ba2-chev { flex: none; width: 7px; height: 11px; margin-left: auto; color: var(--mac-dim); opacity: 0; transition: opacity .18s; }
+.ba2-card button.mac-row:hover .ba2-chev, .ba2-card button.mac-row:focus-visible .ba2-chev, .ba2-card button.mac-row[aria-expanded="true"] .ba2-chev { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ba2-chev { transition: none; } }
+.ba2-chip { align-self: center; display: grid; place-items: center; height: 44px; border-radius: 22px; background: rgba(255,253,249,.94); box-shadow: 0 8px 20px -8px rgba(0,0,0,.4); }
 .ba2-arrow { width: 56px; height: 32px; color: var(--coral); }
 .ba2-cap { margin: 16px 0 0; font-size: 15px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 44px; }
 .ba2-reset { min-height: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-weight: 600; color: var(--coral-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
@@ -42,10 +47,12 @@
 .ba2-pick .mac-pick-opt svg { width: 18px; height: 18px; }
 .ba2-scrim { display: none; }
 @media (max-width: 600px) {
+  .ba2-chev { display: none; }
   .ba2-pair { grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr); gap: 6px; }
   .ba2-card .mac-row { height: 26px; font-size: 14px; }
   .ba2-chip { height: 32px; border-radius: 16px; }
   .ba2-arrow { width: 22px; height: 14px; }
+  .ba2-hint { font-size: 11px; padding: 5px 9px; gap: 5px; text-align: center; }
   .ba2-card { padding: 10px 4px 12px; }
   .ba2-card .mac-row { padding: 0 6px; gap: 6px; }
   .ba2-pick { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; border-radius: 16px 16px 0 0; padding: 14px 14px max(14px, env(safe-area-inset-bottom)); animation: ba2-sheet .28s cubic-bezier(.22,1,.36,1) both; }
@@ -81,7 +88,14 @@
 /* ---------- Custom icons layout ---------- */
 .ci2-grid { display: grid; gap: 48px; align-items: start; }
 .ci2-left { display: contents; } .ci2-copy { order: 1; } .ci2-side { order: 2; } .ci2-toy { order: 3; }
-@media (min-width: 1024px) { .ci2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 480px); gap: 72px; } .ci2-left { display: block; } .ci2-toy { margin-top: 8px; } .ci2-toy .sz-card { margin-top: 20px; } }
+@media (min-width: 1024px) {
+  .ci2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 480px); column-gap: 72px; row-gap: 0; grid-template-rows: auto 1fr; }
+  .ci2-left { display: block; grid-column: 1; grid-row: 1 / span 2; }
+  .ci2-side { grid-column: 2; grid-row: 1; }
+  .ci2-toy { grid-column: 2; grid-row: 2; min-width: 0; margin-top: 22px; }
+  .ci2-toy .sz-card { margin-top: 0; width: 100%; box-sizing: border-box; }
+}
+.ci2-toy .sz-card { margin-top: 0; }
 .ci2-list { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 16px; }
 .ci2-list li { display: grid; grid-template-columns: 20px 1fr; gap: 10px; font-size: 16px; line-height: 1.5; align-items: start; }
 .ci2-list svg { color: var(--coral); margin-top: 3px; }
@@ -114,8 +128,8 @@
 .bi2-choice input:checked ~ .bi2-dot::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--coral); }
 .bi2-choice b { display: block; font-size: 15px; margin-bottom: 3px; }
 .bi2-choice span.d { display: block; font-size: 14px; line-height: 1.55; color: var(--muted); }
-.bi2-fig { display: none; margin: 28px 0 0; }
-@media (min-width: 1024px) { .bi2-fig { display: block; } }
-.bi2-fig img { display: block; width: 220px; height: auto; border-radius: 12px; box-shadow: 0 16px 34px -20px rgba(42,39,34,.5); }
+.bi2-fig { margin: 28px 0 0; max-width: 520px; }
+.bi2-crop { display: block; aspect-ratio: 504 / 192; overflow: hidden; border-radius: 12px; background: #232326; box-shadow: 0 16px 34px -20px rgba(42,39,34,.5); }
+.bi2-fig img { display: block; width: 114%; max-width: none; height: 100%; margin-left: -7%; object-fit: cover; object-position: 50% 20.3%; }
 .bi2-fig figcaption { margin-top: 10px; font-size: 14px; color: var(--muted); }
 @media (max-width: 600px) { .bi2-win .mac-body { --mac-side-w: 132px; min-height: 160px; } .bi2-win .mac-pane { padding: 14px 4px; gap: 18px 2px; } .bi2-win .mac-tile { font-size: 11px; } .bi2-win .mac-tile .lab { padding: 0; } .bi2-win .mac-bar .tools { display: none; } }
