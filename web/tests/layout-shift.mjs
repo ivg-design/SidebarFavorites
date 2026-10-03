@@ -72,16 +72,19 @@ test("landing: the mobile menu scroll lock does not move the header brand", asyn
 });
 
 for (const width of [1440, 390]) {
-  test(`hero: stage height does not change between 300 ms and 3 s after load at ${width}`, async () => {
+  test(`hero: stage, column and headline word do not move or resize between 300 ms and 3 s after load at ${width}`, async () => {
     const page = await browser.newPage();
     await page.setViewport({ width, height: 900 });
     await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
     await page.waitForSelector('[data-testid="hero-stage"]');
     await new Promise((r) => setTimeout(r, 300));
-    const H = () => page.$eval('[data-testid="hero-stage"]', (e) => Math.round(e.getBoundingClientRect().height * 10) / 10);
-    const a = await H();
+    const M = () => page.evaluate(() => {
+      const q = (s) => { const r = document.querySelector(s).getBoundingClientRect(); return [r.left, r.top + scrollY, r.width, r.height].map((n) => Math.round(n * 10) / 10); };
+      return { stage: q('[data-testid="hero-stage"]'), box: q(".hx-colbox"), word: q(".hx-word"), l1: q(".hx-l"), cta: q('[data-testid="hero-dmg"]') };
+    });
+    const a = await M();
     await new Promise((r) => setTimeout(r, 2700));
-    assert.equal(await H(), a);
+    assert.deepEqual(await M(), a);
     await page.close();
   });
 }

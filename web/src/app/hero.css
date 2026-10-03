@@ -1,41 +1,88 @@
-/* Hero v2 (design lead). Prefix hx-.
-   Headline block on paper at full width, then a full-bleed vivid band holding one Finder window
-   at native metrics scaled by --z (transform only). The move: rows resolve folder → glyph. */
-.hx { padding-top: var(--s-7); }
-.hx-head { display: grid; gap: var(--s-6); padding-bottom: var(--s-7); align-items: start; }
-.hx-lead { min-width: 0; }
-.hx-h1 { max-width: 12ch; }
-.hx-aside { min-width: 0; display: grid; gap: var(--s-5); }
-.hx-lede { margin: 0; max-width: 46ch; }
-.hx-cta { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; }
-.hx-fine { max-width: 44ch; }
-@media (min-width: 1024px) {
-  .hx { padding-top: var(--s-8); }
-  .hx-head { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: var(--s-8); padding-bottom: var(--s-8); }
-  .hx-aside { padding-top: var(--s-7); }
+/* Hero v3. Prefix hx-. The page opens inside Finder's sidebar at poster scale on a wallpaper that starts grey.
+   Native metrics (strip 52 + sidebar 278 = 330 tall, 204 wide) scaled by ONE transform, --z.
+   Layouts: scrub (>= 900 px, motion allowed): a 200vh section with a sticky stage; otherwise a normal flow
+   (phones, reduced motion): headline, column, copy, then the "how" block on graphite. */
+@property --sat { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+.hx {
+  --stage-h: max(560px, 100dvh); /* the stage runs under the transparent 64px header */
+  --z: min(1.9, tan(atan2(calc(100vw - 2 * var(--s-4)), 204px)));
+  position: relative; background: var(--graphite); color: #fff;
 }
+.hx-stage { position: relative; padding-top: 64px; } /* the header overlays the first 64 px of the page */
 
-/* band */
-.hx-band { padding-block: var(--s-7); overflow: hidden; }
-@media (min-width: 1024px) { .hx-band { padding-block: var(--s-8); } }
-.hx-band > .wrap { overflow: visible; }
-.hx-stage { position: relative; width: 100%; }
-.hx-win { position: absolute; left: 0; top: 0; transform: scale(var(--z, 1)); transform-origin: top left; opacity: 0; translate: 0 20px;
-  transition: opacity 700ms var(--ease-quint), translate 700ms var(--ease-quint); will-change: opacity, translate; }
-.hx-win[data-settled="true"] { opacity: 1; translate: 0 0; }
-.hx-win .mac-win { height: 100%; display: grid; grid-template-rows: 52px minmax(0, 1fr); }
-.hx-win .mac-body { min-height: 0; }
-.hx-win .mac-side { overflow: hidden; }
-.hx-win .mac-pane { overflow: hidden; }
+/* wallpaper: the kit's gradient, drained of colour until the move saturates it */
+.hx .hx-vivid {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  --sat: 0; filter: saturate(var(--sat)) brightness(calc(.92 + .08 * var(--sat)));
+  transition: --sat 1000ms var(--ease-quart);
+}
+.hx .hx-vivid::before { content: ""; position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(to bottom, rgba(8,8,12,0) 22%, rgba(8,8,12,.35) 50%, rgba(8,8,12,.35) 100%); }
+@media (min-width: 900px) { .hx .hx-vivid::before { background: radial-gradient(85% 100% at 55% 70%, rgba(8,8,12,.35), rgba(8,8,12,0) 80%); } }
+.hx-stage[data-lit="true"] .hx-vivid { --sat: 1; }
+.hx-stage[data-reset="true"] .hx-vivid { transition: none; }
 
-/* row glyph: two stacked layers (see RowGlyph) */
-.hx-rg { display: grid; width: 16px; height: 16px; }
-.hx-rg-l { grid-area: 1 / 1; display: grid; place-items: center; }
+.hx-shade { display: none; }
+.hx-hero { position: relative; z-index: 1; display: flex; flex-direction: column; padding: var(--s-5) var(--s-4) var(--s-7); gap: var(--s-6); }
+.hx-head { display: contents; }
 
-/* picker: a dark macOS-style popover beside the row */
-.hx-pop { position: absolute; z-index: 5; width: 272px; padding: var(--s-3); border-radius: 12px; background: rgba(40,40,44,.96); color: var(--mac-text);
+/* headline: three lines on desktop, two on phones */
+.hx-h1 { order: 1; color: #fff; text-wrap: nowrap; font-size: min(var(--t-56), calc((100vw - 2 * var(--s-4)) / 6.5)); }
+.hx-l { display: inline; white-space: nowrap; }
+.hx-l:first-child { display: block; }
+.hx-word { display: inline-block; white-space: nowrap; }
+.hx-letters { position: relative; display: inline-block; }
+.hx-ch { display: inline-grid; padding-inline: .05em; opacity: 0; filter: blur(1.5px); transition: opacity 420ms var(--ease-quint), filter 420ms var(--ease-quint); }
+.hx-ch[data-on="true"] { opacity: 1; filter: none; }
+/* the seven grey folders over the word: the illegible version */
+.hx-folders { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.hx-f { display: block; width: .4em; height: .4em; color: #D3D3D9; margin-top: .1em; opacity: 1; filter: none; transition: opacity 420ms var(--ease-quint), filter 420ms var(--ease-quint); }
+.hx-f .mac-folder { width: 100%; height: 100%; }
+.hx-f[data-on="true"] { opacity: 0; filter: blur(1.5px); }
+.hx-stage[data-reset="true"] .hx-ch, .hx-stage[data-reset="true"] .hx-f, .hx-stage[data-reset="true"] .hx-rg-l, .hx-stage[data-reset="true"] .hx-col-in { transition: none !important; }
+
+.hx-sub { order: 4; }
+.hx-lede { color: rgba(255,255,255,.88); max-width: 40ch; margin: 0; }
+.hx-cta { display: flex; flex-wrap: wrap; gap: var(--s-3); align-items: center; margin-top: var(--s-6); }
+.hx-fine { color: #fff; text-shadow: 0 1px 8px rgba(8,8,12,.3); margin: var(--s-4) 0 0; max-width: 46ch; }
+.hx .hx-dmg { background: var(--mac-win); color: #fff; }
+.hx .hx-dmg:hover { background: var(--mac-side); }
+.hx .chip { background: rgba(20,20,22,.78); border-color: rgba(255,255,255,.2); color: #fff; }
+.hx .chip:hover { border-color: rgba(255,255,255,.7); }
+.hx .chip .copied-in { background: var(--mac-win); color: #fff; }
+
+/* the poster column: a standalone Finder sidebar */
+.hx-colbox { order: 2; position: relative; flex: none; width: calc(204px * var(--z)); height: calc(330px * var(--z)); }
+.hx-col { position: absolute; left: 0; top: 0; width: 204px; height: 330px; transform-origin: 0 0; transform: scale(var(--z)); will-change: transform; }
+.hx-col-in { position: absolute; inset: 0; overflow: hidden; border-radius: 0 11px 11px 0; font-family: var(--mac-font); font-size: 13px; line-height: 1.25; color: var(--mac-text);
+  -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.7), 0 40px 80px -24px rgba(0,0,0,.6), 0 14px 28px -14px rgba(0,0,0,.5);
+  opacity: 0; translate: 0 24px; transition: opacity 700ms var(--ease), translate 700ms var(--ease); }
+.hx-stage[data-settled="true"] .hx-col-in { opacity: 1; translate: 0 0; }
+.hx-strip { height: 52px; background: var(--mac-bar); display: flex; align-items: center; padding: 0 0 0 20px; border-bottom: 1px solid rgba(0,0,0,.45); }
+.hx-col .mac-side { height: 278px; overflow: hidden; }
+.hx-colbox .mac-lights { margin-right: 0; }
+
+/* the resting window and its copy exist only in the scrub layout */
+.hx-rest { display: none; }
+.hx-how { position: relative; z-index: 1; background: var(--graphite); padding: var(--s-8) var(--s-4) var(--s-9); scroll-margin-top: 64px; }
+.hx-h2 { color: #fff; max-width: 14ch; }
+.hx-lede2 { color: rgba(255,255,255,.88); max-width: 40ch; margin: var(--s-5) 0 0; font-size: var(--fs-lede); line-height: 1.5; }
+
+/* tools: hint + replay */
+.hx-tools { order: 3; display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; }
+.hx-hint { font-size: var(--t-13); line-height: 1.25; color: #fff; background: rgba(20,20,22,.78); border-radius: 8px; padding: 8px 12px; min-height: 32px; display: inline-flex; align-items: center; font-family: var(--mac-font); }
+.hx-hint:empty { visibility: hidden; }
+.hx-replay { display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); min-height: 44px; min-width: 44px; padding: 0 var(--s-4); border-radius: 999px; border: 1px solid rgba(255,255,255,.3); background: rgba(20,20,22,.78); color: #fff; font-size: var(--t-14); font-weight: 600; transition: background-color var(--t-fast), opacity var(--t-fast); }
+.hx-replay:hover { background: rgba(20,20,22,.95); }
+.hx-replay:disabled { opacity: .5; cursor: default; }
+.hx-replay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* picker: a dark macOS-style popover beside the row (scaled with the row, capped to the stage) */
+.hx-pop { position: absolute; z-index: 5; width: 272px; padding: var(--s-3); border-radius: 12px; background: rgb(40,40,44); color: var(--mac-text);
   font-family: var(--mac-font); box-shadow: 0 0 0 .5px rgba(0,0,0,.8), inset 0 0 0 .5px rgba(255,255,255,.14), 0 24px 48px -16px rgba(0,0,0,.7);
-  backdrop-filter: blur(18px); animation: hx-pop-in 180ms var(--ease-quint); transform-origin: top left; transform: scale(var(--z, 1)); }
+  animation: hx-pop-in 180ms var(--ease-quint); transform-origin: top left; transform: scale(var(--pz, 1)); }
 @keyframes hx-pop-in { from { opacity: 0; translate: 0 4px; } to { opacity: 1; translate: 0 0; } }
 .hx-pop-h { margin: 0 0 var(--s-2); font-size: 12px; font-weight: 600; color: var(--mac-dim); }
 .hx-pop-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
@@ -46,21 +93,71 @@
 .hx-opt .hx-rg { width: 18px; height: 18px; }
 .hx-opt .mac-folder { width: 18px; height: 18px; }
 .hx-pop-f { margin: var(--s-3) 0 0; font-size: 11px; line-height: 1.4; color: var(--mac-dim); }
+.hx-rg { display: grid; width: 16px; height: 16px; }
+.hx-rg-l { grid-area: 1 / 1; display: grid; place-items: center; }
 @media (max-width: 599px) {
+  .hx .chip { font-size: 13px; }
   .hx-pop { position: fixed; left: var(--s-3) !important; right: var(--s-3); top: auto !important; bottom: var(--s-3); width: auto; z-index: 70; transform: none; }
   .hx-opt { height: 44px; }
 }
 
-/* tools under the window (inside the band) */
-.hx-tools { position: absolute; left: 0; right: 0; top: 100%; margin-top: var(--s-4); display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
-.hx-hint { font-size: var(--t-14); color: rgba(255,255,255,.88); text-shadow: 0 1px 2px rgba(0,0,0,.25); min-height: 24px; }
-.hx-replay { display: inline-flex; align-items: center; gap: var(--s-2); min-height: 44px; padding: 0 var(--s-3); border-radius: 999px; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.18); color: #fff; font-size: var(--t-14); font-weight: 600; backdrop-filter: blur(8px); transition: background-color 150ms, opacity 150ms; }
-.hx-replay:hover { background: rgba(0,0,0,.32); }
-.hx-replay:disabled { opacity: .45; cursor: default; }
-.hx-replay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-.hx-stage { margin-bottom: calc(44px + var(--s-4)); }
+/* tablets (600-899): headline across the top, column and copy side by side */
+@media (min-width: 600px) and (max-width: 899px) {
+  .hx { --z: min(1.9, tan(atan2(40vw, 204px))); }
+  .hx-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--s-6); align-items: center; }
+  .hx-h1 { grid-column: 1 / -1; grid-row: 1; font-size: min(var(--t-72), calc((100vw - 2 * var(--s-4)) / 6.5)); }
+  .hx-colbox { grid-column: 1; grid-row: 2; }
+  .hx-sub { grid-column: 2; grid-row: 2; }
+  .hx-tools { grid-column: 1 / -1; grid-row: 3; }
+}
 
+/* desktop: the column is flush left and as tall as the stage allows; the headline is centred in what is left */
+@media (min-width: 900px) {
+  .hx {
+    --z: min(2.6, tan(atan2(calc(var(--stage-h) - 64px - 2 * var(--s-6)), 330px)), tan(atan2(34vw, 204px)));
+  }
+  .hx-stage { padding-top: 0; }
+  .hx-hero { display: block; padding: 64px 0 0; height: var(--stage-h); }
+  .hx-colbox { position: absolute; left: 0; top: 64px; z-index: 2; }
+  .hx-head { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; position: absolute; top: 64px; bottom: 0;
+    left: calc(204px * var(--z) + var(--s-8)); right: var(--gutter); }
+  .hx-h1 { font-size: min(var(--fs-h1), calc((100vw - 204px * var(--z) - var(--s-8) - var(--gutter)) / 7.3)); }
+  .hx-l { display: block; }
+  .hx-sub { margin-top: var(--s-6); }
+  .hx-tools { position: absolute; left: var(--s-4); right: var(--gutter); bottom: var(--s-3); z-index: 3; pointer-events: none; }
+  .hx-tools > * { pointer-events: auto; }
+  .hx-how { padding-inline: var(--gutter); }
+  .hx-col-in { border-radius: 0 11px 11px 0; }
+}
+
+/* scrub layout */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .hx { height: 200vh; --rw: min(700px, calc((100vw - 2 * var(--gutter)) / 1.3)); }
+  .hx-stage { position: sticky; top: 0; height: var(--stage-h); overflow: hidden; }
+  .hx-hero { position: absolute; inset: 0; height: auto; }
+  .hx-shade { display: block; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(42% 52% at 84% 54%, rgba(8,8,12,.34), rgba(8,8,12,0) 72%); }
+  .hx-rest { display: block; position: absolute; inset: 0; z-index: 1; opacity: 0; }
+  .hx-restbox { position: absolute; left: var(--gutter); top: calc(64px + var(--s-7)); width: calc(var(--rw) * 1.3); height: calc(330px * 1.3); }
+  .hx-restbox .mac-zoom { --z: 1.3; }
+  .hx-restwin .mac-body { height: 278px; }
+  .hx-restwin .mac-pane { overflow: hidden; grid-template-rows: repeat(2, auto); grid-auto-rows: 0; }
+  .hx-restwin .mac-tile { overflow: hidden; }
+  .hx-restwin .mac-side { overflow: hidden; }
+  .hx-how { position: absolute; z-index: 1; left: var(--gutter); right: var(--gutter); top: calc(64px + var(--s-7) + 330px * 1.3 + var(--s-6)); bottom: auto; padding: 0; background: none; opacity: 0; }
+  .hx-h2 { font-size: clamp(32px, 4vw, 52px); max-width: 16ch; }
+  .hx-lede2 { max-width: 44ch; }
+}
+@media (min-width: 1100px) and (prefers-reduced-motion: no-preference) {
+  .hx { --rw: clamp(444px, calc((100vw - 2 * var(--gutter) - var(--s-8) - 340px) / 1.3), 700px); }
+  .hx-restbox { top: calc(50% + 32px); translate: 0 -50%; }
+  .hx-how { left: calc(var(--gutter) + var(--rw) * 1.3 + var(--s-8)); top: 64px; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+  .hx-h2 { font-size: clamp(32px, 3.4vw, 52px); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .hx-win { opacity: 1; translate: 0 0; transition: none; }
+  .hx-col-in { opacity: 1; translate: 0 0; transition: none; }
+  .hx-ch { opacity: 1; filter: none; }
+  .hx-f { opacity: 0; }
+  .hx .hx-vivid { --sat: 1; transition: none; }
   .hx-pop { animation: none; }
 }

@@ -3,7 +3,7 @@
 .cl-entry { grid-template-columns: minmax(0, 1fr); display: grid; gap: var(--s-5) var(--s-7); padding: var(--s-7) 0; border-top: 1px solid var(--line); }
 @media (min-width: 1100px) { .cl-entry { grid-template-columns: 160px minmax(0, 1fr); } }
 .cl-entry code, .cl-entry li { overflow-wrap: anywhere; }
-.cl-ver { font-family: var(--font-display); font-variation-settings: "opsz" 32, "wdth" 100; font-weight: 600; font-size: var(--t-32); letter-spacing: -0.02em; line-height: 1; }
+.cl-ver { font-family: var(--font-display); font-weight: 700; font-size: var(--t-32); letter-spacing: -0.02em; line-height: 1; }
 .cl-date { color: var(--muted); font-size: var(--t-14); line-height: 1.55; margin-top: var(--s-2); }
 .cl-entry h3 { font-size: var(--t-13); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink); margin: var(--s-6) 0 var(--s-3); font-weight: 700; }
 .cl-entry h3:first-of-type { margin-top: 0; }

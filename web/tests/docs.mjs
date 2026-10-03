@@ -1,9 +1,9 @@
-// Docs + changelog tests. Needs a running server: BASE=http://localhost:3235 node --test tests/docs.mjs
+// Docs + changelog tests. Needs a running server: BASE=http://localhost:3249 node --test tests/docs.mjs
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import puppeteer from "puppeteer-core";
 
-const BASE = process.env.BASE || "http://localhost:3235";
+const BASE = process.env.BASE || "http://localhost:3249";
 const CH = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 // Registry order = nav order = prev/next order.
 const SLUGS = ["quick-start", "install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
@@ -146,4 +146,27 @@ test("docs: table code tokens never wrap mid-word", async () => {
     assert.deepEqual(bad, [], `wrapped at ${width}`);
     await page.close();
   }
+});
+
+test("docs: article is centred, tables set code nowrap, headings use the display font", async () => {
+  const t = await open("/docs/config-json");
+  const code = await t.$$eval(".dx-table td code", (c) => c.map((x) => getComputedStyle(x).whiteSpace));
+  assert.ok(code.length > 0 && code.every((x) => x === "nowrap"), "table code: " + code);
+  await t.close();
+  const page = await open("/docs/custom-svg-icons");
+  const r = await page.evaluate(() => {
+    const a = document.querySelector(".dx-main"), h = a.getBoundingClientRect(), cs = getComputedStyle(a);
+    const pr = parseFloat(cs.paddingRight), pl = parseFloat(cs.paddingLeft);
+    const body = document.querySelector(".dx-body").getBoundingClientRect();
+    const mid = (h.left + pl + h.right - pr) / 2, bm = (body.left + body.right) / 2;
+    const code = [...document.querySelectorAll(".dx-table td code")].map((c) => getComputedStyle(c).whiteSpace);
+    const fam = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e).fontFamily : null; };
+    const w = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e).fontWeight : null; };
+    return { off: Math.abs(mid - bm), code, h1: fam(".dx-h1"), h2: fam(".dx-h2"), body: fam("body"), w1: w(".dx-h1"), w2: w(".dx-h2"), w3: w(".dx-h3"), ws: w(".dx-step-title") };
+  });
+  assert.ok(r.off < 2, "article centre off by " + r.off);
+  assert.match(r.h1, /schibsted/i); assert.match(r.h2, /schibsted/i);
+  assert.equal(r.w1, "700"); assert.equal(r.w2, "700");
+  if (r.w3) assert.equal(r.w3, "600");
+  await page.close();
 });

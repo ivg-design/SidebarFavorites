@@ -1,81 +1,63 @@
-import type { ReactNode } from "react";
-
-export type HoodKey = "config" | "icons" | "bundle" | "plist" | "car" | "exec" | "advanced";
+export type HoodKey = "config" | "icons" | "backups" | "bundle" | "plist" | "exec" | "car" | "advanced";
 
 export interface HoodNode {
   key: HoodKey;
-  /** Tree guides for ancestor levels ("|" continues, " " ended) and this line's elbow (t = tee, l = last). */
-  guides: string;
-  elbow: "t" | "l";
+  /** 0 = directly in SidebarFavorites/, 1 = inside the helper bundle. */
+  depth: 0 | 1;
   name: string;
   note: string;
-  title: string;
-  body: ReactNode[];
+  /** What the panel shows: the thing's real content or format, then a sentence or two. */
+  peek: string[];
+  body: string;
 }
 
-/** One entry per selectable line of the bundle listing, in listing order. */
+/** The files the app writes under ~/Library/Application Support/SidebarFavorites/ (README "How it works", docs/ARCHITECTURE). */
 export const HOOD_NODES: HoodNode[] = [
   {
-    key: "config", guides: "", elbow: "t", name: "config.json", note: "every favorite: path, code, icon",
-    title: "config.json",
-    body: [
-      "The app’s whole state: for every favorite, the folder’s path, the four-character code allocated to it, and the icon chosen for it.",
-      <>Imported artwork sits beside it in <code>Icons/</code>. Settings links straight to the helper bundle, so you can open it in Finder and look for yourself.</>,
-    ],
+    key: "config", depth: 0, name: "config.json", note: "the app’s state",
+    peek: ["favorites    one per row: osType, provenance …", "settings", "helper       digest, generation"],
+    body: "Each favorite stores the four-character code allocated to it, once, and never changes it. The file is written atomically, and a file that cannot be read is moved aside, never replaced.",
   },
   {
-    key: "icons", guides: "", elbow: "t", name: "Icons/", note: "imported SVG artwork",
-    title: "Icons/",
-    body: [
-      "The SVG files you import, kept as you gave them. They are compiled into the helper bundle’s symbol catalog; this folder is the source the app rebuilds from.",
-    ],
+    key: "icons", depth: 0, name: "Icons/", note: "your imported SVGs",
+    peek: ["my-mark.svg", "another.svg"],
+    body: "Imported SVGs, kept verbatim as you supplied them. They are compiled into the helper bundle’s symbol catalog.",
   },
   {
-    key: "bundle", guides: "", elbow: "t", name: "SidebarFavoritesIcons.app/", note: "the helper bundle, never launched",
-    title: "SidebarFavoritesIcons.app",
-    body: [
-      "One small bundle for every favorite. It declares a type per favorite and nothing else, and it is never launched.",
-      "That is the whole mechanism for a normal favorite: no extension, no daemon, no login item, no launch agent.",
-    ],
+    key: "backups", depth: 0, name: "IconBackups/", note: "a copy before “Remove its icon”",
+    peek: ["IconBackups/  a copy of the folder’s own icon"],
+    body: "Nothing is deleted until you press Save or Apply, and a copy of the folder’s icon is kept here first.",
   },
   {
-    key: "plist", guides: "| ", elbow: "t", name: "Info.plist", note: "one UTI per favorite: code → SF Symbol",
-    title: "Info.plist",
-    body: [
-      <>Each favorite’s Finder row carries a private property, <code>com.apple.LSSharedFileList.OverrideIcon.OSType</code>, holding its four-character code.</>,
-      "Info.plist declares one UTI per favorite, tags it with that code and points it at an SF Symbol. Launch Services does the lookup, so Finder draws the glyph with no code of ours running.",
-    ],
+    key: "bundle", depth: 0, name: "SidebarFavoritesIcons.app/", note: "the helper bundle, never launched",
+    peek: ["Contents/", "  Info.plist", "  MacOS/SidebarFavoritesIcons", "  Resources/Assets.car"],
+    body: "One small bundle for every favorite. It declares a type per favorite and nothing else. It has no executable code of any kind, and it is never launched.",
   },
   {
-    key: "car", guides: "| ", elbow: "t", name: "Resources/Assets.car", note: "custom SVGs, compiled into a symbol catalog",
-    title: "Resources/Assets.car",
-    body: [
-      "Your imported SVGs, compiled into a symbol catalog inside the bundle. A custom icon is just another symbol that a UTI can point to, exactly like the built-in SF Symbols.",
-    ],
+    key: "plist", depth: 1, name: "Contents/Info.plist", note: "one UTI per favorite",
+    peek: ["UTExportedTypeDeclarations", "  one entry per enabled favorite:", "  code → SF Symbol"],
+    body: "Each entry tags a type with the favorite’s code and points it at an SF Symbol. Launch Services does the lookup, so Finder draws the glyph with no code of ours running.",
   },
   {
-    key: "exec", guides: "| ", elbow: "l", name: "MacOS/SidebarFavoritesIcons", note: "17 bytes: #!/bin/sh, a no-op so macOS registers the bundle",
-    title: "MacOS/SidebarFavoritesIcons",
-    body: [
-      <>The “executable” is 17 bytes: <code>#!/bin/sh</code> and a newline. It exists only so macOS agrees to register the bundle, and the bundle is never launched.</>,
-      "The bundle contains no executable code of any kind. There is nothing in it that could run, so there is nothing running.",
-    ],
+    key: "exec", depth: 1, name: "Contents/MacOS/SidebarFavoritesIcons", note: "17 bytes, a no-op",
+    peek: ["#!/bin/sh", "exit 0"],
+    body: "17 bytes, and “no-op” is literal: the script does nothing and exits. It exists only so macOS agrees to register the bundle.",
   },
   {
-    key: "advanced", guides: "", elbow: "l", name: "AdvancedApps/", note: "only with Both icons: a host app and a Finder Sync extension per favorite (≈ 6 MB; the host quits itself after registering)",
-    title: "AdvancedApps/",
-    body: [
-      "Finder draws a sidebar row from a separate source when a Finder Sync extension claims that folder: the extension’s containing app icon. That path ignores the folder’s own icon, which is why the glyph survives.",
-      "So Both icons generates one tiny host app plus extension per favorite, carrying that favorite’s artwork. The host quits itself a few seconds after registering; only the extension stays, at about 6 MB.",
-      "The normal icon code stays on the row underneath, so if the helper is ever disabled the row falls back to it immediately.",
-    ],
+    key: "car", depth: 1, name: "Contents/Resources/Assets.car", note: "custom SVGs as symbols",
+    peek: ["compiled custom symbols", "absent when none are used"],
+    body: "Your SVGs, compiled into a symbol catalog. A custom icon is another symbol that a type can point to, like the built-in SF Symbols.",
+  },
+  {
+    key: "advanced", depth: 0, name: "AdvancedApps/", note: "only for Both icons",
+    peek: ["one host app + Finder Sync extension", "per Both icons favorite, about 6 MB"],
+    body: "Finder draws a row from a separate source when a Finder Sync extension claims the folder. The host quits itself seconds after registering; only the extension stays. The normal code stays on the row underneath.",
   },
 ];
 
-export const HOOD_CHAIN = [
-  "Favorites row",
-  "OverrideIcon.OSType",
-  "Launch Services",
-  "SidebarFavoritesIcons.app (UTI)",
-  "SF Symbol",
+export const HOOD_FACTS: [string, string][] = [
+  ["Nothing to enable.", "No extension to switch on, no permission to grant, for a normal favorite."],
+  ["Nothing running.", "The helper bundle is never launched. There is no daemon, no login item, no launch agent."],
+  ["Icons survive reboots and Finder restarts.", "The code sits on the Finder row; Launch Services resolves it every time."],
+  ["Quit the app and the icons stay.", "You open it only to add, edit or remove a favorite."],
 ];

@@ -16,10 +16,6 @@ async function open({ width = 1440, height = 900, reduced = true, path = "/" } =
   await page.goto(BASE + path, { waitUntil: "networkidle0" });
   return page;
 }
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function until(fn, ms = 3000) { const t = Date.now(); while (Date.now() - t < ms) { if (await fn()) return true; await sleep(50); } return false; }
-const attr = (page, sel, a) => page.$eval(sel, (e, a) => e.getAttribute(a), a);
-const text = (page, sel) => page.$eval(sel, (e) => e.textContent.replace(/ /g, " ").trim());
 
 test("no horizontal scroll at 1440/1280/834/390 on /, /docs, /changelog", async () => {
   for (const path of ["/", "/docs", "/changelog"]) {
@@ -62,10 +58,10 @@ test("every img on / has an alt attribute (empty only when decorative)", async (
   await page.close();
 });
 
-test("main sections: top, how, custom, everywhere, both, hood, install in order", async () => {
+test("main sections: top, how-steps, symbols, custom, everywhere, both, hood, install in order", async () => {
   const page = await open();
   const ids = await page.$$eval("main section[id]", (s) => s.map((x) => x.id));
-  assert.deepEqual(ids, ["top", "how", "custom", "everywhere", "both", "hood", "install"]);
+  assert.deepEqual(ids, ["top", "how-steps", "symbols", "custom", "everywhere", "both", "hood", "install"]);
   await page.close();
 });
 
@@ -77,12 +73,14 @@ test("header hash links point at existing ids", async () => {
   await page.close();
 });
 
-test("fonts: Bricolage on h1, Public Sans on body; hero h1 text", async () => {
+test("fonts: Schibsted Grotesk on h1 and body, Newsreader on the pivot; hero h1 text", async () => {
   const page = await open();
-  const f = await page.evaluate(() => ({ h: getComputedStyle(document.querySelector("h1")).fontFamily, b: getComputedStyle(document.body).fontFamily }));
-  assert.match(f.h, /Bricolage/);
-  assert.match(f.b, /Public Sans/);
-  assert.equal(await text(page, "h1"), "Your sidebar, finally legible.");
+  const f = await page.evaluate(() => ({ h: getComputedStyle(document.querySelector("h1")).fontFamily, b: getComputedStyle(document.body).fontFamily, p: getComputedStyle(document.querySelector(".pivot")).fontFamily }));
+  assert.match(f.h, /Schibsted/);
+  assert.match(f.b, /Schibsted/);
+  assert.match(f.p, /Newsreader/);
+  const h1 = await page.$eval("h1", (e) => (e.getAttribute("aria-label") || e.textContent).replace(/\s+/g, " ").trim());
+  assert.match(h1, /Your sidebar, finally legible\./);
   await page.close();
 });
 

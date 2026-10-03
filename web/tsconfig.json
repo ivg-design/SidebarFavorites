@@ -52,7 +52,21 @@
     ".next-flow/types/**/*.ts",
     ".next-flow/dev/types/**/*.ts",
     ".next-rive/types/**/*.ts",
-    ".next-rive/dev/types/**/*.ts"
+    ".next-rive/dev/types/**/*.ts",
+    ".next-3249/types/**/*.ts",
+    ".next-3249/dev/types/**/*.ts",
+    ".next-3247/types/**/*.ts",
+    ".next-3247/dev/types/**/*.ts",
+    ".next-3244/types/**/*.ts",
+    ".next-3244/dev/types/**/*.ts",
+    ".next-3246/types/**/*.ts",
+    ".next-3246/dev/types/**/*.ts",
+    ".next-how/types/**/*.ts",
+    ".next-how/dev/types/**/*.ts",
+    ".next-sym/types/**/*.ts",
+    ".next-sym/dev/types/**/*.ts",
+    ".next-lead/types/**/*.ts",
+    ".next-lead/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

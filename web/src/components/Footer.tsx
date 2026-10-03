@@ -1,40 +1,30 @@
 import Image from "next/image";
-import { asset, ISSUES_URL } from "@/lib/config";
+import { asset, ISSUES_URL, REPO_URL, RELEASES_URL } from "@/lib/config";
 import { nb } from "@/lib/nowrap";
 import "@/app/footer.css";
 
-const cols: { h: string; links: [string, string, boolean?][] }[] = [
-  { h: "Product", links: [["How it works", "/#how"], ["Custom icons", "/#custom"], ["Everywhere", "/#everywhere"], ["Both icons", "/#both"], ["Under the hood", "/#hood"], ["Install", "/#install"], ["Changelog", "/changelog"]] },
-  { h: "Help", links: [["Quick start", "/docs"], ["Cloud folders", "/docs/cloud-folders"], ["Disks and shares", "/docs/disks-and-shares"], ["Uninstalling", "/docs/uninstalling"], ["Building from source", "/docs/building-from-source"], ["Nix flake", "/docs/nix-flake"], ["Report an issue", ISSUES_URL, true], ["FAQ", "/docs/faq"]] },
-  { h: "More from Forge", links: [["Forge hub", "https://forge.mograph.life/", true], ["RAV", "https://forge.mograph.life/apps/rav/", true], ["LERP", "https://forge.mograph.life/apps/lerp/", true], ["fNav+", "https://forge.mograph.life/apps/fnav/", true], ["eXLib", "https://forge.mograph.life/apps/exlib/", true]] },
+const links: [string, string, boolean?][] = [
+  ["Docs", "/docs"],
+  ["Changelog", "/changelog"],
+  ["GitHub", REPO_URL, true],
+  ["Releases", RELEASES_URL, true],
+  ["Issues", ISSUES_URL, true],
+  ["MIT license", `${REPO_URL}/blob/main/LICENSE`, true],
 ];
 
 export default function Footer() {
   return (
     <footer className="foot" data-testid="footer">
-      <div className="wrap foot-grid">
-        <div className="foot-brand">
+      <div className="wrap foot-in">
+        <a className="foot-brand" href={asset("/")} aria-label="SidebarFavorites, home" data-testid="footer-home">
           <Image src={asset("/images/icon-64.png")} alt="" width={56} height={56} />
-          <b>SidebarFavorites</b>
-          <p className="fine">{nb("Finder sidebar icons for macOS, by IVG Design. MIT license.")}</p>
-          <p className="fine">{nb("© 2026 IVG Design")}</p>
-        </div>
-        <div className="foot-links">
-          {cols.map((c) => (
-            <nav key={c.h} aria-label={c.h}>
-              <p className="foot-h">{c.h}</p>
-              <ul>
-                {c.links.map(([l, h, ext]) => (
-                  <li key={l}>
-                    {ext
-                      ? <a href={h} target="_blank" rel="noopener noreferrer">{nb(l)}<span className="sr-only"> (opens in a new tab)</span></a>
-                      : <a href={asset(h)}>{nb(l)}</a>}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
+        </a>
+        <nav className="foot-links" aria-label="Footer">
+          {links.map(([l, h, ext]) => ext
+            ? <a key={l} href={h} target="_blank" rel="noopener noreferrer">{nb(l)}<span className="sr-only"> (opens in a new tab)</span></a>
+            : <a key={l} href={asset(h)}>{nb(l)}</a>)}
+        </nav>
+        <p className="fine foot-fine"><span>{nb("Finder sidebar icons for macOS, by IVG Design.")}</span> <span>{nb("© 2026 IVG Design")}</span></p>
       </div>
     </footer>
   );

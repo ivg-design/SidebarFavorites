@@ -1,31 +1,32 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useReducedMotion } from "framer-motion";
-import { RotateCcw } from "lucide-react";
-import { FolderTile, MacWindow, Pane, Sidebar, SideHeading, SideRow } from "../finder/Finder";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Download, RotateCcw } from "lucide-react";
+import { FolderGlyph, FolderTile, MacWindow, Pane, Sidebar, SideHeading, SideRow } from "../finder/Finder";
 import { FAVS, Glyph } from "../glyphs";
+import CopyButton from "../CopyButton";
+import { nb } from "@/lib/nowrap";
 import RowGlyph from "./RowGlyph";
 
-/* Native window metrics; the stage scales the whole window with one transform. */
-const WIN_W = 980;
-const WIN_H = 452;
+/* Native metrics (13 px Finder): sidebar 204 wide; strip 52 + sidebar 278 = 330 tall. One transform (--z) scales them. */
 const SIDE_W = 204;
-const FIRST_MS = 900;       // first row resolves
-const STAGGER_MS = 90;      // rows top to bottom
-const SYSTEM_TOP = [
-  { name: "AirDrop", glyph: "dot.radiowaves.left.and.right" }, { name: "Recents", glyph: "clock" },
-  { name: "Applications", glyph: "square.grid.2x2" }, { name: "Desktop", glyph: "desktopcomputer" },
-];
-const SYSTEM_BOTTOM = [{ name: "Downloads", glyph: "arrow.down.circle" }];
+const WORD = "legible";
+const FIRST_MS = 900;        // row 0 resolves
+const STAGGER_MS = 90;       // rows top to bottom; folder k of the headline and letter k resolve with row k
+const SAT_MS = 900;          // colour starts arriving with the first row (CSS transition is 1000 ms)
+const DONE_MS = 2300;
+const SCRUB_MQ = "(min-width: 900px) and (prefers-reduced-motion: no-preference)";
 const CONTENTS: Record<string, string[]> = {
-  Forge: ["Dies", "Blanks", "Orders", "Quotes", "Photos", "Archive", "Drawings", "Suppliers", "Jigs", "Invoices", "Scrap", "Notes"],
-  Samples: ["Kicks", "Snares", "Pads", "Field", "Vocals", "Loops", "FX", "Bass", "Keys", "Stems", "Bounces", "Old"],
-  Brand: ["Logo", "Type", "Colour", "Decks", "Social", "Print", "Guidelines", "Icons", "Photos", "Motion", "Web", "Archive"],
-  "Launch 2026": ["Plan", "Site", "Press", "Video", "Budget", "Legal", "Partners", "Assets", "Timeline", "Scripts", "Decks", "Done"],
-  Repos: ["sidebarfavorites", "fnav-plus", "lerp", "rav", "exlib", "tap", "herald", "web-watcher", "rfp", "nemo", "bakerboy", "scratch"],
-  "Google Drive": ["Shared", "Clients", "Invoices", "Scans", "Backups", "Misc", "Contracts", "Receipts", "Photos", "Forms", "Exports", "Old"],
-  Shoots: ["2026-01 Studio", "2026-02 Loft", "Selects", "RAW", "Edits", "Delivered", "Proofs", "Lightroom", "Backdrops", "LUTs", "Client", "Archive"],
-  Invoices: ["2024", "2025", "2026", "Paid", "Overdue", "Templates", "Drafts", "Credit notes", "Receipts", "Tax", "Quotes", "Sent"],
+  Forge: ["Dies", "Blanks", "Orders", "Quotes", "Photos", "Archive", "Drawings", "Suppliers", "Jigs", "Invoices"],
+  Samples: ["Kicks", "Snares", "Pads", "Field", "Vocals", "Loops", "FX", "Bass", "Keys", "Stems"],
+  Brand: ["Logo", "Type", "Colour", "Decks", "Social", "Print", "Guidelines", "Icons", "Photos", "Motion"],
+  "Launch 2026": ["Plan", "Site", "Press", "Video", "Budget", "Legal", "Partners", "Assets", "Timeline", "Scripts"],
+  Repos: ["sidebarfavorites", "fnav-plus", "lerp", "rav", "exlib", "tap", "herald", "web-watcher", "rfp", "nemo"],
+  "Google Drive": ["Shared", "Clients", "Invoices", "Scans", "Backups", "Misc", "Contracts", "Receipts", "Photos", "Forms"],
+  Shoots: ["2026-01 Studio", "2026-02 Loft", "Selects", "RAW", "Edits", "Delivered", "Proofs", "Lightroom", "Backdrops", "LUTs"],
+  Invoices: ["2024", "2025", "2026", "Paid", "Overdue", "Templates", "Drafts", "Credit notes", "Receipts", "Tax"],
 };
 /** The app's quick-pick grid: the grey folder default plus seventeen glyphs, 6 × 3. */
 const PICKS = [
@@ -35,68 +36,105 @@ const PICKS = [
 ];
 const COLS = 6;
 
-export default function HeroStage() {
+type Src = "col" | "rest";
+interface OpenState { i: number; src: Src }
+
+/** The sidebar content shared by the poster column and the resting window (same rows, same state). */
+function SideRows({ src, icons, sel, open, onRow }: { src: Src; icons: string[]; sel: number; open: OpenState | null; onRow: (i: number, src: Src) => void }) {
+  const pre = src === "col" ? "hero-row" : "hero-rest-row";
+  return (
+    <>
+      <SideHeading>Favorites</SideHeading>
+      <SideRow icon={<Glyph name="desktopcomputer" />} label="Desktop" />
+      {FAVS.map((f, i) => (
+        <SideRow
+          key={f.name} type="button" data-testid={`${pre}-${i}`} data-glyph={icons[i]}
+          selected={sel === i} aria-pressed={sel === i} aria-haspopup="dialog" aria-expanded={open?.i === i && open.src === src}
+          aria-label={`${f.name}: choose its sidebar icon`}
+          icon={<RowGlyph name={icons[i]} />} label={f.name}
+          onClick={() => onRow(i, src)}
+        />
+      ))}
+      <SideRow icon={<Glyph name="arrow.down.circle" />} label="Downloads" />
+    </>
+  );
+}
+
+export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: string }) {
   const reduce = !!useReducedMotion();
   const stageRef = useRef<HTMLDivElement>(null);
-  const [z, setZ] = useState(1.3);
-  const [settled, setSettled] = useState(reduce);
-  const [icons, setIcons] = useState<string[]>(() => FAVS.map((f) => (reduce ? f.glyph : "folder")));
-  const [done, setDone] = useState(reduce);
-  const [sel, setSel] = useState(0);
-  const [open, setOpen] = useState<number | null>(null);
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [run, setRun] = useState(0);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const colRef = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
+  const restRef = useRef<HTMLDivElement>(null);
+  const howRef = useRef<HTMLDivElement>(null);
+  const shadeRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const optRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const rowEl = useCallback((i: number) => stageRef.current?.querySelector<HTMLElement>(`[data-testid="hero-row-${i}"]`) ?? null, []);
 
-  // one transform fits the native window to the stage: 1.0–1.3 on desktop, 1.15 on phones (true-ish size, never tiny)
-  useLayoutEffect(() => {
-    const el = stageRef.current;
-    if (!el) return;
-    const measure = () => {
-      const vw = window.innerWidth;
-      const w = el.clientWidth;
-      const next = vw < 600 ? 1.15 : Math.min(1.3, Math.max(1, w / WIN_W));
-      setZ(Math.round(next * 1000) / 1000);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const [icons, setIcons] = useState<string[]>(() => FAVS.map(() => "folder"));
+  const [rev, setRev] = useState<boolean[]>(() => WORD.split("").map(() => false));
+  const [lit, setLit] = useState(false);
+  const [settled, setSettled] = useState(false);
+  const [reset, setReset] = useState(true);
+  const [done, setDone] = useState(false);
+  const [sel, setSel] = useState(0);
+  const [open, setOpen] = useState<OpenState | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; sc: number }>({ top: 0, left: 0, sc: 1 });
+  const [run, setRun] = useState(0);
+  const openRef = useRef<OpenState | null>(null);
+  useLayoutEffect(() => { openRef.current = open; });
 
-  // the move: window settles, then each favorite's grey folder resolves into its glyph, top to bottom
+  const rowEl = useCallback((o: OpenState) => stageRef.current?.querySelector<HTMLElement>(`[data-testid="${o.src === "col" ? "hero-row" : "hero-rest-row"}-${o.i}"]`) ?? null, []);
+
+  // the move: column settles, then row k, folder k and letter k resolve together; colour arrives with them
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    if (reduce) { timers.push(setTimeout(() => { setSettled(true); setIcons(FAVS.map((f) => f.glyph)); setDone(true); }, 0)); return () => timers.forEach(clearTimeout); }
-    timers.push(setTimeout(() => { setSettled(false); setDone(false); setIcons(FAVS.map(() => "folder")); }, 0));
-    timers.push(setTimeout(() => setSettled(true), 40));
-    FAVS.forEach((f, i) => timers.push(setTimeout(() => setIcons((p) => p.map((v, k) => (k === i ? f.glyph : v))), FIRST_MS + i * STAGGER_MS)));
-    timers.push(setTimeout(() => setDone(true), FIRST_MS + FAVS.length * STAGGER_MS + 420));
+    const t = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
+    if (reduce) {
+      t(() => { setReset(true); setIcons(FAVS.map((f) => f.glyph)); setRev(WORD.split("").map(() => true)); setLit(true); setSettled(true); setDone(true); }, 0);
+      t(() => setReset(false), 60);
+      return () => timers.forEach(clearTimeout);
+    }
+    t(() => { setReset(true); setIcons(FAVS.map(() => "folder")); setRev(WORD.split("").map(() => false)); setLit(false); setSettled(false); setDone(false); }, 0);
+    t(() => { setReset(false); setSettled(true); }, 60);
+    t(() => setLit(true), SAT_MS);
+    FAVS.forEach((f, i) => t(() => {
+      setIcons((p) => p.map((v, k) => (k === i ? f.glyph : v)));
+      if (i < WORD.length) setRev((p) => p.map((v, k) => (k === i ? true : v)));
+    }, FIRST_MS + i * STAGGER_MS));
+    t(() => setDone(true), DONE_MS);
     return () => timers.forEach(clearTimeout);
   }, [reduce, run]);
 
   const close = useCallback((refocus: boolean) => {
-    setOpen((cur) => { if (cur !== null && refocus) rowEl(cur)?.focus(); return null; });
+    const cur = openRef.current;
+    if (cur && refocus) rowEl(cur)?.focus();
+    setOpen(null);
   }, [rowEl]);
+  const closeRef = useRef(close);
+  useLayoutEffect(() => { closeRef.current = close; });
 
-  // picker sits beside the row (desktop) and is a sheet on phones (CSS)
+  // the picker sits beside the clicked row (scaled like the row, capped to the stage); a bottom sheet on phones (CSS)
   useLayoutEffect(() => {
-    if (open === null) return;
+    if (!open) return;
     const stage = stageRef.current, row = rowEl(open), pop = popRef.current;
     if (!stage || !row || !pop) return;
     const s = stage.getBoundingClientRect(), r = row.getBoundingClientRect();
-    const pw = pop.offsetWidth * z, ph = pop.offsetHeight * z; // the picker is scaled with the window
-    const left = Math.min(r.right - s.left + 10, s.width - pw - 8);
-    const top = Math.max(8, Math.min(r.top - s.top - 10, s.height - ph - 8));
-    setPos({ top, left });
-    const cur = PICKS.indexOf(icons[open]);
+    const rs = r.height / 24;
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const sc = Math.max(0.9, Math.min(rs, 1.7, (s.width - 16) / pw, (s.height - 16) / ph)); // beside the row at the row's scale, never past 1.7 and never off the stage
+    const left = Math.max(8, Math.min(r.right - s.left + 10, s.width - pw * sc - 8));
+    const top = Math.max(8, Math.min(r.top - s.top - 10 * sc, s.height - ph * sc - 8));
+    setPos({ top, left, sc });
+    const cur = PICKS.indexOf(icons[open.i]);
     requestAnimationFrame(() => optRefs.current[cur >= 0 ? cur : 0]?.focus());
-  }, [open, icons, rowEl, z]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, rowEl]);
 
   useEffect(() => {
-    if (open === null) return;
+    if (!open) return;
     const onDown = (e: PointerEvent) => { if (!popRef.current?.contains(e.target as Node) && !rowEl(open)?.contains(e.target as Node)) close(false); };
     const onKey = (e: globalThis.KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); close(true); } };
     document.addEventListener("pointerdown", onDown);
@@ -104,6 +142,77 @@ export default function HeroStage() {
     return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open, close, rowEl]);
 
+  // the zoom-out: the poster column scrubs down to its seat inside a real Finder window (desktop, motion allowed)
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const stage = stageRef.current, section = stage?.closest("section");
+    const col = colRef.current, box = boxRef.current, head = headRef.current, tools = toolsRef.current;
+    const rest = restRef.current, win = restRef.current?.querySelector<HTMLElement>(".mac-win"), how = howRef.current, shade = shadeRef.current;
+    if (!shade || !stage || !section || !col || !box || !head || !tools || !rest || !win || !how) return;
+    const mq = window.matchMedia(SCRUB_MQ);
+    let ctx: gsap.Context | undefined;
+    let st: ScrollTrigger | undefined;
+    const zNow = () => box.offsetWidth / SIDE_W;
+    const target = () => {
+      const s = box.getBoundingClientRect(), w = win.getBoundingClientRect(); // offset from the column's own seat
+      return { x: w.left - s.left, y: w.top - s.top, sc: w.width / win.offsetWidth };
+    };
+    const setInert = (p: number) => {
+      col.inert = p >= 0.8; rest.inert = p < 0.8; how.inert = p < 0.8;
+      tools.style.pointerEvents = p > 0.3 ? "none" : "";
+      stage.dataset.phase = p >= 0.8 ? "rest" : "col";
+    };
+    const build = () => {
+      ctx?.revert(); ctx = undefined; st = undefined;
+      col.inert = false; rest.inert = false; how.inert = false;
+      if (!mq.matches) return;
+      ctx = gsap.context(() => {
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: section, start: "top top", end: "bottom bottom", scrub: 0.6, invalidateOnRefresh: true,
+            onUpdate: (self) => { setInert(self.progress); if (openRef.current) closeRef.current(false); },
+            onRefresh: (self) => setInert(self.progress),
+          },
+        });
+        tl.fromTo(head, { y: 0, opacity: 1 }, { y: -48, opacity: 0, duration: 0.35 }, 0)
+          .fromTo(tools, { opacity: 1 }, { opacity: 0, duration: 0.35 }, 0)
+          .fromTo(col, { x: 0, y: 0, scale: zNow }, { x: () => target().x, y: () => target().y, scale: () => target().sc, duration: 1 }, 0)
+          .fromTo(col, { opacity: 1 }, { opacity: 0, duration: 0.1 }, 0.9)
+          .fromTo(rest, { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.7)
+          .fromTo(shade, { opacity: 0 }, { opacity: 1, duration: 0.35 }, 0.65)
+          .fromTo(how, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.35 }, 0.65);
+        st = tl.scrollTrigger;
+        gsap.set(col, { transformOrigin: "0 0" });
+        setInert(st?.progress ?? 0);
+      }, stage);
+    };
+    build();
+    mq.addEventListener("change", build);
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    // "#how" lives at the end of the scroll range: land on the resting state
+    const toHow = (behavior: ScrollBehavior) => { if (st) window.scrollTo({ top: st.end, behavior }); };
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as Element | null)?.closest?.("a");
+      if (!a || !st || !mq.matches) return;
+      const u = new URL(a.href, location.href);
+      if (u.hash !== "#how" || u.pathname !== location.pathname) return;
+      e.preventDefault();
+      history.replaceState(null, "", "#how");
+      toHow("smooth");
+    };
+    document.addEventListener("click", onClick, true);
+    let t1: ReturnType<typeof setTimeout> | undefined, t2: ReturnType<typeof setTimeout> | undefined;
+    if (location.hash === "#how") { t1 = setTimeout(() => toHow("instant"), 60); t2 = setTimeout(() => toHow("instant"), 500); }
+    return () => {
+      clearTimeout(t1); clearTimeout(t2);
+      document.removeEventListener("click", onClick, true);
+      mq.removeEventListener("change", build);
+      ctx?.revert();
+    };
+  }, []);
+
+  const onRow = (i: number, src: Src) => { setSel(i); setOpen((o) => (o && o.i === i && o.src === src ? null : { i, src })); };
   const pick = (i: number, glyph: string) => { setIcons((p) => p.map((v, k) => (k === i ? glyph : v))); close(true); };
   const gridKeys = (e: KeyboardEvent<HTMLButtonElement>, idx: number) => {
     const n = PICKS.length;
@@ -114,58 +223,105 @@ export default function HeroStage() {
     optRefs.current[Math.max(0, Math.min(n - 1, next))]?.focus();
   };
 
-  const stageStyle = { ["--z" as string]: z, height: `${Math.round(WIN_H * z)}px` } as CSSProperties;
   const title = FAVS[sel].name;
-
   return (
-    <div className="hx-stage" ref={stageRef} style={stageStyle} data-done={done} data-testid="hero-stage">
-      <div className="hx-win" data-settled={settled} style={{ width: WIN_W, height: WIN_H }}>
-        <MacWindow title={title} titleTestId="hero-title" sideWidth={SIDE_W} style={{ height: "100%" }}>
-          <Sidebar>
-            <SideHeading>Favorites</SideHeading>
-            {SYSTEM_TOP.map((r) => <SideRow key={r.name} icon={<Glyph name={r.glyph} />} label={r.name} />)}
-            {FAVS.map((f, i) => (
-              <SideRow
-                key={f.name} type="button" data-testid={`hero-row-${i}`} data-glyph={icons[i]}
-                selected={sel === i} aria-pressed={sel === i} aria-haspopup="dialog" aria-expanded={open === i}
-                aria-label={`${f.name}: choose its sidebar icon`}
-                icon={<RowGlyph name={icons[i]} />} label={f.name}
-                onClick={() => { setSel(i); setOpen((o) => (o === i ? null : i)); }}
-              />
-            ))}
-            {SYSTEM_BOTTOM.map((r) => <SideRow key={r.name} icon={<Glyph name={r.glyph} />} label={r.name} />)}
-            <SideHeading>iCloud</SideHeading>
-            <SideRow icon={<Glyph name="icloud" />} label="iCloud Drive" />
-          </Sidebar>
-          <Pane>
-            {(CONTENTS[title] ?? []).map((t) => <FolderTile key={t} label={t} />)}
-          </Pane>
-        </MacWindow>
+    <div className="hx-stage" ref={stageRef} data-done={done} data-lit={lit} data-settled={settled} data-reset={reset} data-phase="col" data-testid="hero-stage">
+      <div className="vivid hx-vivid" data-testid="hero-vivid" aria-hidden="true" />
+
+      <div className="hx-shade" ref={shadeRef} aria-hidden="true" />
+
+      <div className="hx-hero">
+        <div className="hx-head" ref={headRef}>
+          <h1 id="hero-title-h1" className="h1 hx-h1">
+            <span className="sr-only">Your sidebar, finally legible.</span>
+            <span className="hx-lines" aria-hidden="true">
+              <span className="hx-l">Your sidebar,</span>{" "}
+              <span className="hx-l hx-l2">finally</span>{" "}
+              <span className="pivot hx-word" data-testid="hero-word">
+                <span className="hx-letters">
+                  {WORD.split("").map((c, k) => (
+                    <span key={k} className="hx-ch" data-on={rev[k]} data-k={k}>{c}</span>
+                  ))}
+                  <span className="hx-folders" data-testid="hero-folders">
+                    {WORD.split("").map((_, k) => (
+                      <span key={k} className="hx-f" data-on={rev[k]} data-k={k}><FolderGlyph /></span>
+                    ))}
+                  </span>
+                </span>.
+              </span>
+            </span>
+          </h1>
+          <div className="hx-sub">
+            <p className="lede hx-lede">
+              {nb("Finder gives every favorite the same grey folder. SidebarFavorites puts the icon you want on each one — any of about 8,300 SF Symbols, or any SVG you own.")}
+            </p>
+            <div className="hx-cta">
+              <a className="btn btn-primary btn-lg hx-dmg" href={dmgUrl} data-testid="hero-dmg">
+                <Download size={20} aria-hidden="true" />
+                Download for Mac
+              </a>
+              <CopyButton text={brew} variant="chip" />
+            </div>
+            <p className="fine hx-fine">{nb("Free and MIT licensed. macOS 13 or later, Apple silicon and Intel.")}</p>
+          </div>
+        </div>
+
+        <div className="hx-colbox" ref={boxRef}>
+          <div className="hx-col" ref={colRef} data-testid="hero-col">
+            <div className="hx-col-in">
+              <div className="hx-strip" aria-hidden="true"><span className="mac-lights"><i /><i /><i /></span></div>
+              <Sidebar>
+                <SideRows src="col" icons={icons} sel={sel} open={open} onRow={onRow} />
+              </Sidebar>
+            </div>
+          </div>
+        </div>
+
+        <div className="hx-tools" ref={toolsRef}>
+          <span className="hx-hint" aria-live="polite">{done ? "Click any favorite to pick its icon." : ""}</span>
+          <button type="button" className="hx-replay" data-testid="hero-replay" disabled={!done} onClick={() => { close(false); setRun((r) => r + 1); }}>
+            <RotateCcw size={14} aria-hidden="true" /> Replay
+          </button>
+        </div>
       </div>
 
-      {open !== null && (
-        <div ref={popRef} className="hx-pop" role="dialog" aria-label={`Icon for ${FAVS[open].name}`} style={{ top: pos.top, left: pos.left }} data-testid="hero-pop">
-          <p className="hx-pop-h">Icon for {FAVS[open].name}</p>
-          <div className="hx-pop-grid" role="listbox" aria-label="Quick picks" aria-activedescendant={undefined}>
+      <div className="hx-rest" ref={restRef} data-testid="hero-rest">
+        <div className="hx-restbox">
+          <div className="mac-zoom" style={{ ["--z" as string]: 1.3 } as CSSProperties}>
+            <MacWindow title={title} titleTestId="hero-title" sideWidth={SIDE_W} className="hx-restwin">
+              <Sidebar>
+                <SideRows src="rest" icons={icons} sel={sel} open={open} onRow={onRow} />
+              </Sidebar>
+              <Pane>{(CONTENTS[title] ?? []).map((n) => <FolderTile key={n} label={n} />)}</Pane>
+            </MacWindow>
+          </div>
+        </div>
+      </div>
+
+      <div className="hx-how" ref={howRef}>
+        <h2 className="h2 hx-h2" id="how">Pick a folder. Pick an icon. Add.</h2>
+        <p className="lede hx-lede2">{nb("Three fields and a button. The name follows the folder, because Finder always labels a favorite with its folder's real name.")}</p>
+      </div>
+
+      {open && (
+        <div
+          ref={popRef} className="hx-pop" role="dialog" aria-label={`Icon for ${FAVS[open.i].name}`}
+          style={{ top: pos.top, left: pos.left, ["--pz" as string]: pos.sc } as CSSProperties} data-testid="hero-pop"
+        >
+          <p className="hx-pop-h">Icon for {FAVS[open.i].name}</p>
+          <div className="hx-pop-grid" role="listbox" aria-label="Quick picks">
             {PICKS.map((g, k) => (
               <button
-                key={g} ref={(el) => { optRefs.current[k] = el; }} type="button" role="option" aria-selected={icons[open] === g}
-                className="hx-opt" data-testid={`hero-pick-${g}`} title={g} onKeyDown={(e) => gridKeys(e, k)} onClick={() => pick(open, g)}
+                key={g} ref={(el) => { optRefs.current[k] = el; }} type="button" role="option" aria-selected={icons[open.i] === g}
+                className="hx-opt" data-testid={`hero-pick-${g}`} title={g} onKeyDown={(e) => gridKeys(e, k)} onClick={() => pick(open.i, g)}
               >
                 {g === "folder" ? <RowGlyph name="folder" /> : <Glyph name={g} size={18} />}
               </button>
             ))}
           </div>
-          <p className="hx-pop-f">Browse All… in the app searches every symbol this Mac can draw, about 8,300.</p>
+          <p className="hx-pop-f">{nb("Browse All… in the app searches every symbol this Mac can draw, about 8,300.")}</p>
         </div>
       )}
-
-      <div className="hx-tools">
-        <span className="hx-hint" aria-live="polite">{done ? "Click any favorite to pick its icon." : ""}</span>
-        <button type="button" className="hx-replay" data-testid="hero-replay" disabled={!done} onClick={() => { close(false); setRun((r) => r + 1); }}>
-          <RotateCcw size={14} aria-hidden="true" /> Replay
-        </button>
-      </div>
     </div>
   );
 }

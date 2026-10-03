@@ -1,22 +1,28 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { asset, REPO_URL } from "@/lib/config";
 import "@/app/nav.css";
 
+// id = the link's data-id; el = the element observed on the home page
 const SECTIONS = [
-  { id: "how", label: "How it works" },
-  { id: "custom", label: "Custom icons" },
-  { id: "everywhere", label: "Everywhere" },
-  { id: "both", label: "Both icons" },
-  { id: "hood", label: "Under the hood" },
+  { id: "how", el: "how-steps", label: "How it works" },
+  { id: "symbols", el: "symbols", label: "Symbols" },
+  { id: "custom", el: "custom", label: "Custom icons" },
+  { id: "everywhere", el: "everywhere", label: "Everywhere" },
+  { id: "both", el: "both", label: "Both icons" },
+  { id: "hood", el: "hood", label: "Under the hood" },
 ] as const;
 
 const home = (id: string) => `${asset("/")}#${id}`;
+const target = (id: string) => SECTIONS.find((s) => s.id === id)?.el ?? id;
 
 export default function Header() {
+  const onHome = usePathname() === "/";
   const [stuck, setStuck] = useState(false);
+  const [heroOn, setHeroOn] = useState(true); // the dark hero is under the bar
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
@@ -32,15 +38,24 @@ export default function Header() {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
+  // dark hero under the bar: observe #top (its own bottom edge passing the bar's bottom ends the dark state)
+  useEffect(() => {
+    const top = onHome ? document.getElementById("top") : null;
+    if (!top) return;
+    const io = new IntersectionObserver(([e]) => setHeroOn(e.isIntersecting), { rootMargin: "-64px 0px 0px 0px" });
+    io.observe(top);
+    return () => io.disconnect();
+  }, [onHome]);
+
   // section in view
   useEffect(() => {
-    const els = [...SECTIONS.map((s) => s.id), "install"].map((id) => document.getElementById(id)).filter((e): e is HTMLElement => !!e);
+    const els = [...SECTIONS.map((s) => s.el), "install"].map((id) => document.getElementById(id)).filter((e): e is HTMLElement => !!e);
     if (!els.length) return;
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
-          if (e.isIntersecting) setActive(e.target.id === "install" ? null : e.target.id);
-          else setActive((cur) => (cur === e.target.id && e.boundingClientRect.top > 0 ? null : cur));
+          if (e.isIntersecting) setActive(e.target.id === "install" ? null : (SECTIONS.find((s) => s.el === e.target.id)?.id ?? null));
+          else setActive((cur) => (target(cur ?? "") === e.target.id && e.boundingClientRect.top > 0 ? null : cur));
         }
       },
       { rootMargin: "-30% 0px -60% 0px" },
@@ -94,8 +109,9 @@ export default function Header() {
     };
   }, [open, close]);
 
+  const dark = onHome && heroOn && !open;
   return (
-    <header className="nav" data-stuck={stuck} data-testid="header">
+    <header className="nav" data-stuck={stuck && !dark} data-home={onHome} data-on-dark={dark} data-testid="header">
       <div className="wrap nav-in">
         <a className="nav-brand" href={asset("/")} aria-label="SidebarFavorites home">
           <Image src={asset("/images/icon-64.png")} alt="" width={54} height={54} priority />

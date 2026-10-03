@@ -1,94 +1,124 @@
 "use client";
-import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react";
-import { Cloud, Folder, HardDrive, Server } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { HardDrive, Plus, Server } from "lucide-react";
 import { Reveal } from "./motion/Reveal";
-import { Vivid } from "./finder/Finder";
-import EvSidebar from "./everywhere/EvSidebar";
-import { KINDS, LOC_OFF, LOC_ON, LOC_OWN, NOTES, ROWS, type Kind } from "./everywhere/data";
+import { FolderGlyph, SideHeading, SideRow, Sidebar, Vivid } from "./finder/Finder";
+import { Glyph } from "./glyphs";
+import Zoom from "./everywhere/Zoom";
+import { ROWS, type EvRow } from "./everywhere/data";
 import { nb } from "@/lib/nowrap";
 import "@/app/everywhere.css";
 
-const ICONS = { local: Folder, cloud: Cloud, disk: HardDrive, share: Server } as const;
-const START = new Set(ROWS.filter((r) => r.kind === "local" && r.glyph).map((r) => r.key));
+function Eject() {
+  return (
+    <svg className="eject" width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+      <path d="M6 1.5 10.2 7H1.8L6 1.5Z" /><rect x="1.8" y="8.4" width="8.4" height="1.6" rx=".6" />
+    </svg>
+  );
+}
+
+function baseIcon(base: EvRow["base"]): ReactNode {
+  if (base === "drive") return <HardDrive size={16} strokeWidth={1.6} aria-hidden="true" />;
+  if (base === "server") return <Server size={16} strokeWidth={1.6} aria-hidden="true" />;
+  return <FolderGlyph />;
+}
+
+/** macOS's default icon dissolves into the glyph the app applied (the kit's Morph layers, any base). */
+function RowIcon({ row, on }: { row: EvRow; on: boolean }) {
+  return (
+    <span className="mac-morph" data-on={on} aria-hidden="true">
+      <span className="from" style={{ display: "grid" }}>{baseIcon(row.base)}</span>
+      <span className="to" style={{ display: "grid" }}><Glyph name={row.glyph} size={16} /></span>
+    </span>
+  );
+}
+
+const GROUPS = ["Favorites", "Locations"] as const;
 
 export default function Everywhere() {
-  const uid = useId();
-  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [kind, setKind] = useState<Kind>("local");
-  const [iconed, setIconed] = useState<Set<string>>(START);
-  const [locOnly, setLocOnly] = useState({ disk: false, share: false });
-  const idx = KINDS.findIndex((k) => k.kind === kind);
-  const volume = kind === "disk" || kind === "share";
+  const [sel, setSel] = useState("projects");
+  const [seen, setSeen] = useState<Set<string>>(() => new Set(["projects"]));
+  const [off, setOff] = useState<Set<string>>(() => new Set());
+  const row = ROWS.find((r) => r.key === sel) ?? ROWS[0];
+  const inSidebar = !off.has(row.key);
 
-  const choose = useCallback((i: number, focus = false) => {
-    const k = KINDS[i].kind;
-    setKind(k);
-    // rows of the chosen kind gain their glyph (the grey default dissolves into it)
-    setIconed((s) => { const n = new Set(s); ROWS.forEach((r) => { if (r.kind === k && r.glyph) n.add(r.key); }); return n; });
-    if (focus) tabs.current[i]?.focus();
-  }, []);
-
-  const onKey = (e: KeyboardEvent) => {
-    const n = KINDS.length;
-    const next = ({ ArrowDown: idx + 1, ArrowRight: idx + 1, ArrowUp: idx - 1, ArrowLeft: idx - 1, Home: 0, End: n - 1 } as Record<string, number>)[e.key];
-    if (next === undefined) return;
-    e.preventDefault();
-    choose((next + n) % n, true);
-  };
-
-  const only = volume ? locOnly[kind as "disk" | "share"] : false;
+  const choose = (k: string) => { setSel(k); setSeen((s) => new Set(s).add(k)); };
+  const toggle = () => setOff((s) => { const n = new Set(s); if (n.has(row.key)) n.delete(row.key); else n.add(row.key); return n; });
 
   return (
-    <section id="everywhere" className="sec-beat sec-wash ev">
+    <section id="everywhere" className="sec-beat ev">
       <div className="wrap">
-        <Reveal>
-          <div className="sec-head">
-            <p className="eyebrow">Everywhere Finder goes</p>
-            <h2 className="h2">Local, cloud, disks, shares.</h2>
-            <p className="lede">{nb("Folders in iCloud Drive and ~/Library/CloudStorage work exactly like local ones (that did not work before 1.0: they are virtual FileProvider mounts a Finder Sync extension cannot see). A mounted disk or server can carry a custom icon too.")}</p>
-          </div>
+        <Reveal className="ev-head">
+          <h2 className="h2">Local, cloud, disks, shares.</h2>
+          <p className="lede">{nb("Folders in iCloud Drive and ~/Library/CloudStorage work exactly like local ones. A mounted disk or server can carry a custom icon too.")}</p>
         </Reveal>
-        <div className="cols cols-even ev-cols">
-          <Reveal>
-            <Vivid className="ev-panel"><EvSidebar kind={kind} iconed={iconed} locOnly={locOnly} /></Vivid>
-          </Reveal>
-          <Reveal delay={0.06}>
-            <div role="tablist" aria-label="Where favorites can live" aria-orientation="vertical" className="ev-tabs" onKeyDown={onKey}>
-              {KINDS.map((k, i) => {
-                const Ic = ICONS[k.kind];
-                return (
-                  <button
-                    key={k.kind} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" id={`${uid}-t${i}`}
-                    aria-selected={k.kind === kind} aria-controls={`${uid}-p`} tabIndex={k.kind === kind ? 0 : -1}
-                    data-testid={`ev-kind-${k.kind}`} className="ev-tab" onClick={() => choose(i)}
-                  >
-                    <Ic size={22} strokeWidth={1.6} aria-hidden="true" />
-                    <span className="ev-tab-t"><b>{k.label}</b><small>{k.sub}</small></span>
-                  </button>
-                );
-              })}
-            </div>
-            <div role="tabpanel" id={`${uid}-p`} aria-labelledby={`${uid}-t${idx}`} className="ev-panel-r">
-              <p className="prose ev-note" data-testid="ev-note" aria-live="polite">
-                {NOTES[kind]}{volume && <> {only ? LOC_ON : LOC_OFF}</>}
-              </p>
-              <div className="ev-collapse ev-sw-wrap" data-open={volume} aria-hidden={!volume}>
-                <div className="ev-collapse-in">
-                  <div className="ev-sw-box">
-                    <button
-                      type="button" role="switch" aria-checked={only} id={`${uid}-sw`} tabIndex={volume ? 0 : -1}
-                      className="ev-sw" data-testid="ev-locations-only"
-                      onClick={() => setLocOnly((s) => ({ ...s, [kind]: !s[kind as "disk" | "share"] }))}
-                    >
-                      <span className="ev-sw-track" aria-hidden="true"><i /></span>
-                      <span className="ev-sw-l">Show in Locations only</span>
-                    </button>
-                    <p className="fine">{LOC_OWN}</p>
+
+        <Vivid className="ev-stage">
+          <Zoom fixed={248} className="ev-fit">
+            <div className="mac-win ev-win" data-testid="ev-sidebar">
+              <div className="mac-bar ev-bar" aria-hidden="true"><span className="mac-lights"><i /><i /><i /></span></div>
+              <Sidebar className="ev-side">
+                {GROUPS.map((g) => (
+                  <div key={g} role="group" aria-label={g}>
+                    <SideHeading>{g}</SideHeading>
+                    {ROWS.filter((r) => r.group === g).map((r) => {
+                      const gone = off.has(r.key);
+                      return (
+                        <div key={r.key} className="ev-collapse" data-open={!gone} aria-hidden={gone}>
+                          <div className="ev-collapse-in">
+                            <SideRow
+                              type="button" selected={sel === r.key} label={r.label} tabIndex={gone ? -1 : 0}
+                              icon={<RowIcon row={r} on={seen.has(r.key)} />}
+                              trailing={r.kind === "disk" ? <Eject /> : undefined}
+                              onClick={() => choose(r.key)}
+                              aria-current={sel === r.key ? "true" : undefined}
+                              data-testid={`ev-row-${r.key}`} data-glyph={seen.has(r.key) ? r.glyph : r.base} data-sel={sel === r.key}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                ))}
+              </Sidebar>
+            </div>
+          </Zoom>
+
+          <div className="ev-right">
+            <Zoom flex={400} className="ev-fit-app">
+              <div className="mac-win ev-app" data-testid="ev-panel" data-key={row.key} data-in={inSidebar}>
+                <div className="ev-app-bar">
+                  <span className="mac-lights" aria-hidden="true"><i /><i /><i /></span>
+                </div>
+                <div className="ev-app-head">
+                  <span className="ev-app-title">Sidebar Favorites</span>
+                  <span className="ev-app-plus" aria-hidden="true"><Plus size={18} strokeWidth={2.4} /></span>
+                </div>
+                <div className="ev-app-row">
+                  <span className="ev-tile" aria-hidden="true">
+                    <span key={row.key} className="ev-resolve"><Glyph name={row.glyph} size={26} /></span>
+                  </span>
+                  <span className="ev-meta" aria-live="polite" aria-atomic="true">
+                    <span key={row.key} className="ev-resolve ev-meta-in">
+                      <span className="ev-name" data-testid="ev-name">{row.label}</span>
+                      <span className="ev-path" data-testid="ev-path"><span className="h">{row.head}</span><span className="t">{row.tail}</span></span>
+                    </span>
+                  </span>
+                  <span className="ev-state" data-testid="ev-state"><i aria-hidden="true" />{inSidebar ? "In Sidebar" : "Not in Sidebar"}</span>
+                  <button type="button" role="switch" aria-checked={inSidebar} aria-label={`${row.label} in Sidebar`} className="ev-sw" data-testid="ev-toggle" onClick={toggle}>
+                    <span className="ev-track" aria-hidden="true"><i /></span>
+                  </button>
                 </div>
               </div>
-            </div>
-          </Reveal>
+            </Zoom>
+          </div>
+        </Vivid>
+        <div className="ev-copy">
+          <div>
+            <p className="h3" data-testid="ev-where">{nb(row.where)}</p>
+            <p className="prose" data-testid="ev-note" aria-live="polite">{nb(row.note)}</p>
+          </div>
+          <p className="fine">{nb("Finder’s own entries (iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows) cannot take a custom icon: macOS stores one and never draws it, so the app leaves them alone.")}</p>
         </div>
       </div>
     </section>

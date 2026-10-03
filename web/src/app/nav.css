@@ -1,21 +1,28 @@
-/* Header: 64px sticky bar on paper. Prefix nav-. */
-.nav { position: sticky; top: 0; z-index: 50; background: var(--paper); box-shadow: 0 1px 0 transparent; transition: box-shadow var(--t-base) var(--ease-quart); }
+/* Header: 64px sticky bar. Paper everywhere; on the home page it floats over the dark hero (data-home) and is transparent with light links while the hero is under it (data-on-dark). Prefix nav-. */
+.nav { position: sticky; top: 0; z-index: 50; background: var(--paper); box-shadow: 0 1px 0 transparent; transition: box-shadow var(--t-base) var(--ease), background-color var(--t-base) var(--ease); }
+.nav[data-home="true"] { margin-bottom: -64px; } /* the hero starts at the viewport's top edge, under the bar */
+.nav[data-on-dark="true"] { background: transparent; --nav-ink: var(--paper-on-dark); --nav-muted: var(--muted-on-dark); }
+.nav { --nav-ink: var(--ink); --nav-muted: var(--muted); }
+.nav-brand { color: var(--nav-ink); transition: color var(--t-base) var(--ease); }
 .nav[data-stuck="true"] { box-shadow: 0 1px 0 var(--line); }
 .nav-in { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
 .nav-brand { display: inline-flex; align-items: center; gap: var(--s-3); font-weight: 600; font-size: var(--t-16); line-height: 1; min-height: 44px; white-space: nowrap; }
 .nav-brand img { width: 54px; height: 54px; border-radius: 12px; } /* owner rule: the icon fills the 64px bar minus 5px top and bottom */
 .nav-end { display: flex; align-items: center; gap: var(--s-4); }
 .nav-links { display: none; }
-.nav-plain, .nav-links a { font-size: var(--t-14); color: var(--muted); transition: color var(--t-fast) var(--ease-quart); }
+.nav-plain, .nav-links a { font-size: var(--t-14); color: var(--nav-muted); transition: color var(--t-fast) var(--ease); }
+.nav[data-on-dark="true"] .nav-plain, .nav[data-on-dark="true"] .nav-links a { color: var(--paper-on-dark); }
 .nav-plain { display: inline-flex; align-items: center; gap: var(--s-1); min-height: 44px; }
 .nav-plain.nav-wide { display: none; }
-.nav-plain:hover, .nav-links a:hover, .nav-links a[aria-current="true"] { color: var(--ink); }
+.nav-plain:hover, .nav-links a:hover, .nav-links a[aria-current="true"] { color: var(--nav-ink); }
+.nav[data-on-dark="true"] .nav-links a:not(:hover) { color: color-mix(in srgb, var(--paper-on-dark) 82%, transparent); }
 .nav-links a[aria-current="true"] { font-weight: 600; }
 
 .nav-menu { width: 44px; height: 44px; display: grid; place-items: center; background: none; border: 1px solid var(--line-strong); border-radius: var(--r-2); padding: 0; transition: border-color var(--t-fast); }
-.nav-menu:hover { border-color: var(--ink); }
+.nav-menu:hover { border-color: var(--nav-ink); }
+.nav[data-on-dark="true"] .nav-menu { border-color: var(--line-on-dark); }
 .nav-burger { position: relative; width: 18px; height: 12px; }
-.nav-burger i { position: absolute; left: 0; right: 0; height: 2px; background: var(--ink); border-radius: 1px; transition: transform var(--t-base) var(--ease-quart); }
+.nav-burger i { position: absolute; left: 0; right: 0; height: 2px; background: var(--nav-ink); border-radius: 1px; transition: transform var(--t-base) var(--ease), background-color var(--t-base) var(--ease); }
 .nav-burger i:first-child { top: 1px; }
 .nav-burger i:last-child { bottom: 1px; }
 .nav-menu[aria-expanded="true"] .nav-burger i:first-child { transform: translateY(4px) rotate(45deg); }
@@ -34,10 +41,14 @@
   .nav-brand { justify-self: start; }
   .nav-end { justify-self: end; gap: var(--s-5); }
   .nav-links { display: flex; position: relative; height: 64px; align-items: stretch; }
-  .nav-links a { display: inline-flex; align-items: center; padding-inline: var(--s-3); }
+  .nav-links a { display: inline-flex; align-items: center; padding-inline: var(--s-2); white-space: nowrap; }
   .nav-plain.nav-wide { display: inline-flex; }
   .nav-menu, .nav-panel { display: none; }
-  .nav-bar { position: absolute; left: 0; bottom: 0; width: 1px; height: 2px; background: var(--accent); transform-origin: 0 50%; opacity: 0; transition: transform var(--t-slow) var(--ease-quint), opacity var(--t-base) var(--ease-quart); pointer-events: none; }
+  .nav-bar { position: absolute; left: 0; bottom: 0; width: 1px; height: 2px; background: var(--accent); transform-origin: 0 50%; opacity: 0; transition: transform var(--t-slow) var(--ease), opacity var(--t-base) var(--ease); pointer-events: none; }
   .nav-bar[data-on="true"] { opacity: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .nav-bar { transition: none; } }
+@media (min-width: 1280px) { .nav-links a { padding-inline: var(--s-3); } }
+.nav[data-on-dark="true"] .nav-bar { background: var(--paper-on-dark); }
+@media (prefers-reduced-motion: reduce) { .nav, .nav-bar, .nav-brand, .nav-plain, .nav-links a { transition: none; } }
+/* the primary button is ink on paper; over the dark hero it inverts to paper */
+.nav[data-on-dark="true"] .btn-primary { background: var(--paper-on-dark); color: var(--ink); border-color: var(--paper-on-dark); }
