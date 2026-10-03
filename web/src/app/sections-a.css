@@ -93,8 +93,6 @@
 .video-shell video { width: 100%; height: 100%; object-fit: cover; }
 .video-over { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 0; text-align: center; padding: 24px; color: #fff; background: transparent; border: 0; width: 100%; cursor: pointer; }
 .play { width: 88px; height: 88px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; color: var(--coral); transition: transform .3s var(--ease-quart); margin-bottom: 20px; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); }
-.video-over:hover .play { transform: scale(1.06); }
-.video-over:active .play { transform: scale(0.96); }
 .video-over h3 { font-family: var(--font-body); font-weight: 700; font-size: clamp(16px, 1.6vw, 18px); margin: 0 0 12px; }
 .video-over p { margin: 0; font-size: 14px; color: var(--cream-on-dark); max-width: 64ch; }
 .video-cap { font-size: 13px; color: var(--muted); margin: 14px 0 0; }

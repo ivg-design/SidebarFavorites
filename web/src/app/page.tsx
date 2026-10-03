@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { HeroBusProvider } from "@/components/hero-bus";
 import Hero from "@/components/Hero";
 import BeforeAfter from "@/components/BeforeAfter";
 import DemoVideo from "@/components/DemoVideo";
@@ -16,7 +15,7 @@ import { getSiteRelease } from "@/lib/github";
 export default async function Home() {
   const release = await getSiteRelease();
   return (
-    <HeroBusProvider>
+    <>
       <Header />
       <main id="main">
         <Hero release={release} />
@@ -31,6 +30,6 @@ export default async function Home() {
       </main>
       <Footer />
       <StructuredData release={release} />
-    </HeroBusProvider>
+    </>
   );
 }

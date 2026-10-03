@@ -31,8 +31,6 @@ export const FAVS: Fav[] = [
   { name: "Invoices", glyph: "doc.text.magnifyingglass" },
 ];
 
-/** Pool the five-click easter egg shuffles through. */
-export const EGG_POOL = ["star.fill", "heart.fill", "bookmark.fill", "flag.fill", "tag.fill", "archivebox.fill", "briefcase.fill", "doc.text", "photo", "video.fill", "gamecontroller", "terminal", "wrench.fill", "leaf", "sun.max", "cup.and.saucer", "globe", "lock.fill"];
 
 export function Glyph({ name, size = 16, strokeWidth = 1.75, className }: { name: string; size?: number; strokeWidth?: number; className?: string }) {
   const Ic = GLYPHS[name] ?? Folder;
