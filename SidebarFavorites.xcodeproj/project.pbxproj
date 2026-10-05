@@ -37,6 +37,7 @@
 		A14BFDE748D5355D2A2265EE /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D78EB6AA1AB975B77E369ECE /* FinderService.swift */; };
 		A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94654D92B069C68956C0342E /* Favorite.swift */; };
 		B06924040AB9DD750BF9F782 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A2A9F10C3173CBCF0F69A60 /* Assets.xcassets */; };
+		B3A163475D38630811EAA0B6 /* ScreenshotMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A28DBF1CDC2C2F927D7DF9E /* ScreenshotMode.swift */; };
 		B3A8B76884C393684672A21B /* AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */; };
 		B5630DACD3A3AED9AE4162DB /* AppIcon-master-1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F205EFE110E32159192B8D79 /* AppIcon-master-1024.png */; };
 		BC8588899C9973FA08B935D4 /* SVGThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */; };
@@ -65,6 +66,7 @@
 		56994A0E52942D4D13A9956B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		57F4170519CA0B2F3C4CC1D5 /* SVGThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SVGThumbnailView.swift; sourceTree = "<group>"; };
 		6BE5DFC21AD083DA6299058D /* FavoriteRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteRow.swift; sourceTree = "<group>"; };
+		7A28DBF1CDC2C2F927D7DF9E /* ScreenshotMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotMode.swift; sourceTree = "<group>"; };
 		7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarItemManager.swift; sourceTree = "<group>"; };
 		85F7BD2A6DD1A868DDEFA337 /* custom-icon-template.svg */ = {isa = PBXFileReference; path = "custom-icon-template.svg"; sourceTree = "<group>"; };
 		8BE2C6190D205670F5798516 /* HelperIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = HelperIcon.icns; sourceTree = "<group>"; };
@@ -108,12 +110,21 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		0D203AEE64C46601BA237FDC /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				7A28DBF1CDC2C2F927D7DF9E /* ScreenshotMode.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 		5EB27C55F4D14CC6E1E78464 /* SidebarFavoritesManager */ = {
 			isa = PBXGroup;
 			children = (
 				56994A0E52942D4D13A9956B /* Info.plist */,
 				EA1619B88F402EAC58648E7D /* SidebarFavoritesManager-Bridging-Header.h */,
 				A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */,
+				0D203AEE64C46601BA237FDC /* Debug */,
 				8DE6F1E485FE3BE773EB5C5B /* Models */,
 				07F3735980CE3481C5E602AC /* Resources */,
 				EC6B0ACA83F7A825C9E3CA98 /* Services */,
@@ -336,6 +347,7 @@
 				0F8876DFC17A4748651D0F9E /* SFLBridge.m in Sources */,
 				38474C65792EE4C852E90268 /* SVGGeometryParser.swift in Sources */,
 				BC8588899C9973FA08B935D4 /* SVGThumbnailView.swift in Sources */,
+				B3A163475D38630811EAA0B6 /* ScreenshotMode.swift in Sources */,
 				9F2551B574084477E0003FC0 /* SettingsView.swift in Sources */,
 				916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */,
 				4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */,

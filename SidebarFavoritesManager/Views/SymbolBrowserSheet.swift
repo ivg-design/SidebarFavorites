@@ -21,7 +21,11 @@ struct SymbolBrowserSheet: View {
     init(currentSymbol: String, onPick: @escaping (String) -> Void) {
         self.initialSymbol = currentSymbol
         self.onPick = onPick
+        #if DEBUG
+        _query = State(initialValue: ScreenshotMode.symbolBrowserQuery)
+        #else
         _query = State(initialValue: "")
+        #endif
         _selection = State(initialValue: currentSymbol)
     }
 

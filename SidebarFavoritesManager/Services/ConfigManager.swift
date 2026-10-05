@@ -19,8 +19,14 @@ final class ConfigManager: ObservableObject {
 
     /// Base directory for all app data
     var appSupportURL: URL {
-        let url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        var url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("SidebarFavorites")
+        #if DEBUG
+        // Screenshot mode runs on a sandbox directory, never the real one.
+        if let sandbox = ProcessInfo.processInfo.environment["SBF_SUPPORT_DIR"], !sandbox.isEmpty {
+            url = URL(fileURLWithPath: sandbox, isDirectory: true)
+        }
+        #endif
         try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -255,3 +261,12 @@ final class ConfigManager: ObservableObject {
         }
     }
 }
+
+#if DEBUG
+extension ConfigManager {
+    /// Screenshot mode only: swap the in-memory config without touching disk.
+    func debugReplaceConfig(_ newConfig: Config) {
+        config = newConfig
+    }
+}
+#endif

@@ -1563,3 +1563,17 @@ private struct RowMatch {
     let bindingWentStale: Bool
     let warning: String?
 }
+
+#if DEBUG
+extension FavoriteSyncCoordinator {
+    /// Screenshot mode only: set the published state the windows read, with no
+    /// sidebar or helper work behind it.
+    func debugSetState(boundItems: [UUID: UInt32], warnings: [String], needsFinderRestart: Bool,
+                       migrationPlan: MigrationService.MigrationPlan? = nil) {
+        self.boundItems = boundItems
+        self.warnings = warnings
+        self.needsFinderRestart = needsFinderRestart
+        self.migrationPlan = migrationPlan
+    }
+}
+#endif

@@ -163,6 +163,10 @@ struct ContentView: View {
             coordinatorErrorMessage = newValue
         }
         .task {
+            #if DEBUG
+            // Screenshot mode must never reconcile the real sidebar or hit the network.
+            if ScreenshotMode.isActive { return }
+            #endif
             await coordinator.bootstrap()
 
             // After the sidebar is in order, not before: a version check must

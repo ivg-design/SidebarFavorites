@@ -1,7 +1,11 @@
 import SwiftUI
 import ServiceManagement
 
+// Debug builds enter through DebugEntry (Debug/ScreenshotMode.swift), which hands over
+// to this App unless the offscreen screenshot mode was asked for.
+#if !DEBUG
 @main
+#endif
 struct SidebarFavoritesManagerApp: App {
     @StateObject private var configManager = ConfigManager.shared
     @StateObject private var coordinator = FavoriteSyncCoordinator.shared
