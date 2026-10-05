@@ -214,3 +214,91 @@
 .dx-prose :not(pre) > code, .cl-entry code { white-space: normal; overflow-wrap: anywhere; }
 /* "Troubleshooting" must fit a 390 px column on one line; scale the h1 with the viewport on phones. */
 @media (max-width: 480px) { .dx-h1 { font-size: min(var(--t-44), 10.4vw); overflow-wrap: break-word; } }
+
+/* ===== Docs structure (.reviews/docs-style.md): steps with outcomes, callouts with a named kind, labelled code,
+   menu paths, keys, an inline contents list, and figures with an enlarge view. ===== */
+
+/* steps: the action is the title; the body explains; "You see" is the outcome */
+.dx-step { padding-left: var(--s-7); padding-bottom: var(--s-1); }
+.dx-step::after { content: ""; position: absolute; left: 13.5px; top: 36px; bottom: calc(var(--s-5) * -1 + 8px); width: 1px; background: var(--line-strong); }
+.dx-step:last-child::after { display: none; }
+.dx-prose .dx-step-title { font-family: var(--font-display); font-size: var(--t-20); font-weight: 600; letter-spacing: -0.02em; line-height: 1.4; margin: 0; color: var(--ink); max-width: 60ch; }
+.dx-prose .dx-step-title strong { font-weight: 700; }
+.dx-step-body { margin-top: var(--s-2); font-size: var(--t-16); line-height: 1.6; color: var(--ink-2); }
+.dx-step-body > * + * { margin-top: var(--s-3); }
+.dx-step-body > p { margin: 0; max-width: 70ch; }
+.dx-step-body > p + p, .dx-step-body > * + p, .dx-step-body > p + * { margin-top: var(--s-3); }
+.dx-step .dx-fig { margin-top: var(--s-4); }
+.dx-prose .dx-see { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-1) var(--s-3); align-items: baseline; margin: var(--s-3) 0 0; padding: var(--s-2) var(--s-4); max-width: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-2); font-size: var(--t-16); line-height: 1.55; color: var(--ink-2); }
+.dx-see-k { font-size: var(--t-13); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-ink); white-space: nowrap; }
+.dx-prose > .dx-see { margin-top: var(--s-4); }
+@media (max-width: 480px) { .dx-prose .dx-see { grid-template-columns: minmax(0, 1fr); } .dx-step { padding-left: 44px; } }
+
+/* callouts: Note / Tip / Warning, always named */
+.dx-callout { display: grid; gap: var(--s-1); padding: var(--s-4) var(--s-5); border-left: 3px solid var(--line-strong); }
+.dx-callout-k { display: flex; align-items: center; gap: var(--s-2); margin: 0; font-size: var(--t-13); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+.dx-callout .dx-callout-k svg { margin: 0; color: currentColor; }
+.dx-callout-b { min-width: 0; max-width: 70ch; }
+.dx-callout-b > * + * { margin-top: var(--s-2); }
+.dx-callout[data-kind="tip"] { background: var(--surface); border-left-color: var(--ink); }
+.dx-callout[data-kind="tip"] .dx-callout-k { color: var(--ink); }
+.dx-callout[data-kind="warn"] { border-left-color: var(--accent); }
+.dx-callout[data-kind="warn"] .dx-callout-k { color: var(--accent-ink); }
+
+/* code: a header bar names the block; Copy sits in it */
+.dx-code-k { margin: 0; padding: 0 var(--s-8) 0 var(--s-5); height: 40px; display: flex; align-items: center; border-bottom: 1px solid var(--line-on-dark); font-family: var(--font-mono); font-size: var(--t-13); color: var(--muted-on-dark); max-width: none !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dx-prose .dx-code .dx-code-k + * { margin-top: 0; }
+.dx-code .dx-copy { top: var(--s-1); }
+.dx-code pre { padding-right: var(--s-5); border-radius: 0 0 var(--r-2) var(--r-2); }
+.dx-step-body .dx-code { margin-top: var(--s-3); }
+
+/* menu paths and keys */
+.dx-path { font-weight: 650; color: var(--ink); }
+.dx-path-c { color: var(--muted); font-weight: 400; padding-inline: 0.3em; }
+.dx-prose .dx-kbd { display: inline-block; min-width: 1.8em; padding: 0 var(--s-2); text-align: center; font-family: var(--font-mono); font-size: .82em; line-height: 1.55; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--r-1); white-space: nowrap; }
+
+/* tables: a clear header, comfortable rows, the first column names the thing */
+.dx-table { overflow: hidden; }
+.dx-table th { border-bottom: 1px solid var(--line); white-space: nowrap; }
+.dx-table tbody tr:first-child td { border-top: 0; }
+.dx-table td { padding: var(--s-3) var(--s-4); font-size: var(--t-16); line-height: 1.5; color: var(--ink-2); }
+.dx-table td:first-child { color: var(--ink); font-weight: 600; }
+.dx-table td:first-child code { font-weight: 500; }
+.dx-table td:empty::after { content: "\2013"; color: var(--muted); font-weight: 400; }
+@media (max-width: 640px) {
+  .dx-table[data-stack="true"] { overflow: visible; }
+  .dx-table[data-stack="true"] td:empty { display: none; }
+  .dx-table[data-stack="true"] td:first-child::before { display: none; }
+  .dx-table[data-stack="true"] td:first-child { background: var(--wash); }
+}
+
+/* contents list for widths where the right-hand list is hidden */
+.dx-toc-inline { display: none; margin-top: var(--s-5); border: 1px solid var(--line); border-radius: var(--r-2); background: var(--surface); font-size: var(--t-16); }
+.dx-toc-inline summary { cursor: pointer; padding: var(--s-3) var(--s-4); font-size: var(--t-13); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.dx-toc-inline ul { list-style: none; margin: 0; padding: 0 var(--s-4) var(--s-3); display: grid; }
+.dx-toc-inline a { display: block; padding: var(--s-2) 0; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; overflow-wrap: anywhere; }
+@media (max-width: 1180px) { .dx-toc-inline { display: block; } }
+
+/* figures: intrinsic size, never wider than the column; framed captures bring their own gradient and shadow */
+.dx-prose > .dx-fig, .dx-fig { margin: var(--s-6) 0 0; width: auto; max-width: 100%; display: grid; gap: var(--s-3); justify-items: start; }
+.dx-zoom { position: relative; display: block; max-width: 100%; padding: 0; border: 0; background: none; border-radius: var(--r-3); cursor: zoom-in; line-height: 0; }
+.dx-zoom picture { display: block; }
+.dx-fig img { display: block; width: auto; max-width: 100%; height: auto; border-radius: var(--r-3); }
+.dx-fig[data-framed="false"] img { box-shadow: 0 1px 0 rgba(20,19,17,.06), 0 24px 48px -24px rgba(20,19,17,.35); }
+.dx-zoom-hint { position: absolute; right: var(--s-3); bottom: var(--s-3); padding: 2px var(--s-2); border-radius: var(--r-1); background: var(--ink); color: var(--paper); font-size: var(--t-13); font-weight: 600; line-height: 1.5; opacity: 0; transition: opacity var(--t-fast) var(--ease); }
+.dx-zoom:hover .dx-zoom-hint, .dx-zoom:focus-visible .dx-zoom-hint { opacity: 1; }
+@media (hover: none) { .dx-zoom-hint { opacity: 1; } }
+.dx-fig figcaption { padding-left: var(--s-3); border-left: 2px solid var(--accent); max-width: 62ch; color: var(--ink-2); }
+.dx-fig figcaption strong { color: var(--ink); }
+
+.dx-lightbox { border: 0; padding: 0; margin: 0; width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; background: transparent; display: none; place-items: center; overflow: hidden; }
+.dx-lightbox[open] { display: grid; }
+.dx-lightbox::backdrop { background: rgba(20,19,17,.78); }
+.dx-lightbox figure { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; max-width: min(96vw, 1200px); max-height: 94vh; background: var(--surface); border-radius: var(--r-3); overflow: hidden; }
+.dx-lightbox img { display: block; width: auto; height: auto; max-width: 100%; max-height: calc(94vh - 64px); margin-inline: auto; object-fit: contain; }
+.dx-lightbox figcaption { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: var(--s-2) var(--s-3) var(--s-2) var(--s-5); border-top: 1px solid var(--line); font-size: var(--t-14); line-height: 1.5; color: var(--ink-2); }
+.dx-lightbox-x { flex: none; display: inline-flex; align-items: center; gap: var(--s-2); height: 40px; padding: 0 var(--s-3); border: 1px solid var(--line-strong); border-radius: var(--r-2); background: var(--paper); color: var(--ink); font-size: var(--t-14); font-weight: 600; }
+.dx-lightbox-x:hover { border-color: var(--ink); }
+.dx-prose > .dx-steps { margin-top: var(--s-5); }
+.dx-prose .dx-step-title { font-size: var(--t-17); line-height: 1.55; letter-spacing: -0.01em; padding-top: 1px; }
+.dx-prose .dx-step-title code { color: inherit; font-size: .9em; font-weight: 500; }

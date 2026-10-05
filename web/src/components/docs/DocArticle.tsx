@@ -3,6 +3,7 @@ import { asset } from "@/lib/config";
 import { getDoc, neighbours, docUrl } from "@/content/docs";
 import DocsFooter from "./DocsFooter";
 import SoftBreaks from "./SoftBreaks";
+import Lightbox from "./Lightbox";
 
 /** One docs page: breadcrumb, h1, lede, body, prev/next. */
 export default function DocArticle({ slug }: { slug: string }) {
@@ -21,7 +22,14 @@ export default function DocArticle({ slug }: { slug: string }) {
         </nav>
         <h1 className="dx-h1">{doc.title}</h1>
         <p className="dx-lede">{doc.description}</p>
+        {doc.sections.length > 1 && (
+          <details className="dx-toc-inline" data-testid="docs-toc-inline">
+            <summary>On this page</summary>
+            <ul>{doc.sections.map((s) => <li key={s.id}><a href={`#${s.id}`}>{s.title}</a></li>)}</ul>
+          </details>
+        )}
         <div className="dx-prose"><Body /></div>
+        <Lightbox />
         <SoftBreaks root=".dx-prose" />
         <nav className="dx-pn" aria-label="Previous and next page">
           {prev ? <a className="dx-prev" data-testid="docs-prev" href={asset(docUrl(prev.slug))} rel="prev"><ArrowLeft size={18} aria-hidden="true" /><span><small>{prev.group}</small>{prev.title}</span></a> : <span />}
