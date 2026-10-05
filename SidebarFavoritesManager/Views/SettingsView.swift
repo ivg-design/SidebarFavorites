@@ -62,7 +62,13 @@ struct SettingsView: View {
 
                 LabeledContent("Helper App") {
                     Button(action: openHelperAppLocation) {
-                        Text(configManager.helperAppURL.path)
+                        Text({
+                            #if DEBUG
+                            return ScreenshotMode.displayPath(configManager.helperAppURL.path)
+                            #else
+                            return configManager.helperAppURL.path
+                            #endif
+                        }())
                             .lineLimit(1)
                             .truncationMode(.head)
                     }

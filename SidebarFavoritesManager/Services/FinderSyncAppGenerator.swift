@@ -419,6 +419,11 @@ final class FinderSyncAppGenerator {
     func helperStatuses(for favorites: [Favorite]) async -> [UUID: HelperStatus] {
         let advanced = favorites.filter { $0.mode == .advanced }
         guard !advanced.isEmpty else { return [:] }
+        #if DEBUG
+        if ScreenshotMode.isActive {
+            return Dictionary(uniqueKeysWithValues: advanced.map { ($0.id, ScreenshotMode.helperStatus) })
+        }
+        #endif
         return await Task.detached(priority: .utility) {
             var statuses: [UUID: HelperStatus] = [:]
             for favorite in advanced {

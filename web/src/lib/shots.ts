@@ -7,9 +7,9 @@ export const SHOTS = {
     "display": 559
   },
   "SFSymbolBrowser": {
-    "w": 1119,
-    "h": 1197,
-    "display": 727
+    "w": 1120,
+    "h": 1200,
+    "display": 728
   },
   "SBFAddFavoriteWindow": {
     "w": 960,
@@ -18,13 +18,13 @@ export const SHOTS = {
   },
   "svg-import": {
     "w": 1104,
-    "h": 1564,
+    "h": 1808,
     "display": 718
   },
   "custom-svg-settings": {
-    "w": 1138,
-    "h": 1935,
-    "display": 740
+    "w": 1136,
+    "h": 2234,
+    "display": 738
   },
   "SBFAddFavoriteWithExistingIcon": {
     "w": 1008,

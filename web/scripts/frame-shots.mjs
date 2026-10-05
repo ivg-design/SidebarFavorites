@@ -34,11 +34,12 @@ const SHOTS = {
   "editor-both-icons": ["orchid", "Both icons mode", "The editor with Both icons selected: an explanation that the folder keeps its own icon while the sidebar shows your glyph, and the note that a helper named SBF-Music is added to System Settings (about 6 MB).", "editor"],
   "editor-own-icon": ["ember", "A folder with an icon of its own", "The editor for a folder that carries a custom icon: an orange notice that the folder has a custom icon of its own, why that makes the sidebar icon vanish, and three choices (Keep both icons, Remove its icon, Leave as is).", "editor"],
   "editor-custom-svg": ["violet", "Custom SVG with size and preview", "The editor in Custom SVG mode: the chosen file brand-mark.svg with Replace, the Size slider at 100 percent with Reset, the enlarged preview, a sidebar-size preview row, and the warning that colours and gradients flatten into one silhouette.", "editor"],
-  "symbol-browser": ["dusk", "The SF Symbols browser", "The SF Symbols sheet: a search field, a grid of symbols with the current one (hammer.fill) selected, the symbol name at the bottom left, and Cancel and Use Symbol buttons.", "picker"],
+  "symbol-browser": ["dusk", "The SF Symbols browser", "The SF Symbols sheet searched for hammer: a short grid of matching symbols with hammer.fill selected, the symbol name at the bottom left, and Cancel and Use Symbol buttons.", "picker"],
   "symbol-browser-search": ["orchid", "Searching the symbol catalog", "The SF Symbols sheet searched for folder: the matching folder symbols in a grid, folder.fill selected, with Cancel and Use Symbol.", "picker"],
   "symbol-browser-dark": ["midnight", "The SF Symbols browser, dark", "The SF Symbols sheet in dark appearance searched for music, with music.note selected.", "picker"],
   "settings": ["violet", "Settings", "The Settings window: Launch at Login and Show in Menu Bar switches, the About block with version and the helper app location, and the Actions section with Restart Finder and Remove All Sidebar Icons.", "settings"],
-  "settings-helpers": ["ember", "Settings with a Finder Sync helper", "The Settings window with a Finder Sync Helpers section listing the helper for a Both-icons favorite, its registration status, and the Open Extensions Settings and Refresh Status buttons.", "settings"],
+  "settings-helpers": ["ember", "Settings with a Finder Sync helper", "The Settings window with a Finder Sync Helpers section listing the helper for a Both-icons favorite with a green dot and Enabled status, and the Open Extensions Settings and Refresh Status buttons.", "settings"],
+  "settings-helper-not-registered": ["night", "Settings: helper not registered (troubleshooting)", "The Settings window in the troubleshooting state: the Finder Sync helper row has a red dot and says Not registered, with a Fix button beside it and the Open Extensions Settings button below. This is the state to show only when explaining what to do when the helper is missing.", "settings"],
   "migration-consent": ["dusk", "Upgrade to 1.0 consent", "The upgrade sheet that asks before doing anything: what will be removed (old helper apps), what will change (settings file format, icon codes) and what will be kept, with Not Now and Upgrade buttons.", "onboarding"],
   "menu-bar-menu": ["rose", "The menu bar menu", "The menu bar menu content: each favorite with its glyph, then Open SidebarFavorites, Refresh All, Preferences, the version line and Quit. Rendered from the menu's own items (a native menu cannot be captured offscreen).", "menubar"],
   "alert-update": ["violet", "Update available", "The alert saying a new version is available, with Later and Download buttons.", "alerts"],
@@ -101,3 +102,38 @@ for (const f of readdirSync(rawDir).filter((f) => extname(f) === ".png").sort())
   console.log(`${name}: ${W}x${H} @2x, ${w1}x${h1} @1x`);
 }
 writeFileSync(join(outDir, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
+
+// Landing page captures: the site shows each app window on the macOS wallpaper (a small even margin, soft shadow), at
+// the sizes the old captures had, under the site's own file names, written to ../design/assets (the sources
+// web/scripts/generate-images.mjs turns into the site's webp variants).
+const WALLPAPER_A = { angle: 172, stops: ["#2c62df", "#4b92d8", "#b6995a", "#cf5bb4", "#d052be"] };
+const WALLPAPER_B = { angle: 160, stops: ["#e76fac", "#8f86d4", "#f09490", "#ea7ed6"] };
+const LANDING = { // site name -> [margin px at 2x, wallpaper]
+  SBFMainWindow: [30, WALLPAPER_A], SBFAddFavoriteWindow: [39, WALLPAPER_A], SBFSettings: [32, WALLPAPER_A],
+  SFSymbolBrowser: [40, WALLPAPER_A], SBFUpdateNotification: [39, WALLPAPER_A],
+  "custom-svg-settings": [100, WALLPAPER_B], SVGImport: [82, WALLPAPER_B],
+  SBFAddFavoriteWithExistingIcon: [39, WALLPAPER_A], SBFAddFavoriteAdvancedSuccess: [39, WALLPAPER_A],
+};
+const landingDir = join(rawDir, "landing");
+if (existsSync(landingDir)) {
+  const MAP = { SVGImport: "svg-import" };
+  const assets = resolve(flag("--landing-out", "../design/assets"));
+  for (const f of readdirSync(landingDir).filter((f) => extname(f) === ".png").sort()) {
+    const name = basename(f, ".png");
+    const meta = JSON.parse(readFileSync(join(landingDir, `${name}.json`), "utf8"));
+    const [m, wp] = LANDING[name] ?? [39, WALLPAPER_A];
+    const radius2 = meta.radius * 2;
+    const win = await rounded(readFileSync(join(landingDir, f)), radius2);
+    const { width: ww, height: wh } = await sharp(win).metadata();
+    const W = ww + m * 2, H = wh + m * 2, pad = 60;
+    const sh1 = await shadow(win, ww, wh, pad, 22, 0.42, radius2);
+    const sh2 = await shadow(win, ww, wh, pad, 4, 0.3, radius2);
+    const shadows = await sharp({ create: { width: W + pad * 2, height: H + pad * 2, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: sh1, left: m, top: m + 14 }, { input: sh2, left: m, top: m + 4 }]).png().toBuffer()
+      .then((b) => sharp(b).extract({ left: pad, top: pad, width: W, height: H }).png().toBuffer());
+    const out = await sharp(gradientSvg(W, H, wp)).composite([{ input: shadows }, { input: win, left: m, top: m }]).flatten().png({ compressionLevel: 9 }).toBuffer();
+    const site = MAP[name] ?? name;
+    await sharp(out).toFile(join(assets, `${site}.png`));
+    console.log(`landing ${site}: ${W}x${H} (margin ${m})`);
+  }
+}

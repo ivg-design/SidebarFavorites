@@ -72,8 +72,8 @@ export default function BothIcons() {
           <Shot name="SBFAddFavoriteWithExistingIcon" crop={{ x: 60, w: 900, y: 410, h: 340 }} cropLabel="the choice the editor offers"
             alt="Cropped from the Add Favorite editor: a warning that this folder has a custom icon of its own, above the three choices Keep both icons, Remove its icon and Leave as is"
             caption={nb("Add a folder with its own icon and the editor says so, then offers three ways out.")} />
-          <Shot name="SBFAddFavoriteAdvancedSuccess" crop={{ x: 60, w: 840, y: 420, h: 430 }} cropLabel="after Keep both icons"
-            alt="Cropped from the Add Favorite editor: the warning has turned into a confirmation, Mode is set to Both icons, and a line names the helper SBF-DemoBoth, about 6 MB"
+          <Shot name="SBFAddFavoriteAdvancedSuccess" crop={{ x: 60, w: 840, y: 400, h: 430 }} cropLabel="after Keep both icons"
+            alt="Cropped from the Add Favorite editor: the warning has turned into a confirmation, Mode is set to Both icons, and a line names the helper SBF-Client Files, about 6 MB"
             caption={nb("Pick Keep both icons and the warning turns into confirmation. The line underneath names the helper it will add.")} />
         </div>
       </div>

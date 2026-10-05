@@ -57,7 +57,11 @@ struct MigrationConsentSheet: View {
                 }
                 .padding(20)
             }
+            #if DEBUG
+            .frame(maxHeight: ScreenshotMode.isActive ? 640 : 340)
+            #else
             .frame(maxHeight: 340)
+            #endif
 
             Divider()
 

@@ -15,6 +15,22 @@ import AppKit
 enum ScreenshotMode {
     static var isActive: Bool { ProcessInfo.processInfo.environment["SBF_SCREENSHOTS"] != nil }
     static var symbolBrowserQuery = ""
+    static var newFavoriteCustom = false
+    /// What the Finder Sync helper rows report in screenshots (the sandbox has no real helper).
+    static var helperStatus: FinderSyncAppGenerator.HelperStatus = .enabled
+    static let samplesRoot = "/private/tmp/SBF-samples"
+
+    /// ~/Name as the user would see it  ->  the sandbox copy that really exists.
+    static func sandboxedPath(_ path: String) -> String {
+        guard isActive else { return path }
+        let home = NSHomeDirectory() + "/"
+        return path.hasPrefix(home) ? samplesRoot + "/" + path.dropFirst(home.count) : path
+    }
+    /// Display only: the sandbox support folder shown as the real ~/Library location.
+    static func displayPath(_ path: String) -> String {
+        guard isActive, let r = path.range(of: "/Application Support/") else { return path }
+        return "~/Library" + path[r.lowerBound...]
+    }
 }
 
 @main
@@ -75,7 +91,7 @@ enum ScreenshotRunner {
 
     // MARK: Sample data
 
-    private static let samplesRoot = "/private/tmp/SBF-samples"
+    private static var samplesRoot: String { ScreenshotMode.samplesRoot }
 
     private static func fav(_ name: String, _ path: String, _ symbol: String, enabled: Bool = true,
                             mode: Favorite.Mode = .regular, custom: String? = nil) -> Favorite {
@@ -134,6 +150,7 @@ enum ScreenshotRunner {
         let name: String
         var dark = false
         var chrome: Chrome
+        var landing = false              // bare, square window capture for the landing page (site name, no framing)
         var size: NSSize? = nil          // nil -> the view's fitting size
         var settle: Double = 1.2
         var prepare: () -> Void
@@ -158,7 +175,7 @@ enum ScreenshotRunner {
         var both = fav("Music", "~/Music", "music.note", mode: .advanced)
         both.sidebarProvenance = .managed
         let custom = populated[4]
-        let own = fav("Client Files", samplesRoot + "/Client Files", "briefcase.fill")
+        let own = fav("Client Files", "~/Client Files", "briefcase.fill")
 
         let plan = MigrationService.MigrationPlan(
             legacyApps: [
@@ -187,16 +204,38 @@ enum ScreenshotRunner {
         add(Shot(name: "editor-own-icon", chrome: .titled("Edit Favorite"), size: NSSize(width: 480, height: 1090), prepare: { install([own]) }, view: { editor(own) }))
         add(Shot(name: "editor-custom-svg", chrome: .titled("Edit Favorite"), size: NSSize(width: 480, height: 960), prepare: { install([custom]) }, view: { editor(custom) }))
         add(Shot(name: "symbol-browser", chrome: .sheet, size: nil, settle: 4,
-                 prepare: { ScreenshotMode.symbolBrowserQuery = "" }, view: { env(SymbolBrowserSheet(currentSymbol: "hammer.fill", onPick: { _ in })) }))
+                 prepare: { ScreenshotMode.symbolBrowserQuery = "hammer" }, view: { env(SymbolBrowserSheet(currentSymbol: "hammer.fill", onPick: { _ in })) }))
         add(Shot(name: "symbol-browser-search", chrome: .sheet, size: nil, settle: 4,
                  prepare: { ScreenshotMode.symbolBrowserQuery = "folder" }, view: { env(SymbolBrowserSheet(currentSymbol: "folder.fill", onPick: { _ in })) }))
         add(Shot(name: "symbol-browser-dark", dark: true, chrome: .sheet, size: nil, settle: 4,
                  prepare: { ScreenshotMode.symbolBrowserQuery = "music" }, view: { env(SymbolBrowserSheet(currentSymbol: "music.note", onPick: { _ in })) }))
         add(Shot(name: "settings", chrome: .titled("Settings"), prepare: { install(sampleFavorites(advanced: false)) }, view: { env(SettingsView()) }))
-        add(Shot(name: "settings-helpers", chrome: .titled("Settings"), prepare: { install(populated) }, view: { env(SettingsView()) }))
+        add(Shot(name: "settings-helpers", chrome: .titled("Settings"), prepare: { ScreenshotMode.helperStatus = .enabled; install(populated) }, view: { env(SettingsView()) }))
+        add(Shot(name: "settings-helper-not-registered", chrome: .titled("Settings"), prepare: { ScreenshotMode.helperStatus = .notRegistered; install(populated) }, view: { env(SettingsView()) }))
         add(Shot(name: "migration-consent", chrome: .sheet, prepare: { install(populated) },
                  view: { env(MigrationConsentSheet(plan: plan, onUpgrade: {}, onDecline: {})) }))
         add(Shot(name: "menu-bar-menu", chrome: .sheet, size: NSSize(width: 270, height: 302), prepare: { install(populated) }, view: { AnyView(MenuMock(favorites: populated)) }))
+
+        // ---- Landing-page set: dark, bare square window captures under the site's own file names ----
+        // (design/assets/<name>.png -> web/scripts/generate-images.mjs). Sizes follow the old captures' point size.
+        let darkCustom: Favorite = { var f = custom; f.iconScale = 0.9; return f }()
+        var ownAdvanced = own; ownAdvanced.mode = .advanced
+        func L(_ name: String, _ chrome: Shot.Chrome, _ size: NSSize?, settle: Double = 1.4, favs: [Favorite]? = nil,
+               view: @escaping () -> AnyView) {
+            add(Shot(name: name, dark: true, chrome: chrome, landing: true, size: size, settle: settle,
+                     prepare: { ScreenshotMode.helperStatus = .enabled; install(favs ?? populated) }, view: view))
+        }
+        // Five rows, none in Both-icons mode: at the default 400 pt the chip makes the name wrap mid-word (noted for the owner).
+        let five = [populated[0], populated[1], populated[2], populated[4], populated[6]]
+        L("SBFMainWindow", .main, NSSize(width: 400, height: 532), favs: five, view: mainView)
+        L("SBFAddFavoriteWindow", .titled("Add Favorite"), NSSize(width: 441, height: 894), view: { editor(nil) })
+        L("SBFSettings", .titled("Settings"), nil, view: { env(SettingsView()) })
+        L("SFSymbolBrowser", .sheet, NSSize(width: 520, height: 560), settle: 4, view: { env(SymbolBrowserSheet(currentSymbol: "folder.fill", onPick: { _ in })) })
+        L("SBFUpdateNotification", .main, NSSize(width: 401, height: 533), favs: five, view: { env(UpdateOverlay(base: mainView())) })
+        L("custom-svg-settings", .titled("Edit Favorite"), NSSize(width: 468, height: 985), favs: [darkCustom], view: { editor(darkCustom) })
+        L("SVGImport", .titled("Add Favorite"), NSSize(width: 470, height: 790), view: { editor(nil) })
+        L("SBFAddFavoriteWithExistingIcon", .titled("Add Favorite"), NSSize(width: 465, height: 1071), favs: [own], view: { editor(own) })
+        L("SBFAddFavoriteAdvancedSuccess", .titled("Add Favorite"), NSSize(width: 441, height: 987), favs: [ownAdvanced], view: { editor(ownAdvanced) })
         return list
     }
 
@@ -217,7 +256,7 @@ enum ScreenshotRunner {
 
     static func runAll() async {
         let outDir = ProcessInfo.processInfo.environment["SBF_SCREENSHOTS"]!
-        try? FileManager.default.createDirectory(atPath: outDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(atPath: outDir + "/landing", withIntermediateDirectories: true)
         NSLog("[sbf-shots] support dir: %@", ConfigManager.shared.appSupportURL.path)
         guard ProcessInfo.processInfo.environment["SBF_SUPPORT_DIR"] != nil else {
             print("[sbf-shots] refusing to run without SBF_SUPPORT_DIR (sandbox)"); return
@@ -228,10 +267,11 @@ enum ScreenshotRunner {
 
         for shot in shots() where only == nil || only!.contains(shot.name) {
             shot.prepare()
+            ScreenshotMode.newFavoriteCustom = shot.name == "SVGImport"
             let window = makeWindow(for: shot)
             let radius: Int
             switch shot.chrome { case .main, .titled: radius = 16; case .sheet: radius = shot.name == "menu-bar-menu" ? 10 : 26 }
-            await present(window, name: shot.name, settle: shot.settle, outDir: outDir, radius: radius, dark: shot.dark)
+            await present(window, name: shot.name, settle: shot.settle, outDir: shot.landing ? outDir + "/landing" : outDir, radius: radius, dark: shot.dark)
         }
         for a in alerts where only == nil || only!.contains(a.name) {
             let alert = NSAlert()
@@ -391,6 +431,39 @@ enum ScreenshotRunner {
         if seen.count < 4 { return "flat/blank (\(seen.count) tones)" }
         return nil
     }
+}
+
+// The manager window with the update alert over it, as the app shows it. The alert's own AppKit content view is
+// hosted here, so its text, buttons and icon are the system's.
+private struct UpdateOverlay: View {
+    let base: AnyView
+    private let card: NSView = {
+        let alert = NSAlert()
+        alert.messageText = "A new version is available"
+        alert.informativeText = "SidebarFavorites 1.2.3 is out. You have 1.2.2."
+        ["Download", "Later"].forEach { alert.addButton(withTitle: $0) }
+        alert.layout()
+        let v = alert.window.contentView!
+        alert.window.contentView = NSView()
+        return v
+    }()
+    var body: some View {
+        ZStack(alignment: .top) {
+            base
+            Color.black.opacity(0.3)
+            HostedNSView(view: card)
+                .frame(width: card.frame.width, height: card.frame.height)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                .shadow(color: .black.opacity(0.35), radius: 24, y: 8)
+                .padding(.top, 150)
+        }
+    }
+}
+private struct HostedNSView: NSViewRepresentable {
+    let view: NSView
+    func makeNSView(context: Context) -> NSView { view }
+    func updateNSView(_ nsView: NSView, context: Context) {}
 }
 
 // MARK: - The menu bar menu, drawn as a view

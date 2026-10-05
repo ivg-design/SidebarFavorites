@@ -63,6 +63,10 @@ enum IconAuthority {
     /// a file that costs the user nothing. Where it cannot be read - see below -
     /// the file alone decides.
     static func detect(atPath path: String) -> Detection? {
+        #if DEBUG
+        // Screenshot mode: sample folders shown as ~/Name live under the sandbox, never in the real home.
+        let path = ScreenshotMode.sandboxedPath(path)
+        #endif
         let url = URL(fileURLWithPath: path)
 
         let isVolume = (try? url.resourceValues(forKeys: [.isVolumeKey]).isVolume) == true

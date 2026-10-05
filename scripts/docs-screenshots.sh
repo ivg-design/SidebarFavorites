@@ -34,4 +34,9 @@ grep "sbf-shots" "$LOG" || true
 
 echo "== frame =="
 (cd web && node scripts/frame-shots.mjs "$RAW" --out public/shots-app)
+echo "== landing page captures (design/assets -> web/public/shots webp) =="
+if ls "$RAW"/landing/*.png >/dev/null 2>&1; then
+  for f in "$RAW"/landing/*.png; do n=$(basename "$f" .png); [ "$n" = SVGImport ] && n=svg-import; rm -f web/public/shots/"$n"-w*.webp; done
+  (cd web && node scripts/generate-images.mjs)
+fi
 echo "== done: $(ls web/public/shots-app/*@2x.png | wc -l | tr -d ' ') framed shots in web/public/shots-app =="

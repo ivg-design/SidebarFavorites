@@ -25,9 +25,9 @@ export default function CustomIcons() {
             />
             <Shot
               name="custom-svg-settings"
-              crop={{ y: 850, h: 820 }}
+              crop={{ y: 1090, h: 720 }}
               cropLabel="the Size slider and the Preview"
-              alt="The app's Edit Favorite window with a GitHub mark: the Size slider at 90 percent, and the Preview with the enlarged icon and a mock sidebar row"
+              alt="The app's Edit Favorite window with a custom star mark: the Size slider at 90 percent, and the Preview with the enlarged icon and a mock sidebar row"
               caption="Size runs 50 to 150 %, and the preview follows as you drag. The slider below the demo does the same."
             />
           </div>

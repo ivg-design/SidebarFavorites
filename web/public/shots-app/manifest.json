@@ -211,13 +211,26 @@
     "file": "migration-consent.png",
     "file2x": "migration-consent@2x.png",
     "width": 512,
-    "height": 588,
+    "height": 715,
     "width2x": 1024,
-    "height2x": 1176,
+    "height2x": 1430,
     "appearance": "light",
     "title": "Upgrade to 1.0 consent",
     "shows": "The upgrade sheet that asks before doing anything: what will be removed (old helper apps), what will change (settings file format, icon codes) and what will be kept, with Not Now and Upgrade buttons.",
     "section": "onboarding",
+    "capture": "CGWindowListCreateImage"
+  },
+  {
+    "file": "settings-helper-not-registered.png",
+    "file2x": "settings-helper-not-registered@2x.png",
+    "width": 512,
+    "height": 798,
+    "width2x": 1024,
+    "height2x": 1596,
+    "appearance": "light",
+    "title": "Settings: helper not registered (troubleshooting)",
+    "shows": "The Settings window in the troubleshooting state: the Finder Sync helper row has a red dot and says Not registered, with a Fix button beside it and the Open Extensions Settings button below. This is the state to show only when explaining what to do when the helper is missing.",
+    "section": "settings",
     "capture": "CGWindowListCreateImage"
   },
   {
@@ -229,7 +242,7 @@
     "height2x": 1596,
     "appearance": "light",
     "title": "Settings with a Finder Sync helper",
-    "shows": "The Settings window with a Finder Sync Helpers section listing the helper for a Both-icons favorite, its registration status, and the Open Extensions Settings and Refresh Status buttons.",
+    "shows": "The Settings window with a Finder Sync Helpers section listing the helper for a Both-icons favorite with a green dot and Enabled status, and the Open Extensions Settings and Refresh Status buttons.",
     "section": "settings",
     "capture": "CGWindowListCreateImage"
   },
@@ -281,7 +294,7 @@
     "height2x": 1290,
     "appearance": "light",
     "title": "The SF Symbols browser",
-    "shows": "The SF Symbols sheet: a search field, a grid of symbols with the current one (hammer.fill) selected, the symbol name at the bottom left, and Cancel and Use Symbol buttons.",
+    "shows": "The SF Symbols sheet searched for hammer: a short grid of matching symbols with hammer.fill selected, the symbol name at the bottom left, and Cancel and Use Symbol buttons.",
     "section": "picker",
     "capture": "CGWindowListCreateImage"
   }

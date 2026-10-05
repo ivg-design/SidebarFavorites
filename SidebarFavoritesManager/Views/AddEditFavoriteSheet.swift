@@ -321,6 +321,9 @@ struct AddEditFavoriteSheet: View {
                 // apply until the user changes something.
                 appliedSnapshot = FormSnapshot(favorite)
             }
+            #if DEBUG
+            if existingFavorite == nil && ScreenshotMode.newFavoriteCustom { iconType = .custom }
+            #endif
             refreshArtwork()
         }
         .onChange(of: customSVGPath) { _ in refreshArtwork() }
