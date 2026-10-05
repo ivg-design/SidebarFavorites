@@ -6,7 +6,7 @@ import puppeteer from "puppeteer-core";
 
 const BASE = process.env.BASE || "http://localhost:3273";
 const CH = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const SLUGS = ["install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
+const SLUGS = ["install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "settings", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
 const URLS = ["/docs", ...SLUGS.map((s) => `/docs/${s}`), "/changelog"];
 const WIDTHS = [1440, 1280, 1024, 834, 390];
 let browser;

@@ -9,6 +9,7 @@ import * as disks from "./disks-and-shares";
 import * as both from "./keeping-both-icons";
 import * as popover from "./menu-bar-popover";
 import * as how from "./how-it-works";
+import * as settings from "./settings";
 import * as config from "./config-json";
 import * as uninstall from "./uninstalling";
 import * as build from "./building-from-source";
@@ -31,6 +32,7 @@ const rawPages: DocPage[] = [
   { ...both.meta, Body: both.Body },
   { ...popover.meta, Body: popover.Body },
   { ...how.meta, Body: how.Body },
+  { ...settings.meta, Body: settings.Body },
   { ...config.meta, Body: config.Body },
   { ...uninstall.meta, Body: uninstall.Body },
   { ...build.meta, Body: build.Body },

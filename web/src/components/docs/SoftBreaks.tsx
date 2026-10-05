@@ -9,7 +9,7 @@ export default function SoftBreaks({ root }: { root: string | string[] }) {
   useEffect(() => {
     document.querySelectorAll<HTMLElement>(key).forEach((scope) => {
       scope.querySelectorAll<HTMLElement>("code").forEach((code) => {
-        if (code.closest(".dx-code") || code.dataset.soft === "true") return;
+        if (code.closest(".dx-code") || code.dataset.soft === "true" || code.classList.contains("dx-tk")) return;
         const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
         const nodes: Text[] = [];
         for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n as Text);

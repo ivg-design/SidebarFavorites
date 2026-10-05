@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ReactNode } from "react";
 import { nb } from "@/lib/nowrap";
 
 export type DocGroup = "Getting started" | "Guides" | "Reference" | "Help";
@@ -20,7 +20,8 @@ export interface DocMeta {
   sections: DocSection[];
 }
 
-export interface DocPage extends DocMeta { Body: ComponentType }
+/** `Body` is a plain function with no hooks: DocArticle calls it and post-processes the tree (nbTree). */
+export interface DocPage extends DocMeta { Body: () => ReactNode }
 
 /** Serialisable entry for the client shell and the search palette. */
 export type DocIndexEntry = DocMeta & { url: string };

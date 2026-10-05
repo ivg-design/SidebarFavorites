@@ -4,6 +4,7 @@ import { getDoc, neighbours, docUrl } from "@/content/docs";
 import DocsFooter from "./DocsFooter";
 import SoftBreaks from "./SoftBreaks";
 import Lightbox from "./Lightbox";
+import { nbTree } from "./nbTree";
 
 /** One docs page: breadcrumb, h1, lede, body, prev/next. */
 export default function DocArticle({ slug }: { slug: string }) {
@@ -28,7 +29,7 @@ export default function DocArticle({ slug }: { slug: string }) {
             <ul>{doc.sections.map((s) => <li key={s.id}><a href={`#${s.id}`}>{s.title}</a></li>)}</ul>
           </details>
         )}
-        <div className="dx-prose"><Body /></div>
+        <div className="dx-prose">{nbTree(Body())}</div>
         <Lightbox />
         <SoftBreaks root=".dx-prose" />
         <nav className="dx-pn" aria-label="Previous and next page">

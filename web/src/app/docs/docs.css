@@ -254,11 +254,13 @@
 
 /* menu paths and keys */
 .dx-path { font-weight: 650; color: var(--ink); }
+.dx-path-t { font-size: 0; }
 .dx-path-c { color: var(--muted); font-weight: 400; padding-inline: 0.3em; }
 .dx-prose .dx-kbd { display: inline-block; min-width: 1.8em; padding: 0 var(--s-2); text-align: center; font-family: var(--font-mono); font-size: .82em; line-height: 1.55; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--r-1); white-space: nowrap; }
 
 /* tables: a clear header, comfortable rows, the first column names the thing */
-.dx-table { overflow: hidden; }
+.dx-table th:first-child { border-top-left-radius: calc(var(--r-2) - 1px); }
+.dx-table th:last-child { border-top-right-radius: calc(var(--r-2) - 1px); }
 .dx-table th { border-bottom: 1px solid var(--line); white-space: nowrap; }
 .dx-table tbody tr:first-child td { border-top: 0; }
 .dx-table td { padding: var(--s-3) var(--s-4); font-size: var(--t-16); line-height: 1.5; color: var(--ink-2); }
@@ -266,7 +268,6 @@
 .dx-table td:first-child code { font-weight: 500; }
 .dx-table td:empty::after { content: "\2013"; color: var(--muted); font-weight: 400; }
 @media (max-width: 640px) {
-  .dx-table[data-stack="true"] { overflow: visible; }
   .dx-table[data-stack="true"] td:empty { display: none; }
   .dx-table[data-stack="true"] td:first-child::before { display: none; }
   .dx-table[data-stack="true"] td:first-child { background: var(--wash); }
@@ -284,7 +285,6 @@
 .dx-zoom { position: relative; display: block; max-width: 100%; padding: 0; border: 0; background: none; border-radius: var(--r-3); cursor: zoom-in; line-height: 0; }
 .dx-zoom picture { display: block; }
 .dx-fig img { display: block; width: auto; max-width: 100%; height: auto; border-radius: var(--r-3); }
-.dx-fig[data-framed="false"] img { box-shadow: 0 1px 0 rgba(20,19,17,.06), 0 24px 48px -24px rgba(20,19,17,.35); }
 .dx-zoom-hint { position: absolute; right: var(--s-3); bottom: var(--s-3); padding: 2px var(--s-2); border-radius: var(--r-1); background: var(--ink); color: var(--paper); font-size: var(--t-13); font-weight: 600; line-height: 1.5; opacity: 0; transition: opacity var(--t-fast) var(--ease); }
 .dx-zoom:hover .dx-zoom-hint, .dx-zoom:focus-visible .dx-zoom-hint { opacity: 1; }
 @media (hover: none) { .dx-zoom-hint { opacity: 1; } }
@@ -302,3 +302,4 @@
 .dx-prose > .dx-steps { margin-top: var(--s-5); }
 .dx-prose .dx-step-title { font-size: var(--t-17); line-height: 1.55; letter-spacing: -0.01em; padding-top: 1px; }
 .dx-prose .dx-step-title code { color: inherit; font-size: .9em; font-weight: 500; }
+.dx-table code.dx-tk, .dx-prose .dx-table code.dx-tk { white-space: nowrap; overflow-wrap: normal; }

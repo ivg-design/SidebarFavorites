@@ -6,7 +6,7 @@ export function MenuPath({ items }: { items: string[] }) {
     <strong className="dx-path">
       {items.map((it, i) => (
         <Fragment key={i}>
-          {i > 0 && <><span className="dx-path-c" aria-hidden="true">›</span><span className="sr-only"> then </span></>}
+          {i > 0 && <><span className="dx-path-c" aria-hidden="true">›</span><span className="dx-path-t"> then </span></>}
           <span className="dx-path-s">{it}</span>
         </Fragment>
       ))}

@@ -60,11 +60,12 @@ figure comes directly after the sentence that introduces the thing; a how-to has
 screen changes.
 
 ```tsx
-<Figure shot="SBFSettings" alt="What the image contains, for someone who cannot see it" caption={<>What to look at, with <strong>control names</strong> as the image shows them.</>} />
+<Figure shot="settings" alt="What the image contains, for someone who cannot see it" caption={<>What to look at, with <strong>control names</strong> as the image shows them.</>} />
 ```
 
-- Only the real captures in `public/shots/`. The fresh set is listed in `public/shots/manifest.json` (file, 2x
-  file, size, appearance, a `shows` sentence) and arrives framed on a gradient with a shadow. Never edit, reframe
+- Only the real captures. The fresh set is in `public/shots-app/`, listed in its `manifest.json` (file, 2x file,
+  size, appearance, a `shows` sentence), and arrives framed on a gradient with a shadow. `shot` is the file name
+  without its extension, such as `main-window`. Never edit, reframe
   or generate an image. If nothing shows what a page describes, the page goes without and the shot goes on the
   wish-list in `.reviews/docs-restructure-inventory.md` (page, sentence, window, state).
 - Names in the text match the labels visible in the image, character for character.

@@ -6,7 +6,7 @@ import puppeteer from "puppeteer-core";
 const BASE = process.env.BASE || "http://localhost:3249";
 const CH = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 // Registry order = nav order = prev/next order.
-const SLUGS = ["quick-start", "install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
+const SLUGS = ["quick-start", "install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "settings", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
 const path = (slug) => (slug === "quick-start" ? "/docs" : `/docs/${slug}`);
 const ENTITY = /&(?:[a-z][a-z0-9]*|#\d+|#x[0-9a-f]+);/i;
 let browser;
@@ -59,10 +59,10 @@ test("docs: every screenshot is shown whole (rendered ratio equals natural ratio
   }
 });
 
-test("docs: quick start has the three screenshots the README places there", async () => {
+test("docs: quick start shows the manager window, the editor and the symbol browser", async () => {
   const page = await open("/docs");
   const srcs = await page.evaluate(() => [...document.querySelectorAll(".dx-fig img")].map((i) => i.src));
-  for (const n of ["SBFMainWindow", "SBFAddFavoriteWindow", "SFSymbolBrowser"]) assert.ok(srcs.some((s) => s.includes(n)), `missing ${n}`);
+  for (const n of ["main-window", "editor-add", "symbol-browser"]) assert.ok(srcs.some((s) => s.includes(n)), `missing ${n}`);
   await page.close();
 });
 
@@ -182,5 +182,63 @@ test("docs: article is centred, tables never scroll, headings use the display fo
   assert.match(r.h1, /schibsted/i); assert.match(r.h2, /schibsted/i);
   assert.equal(r.w1, "700"); assert.equal(r.w2, "700");
   if (r.w3) assert.equal(r.w3, "600");
+  await page.close();
+});
+
+// The docs describe the app as it is now: no version history outside the changelog (owner rule).
+// Code and quoted app strings are data, so they are skipped; macOS 13 and macOS 26 name systems, not releases of the app.
+const HISTORY = /\b(new in\b|what['\u2019]s new|since (?:version |v)?\d|as of (?:version |v)?\d|previously|formerly|no longer|(?<!is |are |be |been |being |was |were )used to\b|as before|in earlier versions|older versions?|the old (?:mechanism|readme|version|workaround|way|design)|before (?:version |v)?\d+\.\d|v?\d+\.\d+\.\d+|version \d+\.\d|replaces the (?:old|previous)|migrat(?:e|ed|ion))/i;
+test("docs: no version-history framing, at most one changelog link, structure rules", async () => {
+  const problems = [];
+  const check = (cond, msg) => { if (!cond) problems.push(msg); };
+  for (const slug of SLUGS) {
+    const page = await open(path(slug));
+    const r = await page.evaluate(() => {
+      const root = document.querySelector(".dx-main").cloneNode(true);
+      root.querySelectorAll("pre, code, q, .dx-pn, .dx-crumbs, .dx-toc-inline").forEach((e) => e.remove());
+      const leaf = (e) => !e.querySelector("p, li, td");
+      const blocks = [...root.querySelectorAll(".dx-lede, .dx-prose p, .dx-prose li, .dx-prose td, .dx-prose th, .dx-prose h2, .dx-prose h3, figcaption")].filter(leaf).map((e) => e.textContent.replace(/[\u201c"][^\u201d"]*[\u201d"]/g, " "));
+      const live = document.querySelector(".dx-main");
+      return {
+        blocks,
+        changelog: live.querySelectorAll('.dx-prose a[href$="/changelog"]').length,
+        wide: [...live.querySelectorAll(".dx-table table")].filter((t) => t.rows[0].cells.length > 4).length,
+        unlabelled: [...live.querySelectorAll(".dx-code")].filter((c) => !c.querySelector(".dx-code-k")?.textContent.trim()).length,
+        callouts: [...live.querySelectorAll(".dx-callout")].map((c) => c.querySelector(".dx-callout-k")?.textContent.trim() ?? ""),
+        dash: blocks.filter((t) => /\u2014/.test(t)).map((t) => t.slice(0, 60)),
+        toc: [...live.querySelectorAll(".dx-prose h2[id]")].map((h) => h.id),
+        tocList: [...document.querySelectorAll('[data-testid="docs-toc"] a')].map((a) => a.getAttribute("href").slice(1)),
+        emptySteps: [...live.querySelectorAll(".dx-step")].filter((s) => !s.querySelector(".dx-step-title")?.textContent.trim()).length,
+      };
+    });
+    const hits = r.blocks.map((t) => { const m = HISTORY.exec(t); return m ? `${m[0]} :: ${t.slice(0, 70)}` : ""; }).filter(Boolean);
+    check(hits.length === 0, `${slug}: version-history framing ${JSON.stringify(hits)}`);
+    check(r.changelog <= 1, `${slug}: ${r.changelog} changelog links`);
+    check(r.wide === 0, `${slug}: a table has more than four columns`);
+    check(r.unlabelled === 0, `${slug}: a code block has no label`);
+    check(r.callouts.every((k) => ["Note", "Tip", "Warning"].includes(k)), `${slug}: callout kinds ${r.callouts}`);
+    check(r.callouts.length <= 2, `${slug}: ${r.callouts.length} callouts`);
+    check(r.dash.length === 0, `${slug}: em dash outside a quoted app string ${JSON.stringify(r.dash)}`);
+    check(JSON.stringify(r.tocList) === JSON.stringify(r.toc), `${slug}: "On this page" ${r.tocList} must list every h2 in order ${r.toc}`);
+    check(r.emptySteps === 0, `${slug}: a step has no action`);
+    await page.close();
+  }
+  assert.deepEqual(problems, []);
+});
+
+test("docs: a figure enlarges into a dialog and returns focus", async () => {
+  const page = await open("/docs/settings");
+  await page.evaluate(() => document.querySelector(".dx-zoom").scrollIntoView({ block: "center" }));
+  await page.focus(".dx-zoom");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-testid="docs-lightbox"][open] img');
+  const lb = await page.evaluate(() => { const d = document.querySelector('[data-testid="docs-lightbox"]'); const i = d.querySelector("img"); return { alt: i.alt.length, cap: d.querySelector("figcaption span").textContent.length, focus: document.activeElement.className, w: i.getAttribute("width") }; });
+  assert.ok(lb.alt > 10 && lb.cap > 10 && lb.w, JSON.stringify(lb));
+  assert.equal(lb.focus, "dx-lightbox-x");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.querySelector('[data-testid="docs-lightbox"][open]'));
+  assert.ok(await page.evaluate(() => document.activeElement.classList.contains("dx-zoom")), "focus returns to the figure");
+  const dims = await page.$$eval(".dx-fig img", (is) => is.every((i) => i.getAttribute("width") && i.getAttribute("height") && i.loading === "lazy"));
+  assert.ok(dims, "figures carry width, height and lazy loading");
   await page.close();
 });

@@ -197,7 +197,7 @@ export function Body() {
         <Step title="Open config.json in a plain-text editor, make the change and save.">
           <p>Keep the file valid JSON. Do not change <code>id</code>, <code>osType</code>, <code>sidebarItemID</code> or <code>sidebarProvenance</code>: they tie each favorite to a real row in the sidebar.</p>
         </Step>
-        <Step title="Open SidebarFavorites again." see="Your favorites are listed as before, with the change applied." />
+        <Step title="Open SidebarFavorites again." see="Your favorites are listed, with the change applied." />
       </Steps>
       <Callout kind="tip">To back up your whole setup, copy <code>config.json</code> and the <code>Icons</code> folder together. The SVG files in <code>Icons</code> are what custom icons are rebuilt from.</Callout>
 

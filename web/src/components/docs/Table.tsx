@@ -31,7 +31,11 @@ function walk(n: ReactNode, labels: string[], inCell: boolean): ReactNode {
     if (!isValidElement(c)) return c;
     const e = c as El;
     const t = e.type;
-    if (t === "code") return cloneElement(e, undefined, soften(e.props.children));
+    if (t === "code") {
+      // Short tokens stay whole; long ones may break, but only after a separator.
+      if (textOf(e.props.children).length <= 14) return cloneElement(e as ReactElement<{ className?: string }>, { className: "dx-tk" });
+      return cloneElement(e, undefined, soften(e.props.children));
+    }
     if (t === "tr") {
       let i = 0;
       return cloneElement(e, undefined, Children.map(e.props.children, (cell) => {

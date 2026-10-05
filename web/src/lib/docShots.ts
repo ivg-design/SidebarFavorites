@@ -6,28 +6,48 @@ import { SHOTS, SHOT_SCALE } from "@/lib/shots";
 export interface DocShotFile { src: string; src2x?: string; w: number; h: number; shows?: string; framed: boolean }
 interface ManifestEntry { file: string; file2x?: string; width?: number; height?: number; appearance?: string; title?: string; shows?: string; section?: string }
 
-let cache: Map<string, ManifestEntry> | null = null;
-/** public/shots/manifest.json keyed by file stem. Accepts an array or { images | shots: [...] }. Empty when absent. */
-function manifest(): Map<string, ManifestEntry> {
+/** Where framed captures live, newest set first. Each folder has its own manifest.json. */
+const DIRS = ["shots-app", "shots"];
+
+let cache: Map<string, ManifestEntry & { dir: string }> | null = null;
+/** Every manifest entry keyed by file stem. A manifest is an array or { images | shots: [...] }. Empty when absent. */
+function manifest(): Map<string, ManifestEntry & { dir: string }> {
   if (cache) return cache;
-  const map = new Map<string, ManifestEntry>();
-  try {
-    const raw = JSON.parse(readFileSync(join(process.cwd(), "public", "shots", "manifest.json"), "utf8"));
-    const list: ManifestEntry[] = Array.isArray(raw) ? raw : raw.images ?? raw.shots ?? Object.values(raw);
-    for (const e of list) if (e && typeof e.file === "string") map.set(e.file.replace(/^.*\//, "").replace(/\.[a-z0-9]+$/i, ""), e);
-  } catch { /* no manifest yet: the generated captures are used */ }
+  const map = new Map<string, ManifestEntry & { dir: string }>();
+  for (const dir of DIRS) {
+    try {
+      const raw = JSON.parse(readFileSync(join(process.cwd(), "public", dir, "manifest.json"), "utf8"));
+      const list: ManifestEntry[] = Array.isArray(raw) ? raw : raw.images ?? raw.shots ?? Object.values(raw);
+      for (const e of list) {
+        if (!e || typeof e.file !== "string") continue;
+        const stem = base(e.file).replace(/\.[a-z0-9]+$/i, "");
+        if (!map.has(stem)) map.set(stem, { ...e, dir });
+      }
+    } catch { /* no manifest in this folder */ }
+  }
   cache = map;
   return map;
 }
 
-const has = (rel: string) => existsSync(join(process.cwd(), "public", "shots", rel));
+const has = (dir: string, rel: string) => existsSync(join(process.cwd(), "public", dir, rel));
 const base = (f: string) => f.replace(/^.*\//, "");
+
+/** Width and height from the PNG itself: the file is the authority on its own size. */
+function pngSize(dir: string, file: string): [number, number] | null {
+  try {
+    const buf = readFileSync(join(process.cwd(), "public", dir, file));
+    if (buf.length >= 24 && buf.toString("ascii", 1, 4) === "PNG") return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
+  } catch { /* not readable */ }
+  return null;
+}
 
 function fromManifest(stem: string): DocShotFile | null {
   const e = manifest().get(stem);
-  if (!e || !e.width || !e.height || !has(base(e.file))) return null;
-  const f2 = e.file2x && has(base(e.file2x)) ? `/shots/${base(e.file2x)}` : undefined;
-  return { src: `/shots/${base(e.file)}`, src2x: f2, w: e.width, h: e.height, shows: e.shows, framed: true };
+  if (!e || !has(e.dir, base(e.file))) return null;
+  const size = pngSize(e.dir, base(e.file)) ?? (e.width && e.height ? [e.width, e.height] : null);
+  if (!size) return null;
+  const f2 = e.file2x && has(e.dir, base(e.file2x)) ? `/${e.dir}/${base(e.file2x)}` : undefined;
+  return { src: `/${e.dir}/${base(e.file)}`, src2x: f2, w: size[0], h: size[1], shows: e.shows, framed: true };
 }
 
 /**
@@ -42,5 +62,5 @@ export function docShot(name: string): { main: DocShotFile; dark?: DocShotFile }
   if (dark) return { main: dark };
   const g = (SHOTS as Record<string, { w: number; h: number; display: number }>)[name];
   if (!g) return null;
-  return { main: { src: `/shots/${name}-w${g.display}.webp`, src2x: `/shots/${name}-w${g.w}.webp`, w: g.display, h: Math.round(g.h * SHOT_SCALE), framed: false } };
+  return { main: { src: `/shots/${name}-w${g.display}.webp`, src2x: `/shots/${name}-w${g.w}.webp`, w: g.display, h: Math.round(g.h * SHOT_SCALE), framed: true } };
 }
