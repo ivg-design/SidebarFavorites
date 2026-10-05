@@ -5,7 +5,9 @@ const isForgeContext = process.env.NEXT_PUBLIC_SITE_URL?.includes("forge.mograph
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  experimental: { inlineCss: true },
+  // Inlined CSS writes font URLs as /_next/static/media/... without the asset prefix, so under the Forge path the
+  // fonts would 404. Inline only when the site is served from its own root.
+  experimental: { inlineCss: !isForgeContext },
   images: { unoptimized: true },
   turbopack: { root: process.cwd() },
   assetPrefix: isProd && isForgeContext ? "/apps/sidebarfavorites" : "",
