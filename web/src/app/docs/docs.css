@@ -284,7 +284,7 @@
 .dx-prose > .dx-fig, .dx-fig { margin: var(--s-6) 0 0; width: auto; max-width: 100%; display: grid; gap: var(--s-3); justify-items: start; }
 .dx-zoom { position: relative; display: block; max-width: 100%; padding: 0; border: 0; background: none; border-radius: var(--r-3); cursor: zoom-in; line-height: 0; }
 .dx-zoom picture { display: block; }
-.dx-fig img { display: block; width: auto; max-width: 100%; height: auto; border-radius: var(--r-3); }
+.dx-fig img { display: block; width: auto; max-width: 100%; height: auto; max-height: min(78vh, 760px); border-radius: var(--r-3); }
 .dx-zoom-hint { position: absolute; right: var(--s-3); bottom: var(--s-3); padding: 2px var(--s-2); border-radius: var(--r-1); background: var(--ink); color: var(--paper); font-size: var(--t-13); font-weight: 600; line-height: 1.5; opacity: 0; transition: opacity var(--t-fast) var(--ease); }
 .dx-zoom:hover .dx-zoom-hint, .dx-zoom:focus-visible .dx-zoom-hint { opacity: 1; }
 @media (hover: none) { .dx-zoom-hint { opacity: 1; } }

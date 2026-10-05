@@ -43,7 +43,7 @@ const SHOTS = {
   "migration-consent": ["dusk", "Upgrade to 1.0 consent", "The upgrade sheet that asks before doing anything: what will be removed (old helper apps), what will change (settings file format, icon codes) and what will be kept, with Not Now and Upgrade buttons.", "onboarding"],
   "menu-bar-menu": ["rose", "The menu bar menu", "The menu bar menu content: each favorite with its glyph, then Open SidebarFavorites, Refresh All, Preferences, the version line and Quit. Rendered from the menu's own items (a native menu cannot be captured offscreen).", "menubar"],
   "alert-update": ["violet", "Update available", "The alert saying a new version is available, with Later and Download buttons.", "alerts"],
-  "alert-remove-favorite": ["rose", "Remove a favorite", "The confirmation asking Remove Projects, explaining the row is removed from Finder's sidebar and the folder's normal icon returns, with Cancel and Remove.", "alerts"],
+  "alert-remove-favorite": ["rose", "Remove a favorite", "The confirmation asking Remove Projects, with the line This removes it from Finder's sidebar, and Cancel and Remove buttons.", "alerts"],
   "alert-turn-off": ["ember", "Turn off a favorite", "The confirmation for turning off a favorite the app added, explaining the row is removed and re-added at the bottom if turned back on, with Turn Off and Remove Row and Cancel.", "alerts"],
   "alert-remove-all": ["orchid", "Remove all sidebar icons", "The confirmation listing exactly what Remove All Sidebar Icons will do (rows removed, icons cleared, helper bundle deleted, cannot be undone), with Remove All Sidebar Icons and Cancel.", "alerts"],
 };

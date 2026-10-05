@@ -34,7 +34,7 @@ export function Body() {
       <Steps>
         <Step title={<>In the favorite editor, set <strong>Type</strong> to <strong>Custom SVG</strong>.</>} see={<>An <strong>Import SVG...</strong> button replaces the SF Symbol grid.</>} />
         <Step title={<>Click <strong>Import SVG...</strong> and choose an SVG file.</>} see={<>The file name appears with a <strong>Replace...</strong> button, and the <strong>Preview</strong> section shows your artwork.</>}>
-          <Figure shot="svg-import" alt="The favorite editor with Type set to Custom SVG, the Import SVG... button, and the Preview section showing an enlarged placeholder and a mock sidebar row named Folder Name" caption={<>Before a file is chosen, the preview shows a placeholder. After you import, <strong>Enlarged</strong> and the mock row below it show your artwork.</>} />
+          <Figure shot="svg-import" alt="The favorite editor with Type set to Custom SVG, the Import SVG... button, and the Preview section showing an enlarged placeholder and a mock sidebar row named Folder Name" caption={<>Before a file is chosen, <strong>Enlarged</strong> and the mock row below it show a placeholder. <strong>Import SVG...</strong> opens the file picker.</>} />
         </Step>
         <Step title={<>Check the <strong>Preview</strong> section.</>} see="Two views of the same silhouette: an enlarged one, and a mock sidebar row at the real size, 16 pt tall.">
           <p>The preview is what Finder will draw. If the app had to drop or flatten something, a warning row with an orange triangle appears below the preview. See <a href="#warnings">Messages from the import sheet</a>.</p>

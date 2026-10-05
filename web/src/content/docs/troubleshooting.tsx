@@ -58,7 +58,7 @@ export function Body() {
       <p>All three are in the favorite editor. Details: <DocLink to="keeping-both-icons">Keeping both icons</DocLink>.</p>
 
       <H2 id="folder-refused">The folder is refused when I add it</H2>
-      <p><strong>Cause.</strong> A folder can have only one favorite. The editor shows <q>&ldquo;Name&rdquo; already uses this folder.</q> and the text <q>A folder can only have one favorite - two would fight over the same sidebar row. Edit &ldquo;Name&rdquo; instead, or choose a different folder.</q> The <strong>Add</strong> button stays disabled until you do.</p>
+      <p><strong>Cause.</strong> A folder can have only one favorite. The editor shows <q>&lsquo;Name&rsquo; already uses this folder.</q> and the text <q>A folder can only have one favorite - two would fight over the same sidebar row. Edit &lsquo;Name&rsquo; instead, or choose a different folder.</q> The <strong>Add</strong> button stays disabled until you do.</p>
       <Table label="Ways to resolve a duplicate folder">
         <thead><tr><th>Fix</th><th>What it does</th><th>Choose it when</th></tr></thead>
         <tbody>

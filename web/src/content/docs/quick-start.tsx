@@ -72,7 +72,7 @@ export function Body() {
       <p><strong>Browse All…</strong> opens a sheet that searches every SF Symbol this Mac can draw, by name or by keyword, so a search for <q>bin</q> finds <code>trash</code>. The number of symbols depends on your macOS version, and the empty search field states the exact count for your Mac.</p>
       <Steps>
         <Step title={<>Click <strong>Browse All…</strong>.</>} see={<>A sheet titled <q>SF Symbols</q> opens with a search field and a grid of symbols.</>}>
-          <Figure shot="symbol-browser" alt="The SF Symbols sheet with hammer typed in the search field, four matching symbols, hammer.fill selected and named at the bottom left, and Cancel and Use Symbol buttons" caption={<>A search for <q>hammer</q>. The selected symbol&rsquo;s name is at the bottom left, next to <strong>Cancel</strong> and <strong>Use Symbol</strong>.</>} />
+          <Figure shot="symbol-browser" alt="The SF Symbols sheet with a search term typed in the search field, a grid of matching symbols with one selected and its name shown at the bottom left, and Cancel and Use Symbol buttons" caption={<>Matches for a search term. The selected symbol&rsquo;s name is at the bottom left, next to <strong>Cancel</strong> and <strong>Use Symbol</strong>.</>} />
         </Step>
         <Step title="Click a symbol." see={<>The symbol is outlined, and its name appears at the bottom left of the sheet.</>}>
           <p>Double-clicking a symbol picks it and closes the sheet in one go, and the next step is then done.</p>

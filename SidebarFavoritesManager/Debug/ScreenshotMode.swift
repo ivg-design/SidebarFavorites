@@ -243,7 +243,7 @@ enum ScreenshotRunner {
         ("alert-update", "A new version is available",
          "SidebarFavorites 1.2.3 is out. You have \(UpdateChecker.runningVersion).", ["Download", "Later"], .informational),
         ("alert-remove-favorite", "Remove \"Projects\"?",
-         "Removes the row this app added to Finder's sidebar and restores the folder's normal icon.", ["Remove", "Cancel"], .warning),
+         "This removes it from Finder's sidebar.", ["Remove", "Cancel"], .warning),
         ("alert-turn-off", "Turn Off \"Projects\"?",
          "This app added this row to Finder's sidebar. Turning it off removes the row entirely; turning it back on re-adds it at the bottom of the list, not its original position.",
          ["Turn Off and Remove Row", "Cancel"], .warning),
