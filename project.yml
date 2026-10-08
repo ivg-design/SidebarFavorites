@@ -28,6 +28,10 @@ targets:
           # compiled by the Build FinderSync Template phase below, never linked
           # into the Manager itself.
           - "FinderSyncTemplate/**"
+          # Notes that coding tools drop beside the sources. Picked up as
+          # resources, several of them collide on one output path and fail the build.
+          - "**/CLAUDE.md"
+          - "**/AGENTS.md"
     settings:
       base:
         INFOPLIST_FILE: SidebarFavoritesManager/Info.plist
@@ -55,6 +59,10 @@ targets:
             -framework FinderSync -framework Cocoa \
             -Xlinker -e -Xlinker _NSExtensionMain \
             -o "$DEST/appex-bin" "$SRC/FinderSyncExt.swift" || exit 1
+          # Spacers' no-op executable (#23). Universal, because it is copied into
+          # an app LaunchServices starts on whatever Mac the user has.
+          xcrun clang -O2 -arch arm64 -arch x86_64 \
+            -o "$DEST/spacer-bin" "$SRC/SpacerMain.c" || exit 1
         basedOnDependencyAnalysis: false
     preBuildScripts:
       - name: Increment Build Number

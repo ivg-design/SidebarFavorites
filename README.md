@@ -91,6 +91,8 @@ Import **any ordinary SVG** - a logo, an icon you drew, anything made of vector 
 
 Folders in iCloud Drive and `~/Library/CloudStorage` work exactly like local ones. **This did not work in any version before 1.0** - those paths are virtual FileProvider mounts that Finder Sync extensions cannot see, and the old mechanism depended on such an extension. The symlink workaround the old README described is no longer needed; if you set one up, the favorite pointing at it keeps working, and you can also just point it at the real folder now.
 
+If a cloud folder's row drops back to a plain folder - it can happen while that account syncs, and more often with several accounts in the sidebar - press **Refresh**. It redraws cloud rows as well as disks.
+
 ## Disks and network shares
 
 A mounted disk or server can carry a custom icon too. Finder already lists every mounted volume under **Locations**, so a volume favorite offers a choice:
@@ -99,6 +101,12 @@ A mounted disk or server can carry a custom icon too. Finder already lists every
 - **Show in Locations only** and no Favorites row is added at all - the app just icons the row Finder already shows.
 
 Finder owns the rows in Locations, so the app only ever patches one in place. It never inserts, moves or deletes a row there, and the row is handed back untouched when the favorite is disabled or removed. Finder's synthesised entries - iCloud Drive, Computer, AirDrop, Network and the cloud-provider rows - cannot take a custom icon at all; macOS stores one and never draws it, so the app leaves them alone.
+
+## Spacers
+
+A long sidebar reads better in groups. Click the dashed-rectangle button next to **+** to add a **spacer** - a sidebar row with no icon and no name. It appears at the bottom of Finder's sidebar; click the **up/down arrows** on its row in the app's list to move it into place, one place per click (Finder can't drag a row that has nothing to show). The app's window shows a reminder whenever you have spacers. Clicking a spacer in Finder does nothing.
+
+**Spacers use a small do-nothing helper app.** A sidebar row has to point at something, and a row pointing at a folder opens it when clicked. So each spacer is an empty, blank-named file of a private type that only one helper - `SidebarFavorites Spacer` - can open, and the helper quits the moment it starts: no window, no Dock icon, nothing left running. The app explains this before the first spacer is made. The helper and the spacer files live in `~/Library/Application Support/SidebarFavorites/Spacers.noindex/` (kept out of Spotlight); the helper is ad-hoc signed and registered as the only app for that type, and removing the last spacer deletes it.
 
 ## Keeping both icons
 
@@ -155,6 +163,10 @@ Every favorite is also one click away from the menu bar, with its icon:
 3. Optionally delete `~/Library/Application Support/SidebarFavorites`.
 
 Do step 1 before step 2 if you used **Both icons** mode. Dragging the app to the Trash runs none of its code, so its helpers stay registered and keep appearing in System Settings until you remove them there or delete `~/Library/Application Support/SidebarFavorites`. Each one says in its description that it is safe to disable if SidebarFavorites is gone.
+
+## Reporting a problem
+
+**Settings › Copy Diagnostics** copies a plain-text report of your favorites and Finder's sidebar rows - each row's icon code, where it points, and what that code resolves to. Paste it into a [GitHub issue](https://github.com/ivg-design/SidebarFavorites/issues). It contains your folder paths, so look it over first.
 
 ## Building from source
 

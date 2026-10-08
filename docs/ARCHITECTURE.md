@@ -100,6 +100,12 @@ Two behaviours the rest of the design rests on, both measured:
 
 Two API sharp edges: passing `NULL` to `LSSharedFileListItemSetProperty` crashes, so clearing an override goes through the upsert's `propertiesToClear`; and that call rewrites the label, so the row's *current* name has to be passed back in or it resets to the folder's file-system name.
 
+Position is Finder's, never ours. The de-duplication above has a sharp edge: an insert of a URL the list already holds *moves* that row to wherever the anchor says (measured on macOS 26.6 - anchored after the last row, an existing row goes to the bottom with its ID intact). So the anchor is only ever "after the row's own predecessor", and three things keep a row from being mistaken for absent (#24):
+
+- **Recorded paths.** When a row's bookmark won't resolve - a volume still mounting, a File Provider domain still starting - the snapshot carries the path the bookmark was *recorded* with, read without resolving it (`LSSharedFileListItemCopyBookmarkData`, exported but undeclared, looked up at run time). Matching and the insert anchor both fall back to it.
+- **An unreadable bound row stays bound.** If even the recorded path is unavailable, the item ID is the only evidence left, and it says "ours" - so the binding is kept rather than declared stale.
+- **Displaced rows are put back.** If an insert still lands on a row the pass snapshot already held, `SFLBridge.placeURL:` re-inserts it after its original predecessor (no properties passed, so its override is untouched). Every pass also logs, never acts on, any change in the relative order of rows that existed when it began.
+
 ### Ownership: managed vs adopted
 
 Each favorite records a `sidebarProvenance`:
@@ -116,6 +122,10 @@ Each favorite records a `sidebarProvenance`:
 - Clearing an override only happens for codes shaped like ours (`OSTypeAllocator.isWellFormed`); an override somebody else set is left alone.
 
 Path matching is deliberately fuzzy in one direction: a bookmark can resolve through a different but equivalent spelling of the same directory (`/private/tmp/…` vs `/tmp/…`), and 0.5.0 users were told to point favorites at symlinks into `~/Library/CloudStorage`, so `SidebarItem.matches(anyOf:)` compares standardized and symlink-resolved forms.
+
+### Spacers
+
+A spacer (`Favorite.kind == .spacer`, #23) is an ordinary managed row with nothing to show and nothing to do. What a row points at decides its label and its click, and only one kind of target gives both a blank label and an inert click (all measured on macOS 26.6): a folder navigates and takes the selection; an app launches without navigating but is labelled by its file name - `⠀.app` once "Show all filename extensions" is on - and an app bundle without the extension is not an app to LaunchServices; a file opens in its default app and can be named with nothing to show. So `SpacerStore` writes an empty file `Spacers.noindex/<id>/⠀` (U+2800; one directory per spacer because the list de-duplicates by URL; `.noindex` keeps Spotlight out) with the classic type code `SBFs`, which maps to the private type `com.ivg-design.sidebarfavorites.spacer`. One shared helper, `SidebarFavorites Spacer.app` - `spacer-bin`, a universal `return 0` built beside the Finder Sync template binaries so the release script's `*-bin` loop signs it - declares that type and owns it (`LSHandlerRank` Owner), is background-only and ad-hoc signed, and is registered with `lsregister`; every pass re-registers it if the type has lost its handler. LaunchServices will not bind documents to an app in a temporary directory, which Application Support avoids. A blank row also gives Finder nothing to show while dragging it, so spacers are moved from the app's list: `SidebarReconciler.move` re-inserts the row after a new predecessor via `placeURL:`. The row's icon is a built-in custom icon, which also leaves Finder's open zoom nothing to draw: two 0.2-unit specks at opposite corners of a 100-unit square. The fit scales that square to the cap band, so the artwork is real geometry that validates and compiles like any other, yet renders nothing at sidebar size (measured: zero ink at 1x, 1/255 on two pixels at 2x). An empty or zero-size path cannot do this - it fails validation, and a symbol that fails to compile falls back to a folder.
 
 ## The SVG pipeline
 
@@ -174,6 +184,8 @@ Only `@Published` writes and cheap config bookkeeping run on the main actor. `ac
 
 **Nothing in the app calls `killall Finder` on its own.** `restartFinder()` is the single path to `FinderService.restart()` and only a user action reaches it - the banner button, the Settings action, or the Add/Edit sheet's Apply button. A reconcile runs on launch and after any edit, and killing Finder mid-copy aborts the copy and loses every open window, tab and in-flight rename.
 
+**Refresh** (`syncAll(force: true)`) re-inserts in place - not just re-stamps - every row whose target can lose its drawing: volume roots, folders with an icon of their own, and folders in a File Provider mount or iCloud Drive (#25). A cloud row that refuses the in-place insert gets the property rewritten instead, silently.
+
 A restart is *owed* (`needsFinderRestart`) from two independent sources, because Finder caches two different things:
 
 - a row that was **already on screen** had its override set, changed or cleared;
@@ -230,6 +242,9 @@ Provenance is deliberately left unresolved by the migration. Only a comparison a
 | `Services/SVGGeometryParser.swift` | Arbitrary SVG → one flattened `CGPath` |
 | `Services/SymbolValidator.swift` | Import front door: usable / not, plus warnings |
 | `Services/FavoriteSyncCoordinator.swift` | The single reconcile pass; also `SidebarReconciler` |
+| `Services/SpacerStore.swift` | Spacer files, their shared helper app, and the blank artwork |
+| `Services/CloudFolder.swift` | Which paths are File Provider / iCloud Drive folders |
+| `Services/DiagnosticsReport.swift` | Read-only report behind Settings › Copy Diagnostics |
 | `Services/MigrationService.swift` | Read-only pre-flight and consent-gated teardown |
 | `Services/ConfigManager.swift` | `config.json` persistence and recovery |
 | `Views/MigrationConsentSheet.swift` | Renders the pre-flight plan; nothing runs until Upgrade |

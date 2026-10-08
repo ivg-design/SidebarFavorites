@@ -9,6 +9,9 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var deletingFavoriteIDs: Set<UUID> = []
     @State private var warningsExpanded = false
+    @State private var showingSpacerNotice = false
+    // Once the user has read the spacer notice and asked not to see it again.
+    @AppStorage("spacerNoticeAcknowledged") private var spacerNoticeAcknowledged = false
 
     /// A newer release found at launch, if any. Drives the update alert.
     @State private var availableUpdate: UpdateChecker.Update?
@@ -35,6 +38,14 @@ struct ContentView: View {
 
                 Spacer()
 
+                Button(action: addSpacer) {
+                    Image(systemName: "rectangle.dashed")
+                        .font(.system(size: 18))
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .help("Add Spacer - a blank row in Finder's sidebar, opened by a do-nothing helper app")
+
                 Button(action: { openEditor(FavoriteEditorWindow.newFavoriteToken) }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 22))
@@ -47,6 +58,14 @@ struct ContentView: View {
             .background(Color(NSColor.windowBackgroundColor))
 
             Divider()
+
+            // Spacers are the one thing positioned from here rather than in Finder,
+            // so while one is in the sidebar the window says so, pointing at the
+            // arrows. No spacer, no notice.
+            if configManager.config.favorites.contains(where: { $0.isSpacer && $0.enabled }) {
+                spacerMoveNotice
+                Divider()
+            }
 
             // Favorites list
             if configManager.config.favorites.isEmpty {
@@ -100,8 +119,31 @@ struct ContentView: View {
         // Names the favorite being removed; the trash button is hover-revealed and
         // sits right next to the enable toggle, so a single unconfirmed click here
         // is too easy to fire by accident.
+        // Spacers put a generated app on disk and point a sidebar row at it -
+        // say so plainly before the first one is made, not after.
+        .alert("Spacers use a do-nothing helper app", isPresented: $showingSpacerNotice) {
+            Button("Add Spacer") { createSpacer() }
+            Button("Add, and Don't Show Again") {
+                spacerNoticeAcknowledged = true
+                createSpacer()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("""
+                A sidebar row has to point at something, and a row pointing at a folder opens it when clicked. So each spacer is an empty, blank-named file that only one small helper app, "SidebarFavorites Spacer", can open - and the helper does nothing: clicking a spacer starts it and it quits at once, with no window, no Dock icon and nothing left running.
+
+                SidebarFavorites creates the helper in ~/Library/Application Support/SidebarFavorites/Spacers.noindex, ad-hoc signs it and registers it as the only app for that private file type. Removing the last spacer deletes it.
+
+                How to place a spacer:
+                1. The new spacer appears at the bottom of Finder's sidebar.
+                2. In this window, find its row - it is labelled "Spacer".
+                3. Click the up or down arrow on that row. Each click moves the spacer one place in Finder's sidebar.
+
+                Finder itself can't drag a spacer: a blank row has nothing to grab.
+                """)
+        }
         .confirmationDialog(
-            "Remove \"\(favoritePendingDeletion?.name ?? "")\"?",
+            "Remove \"\(favoritePendingDeletion?.listTitle ?? "")\"?",
             isPresented: Binding(
                 get: { favoritePendingDeletion != nil },
                 set: { isPresented in if !isPresented { favoritePendingDeletion = nil } }
@@ -130,7 +172,7 @@ struct ContentView: View {
         // non-destructive on disable (only the icon override is cleared) and never
         // reach this dialog.
         .confirmationDialog(
-            "Turn Off \"\(favoritePendingDisableConfirmation?.name ?? "")\"?",
+            "Turn Off \"\(favoritePendingDisableConfirmation?.listTitle ?? "")\"?",
             isPresented: Binding(
                 get: { favoritePendingDisableConfirmation != nil },
                 set: { isPresented in if !isPresented { favoritePendingDisableConfirmation = nil } }
@@ -213,6 +255,20 @@ struct ContentView: View {
         .padding()
     }
 
+    private var spacerMoveNotice: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "arrow.up.arrow.down")
+                .foregroundColor(.accentColor)
+            Text("Finder can't drag a spacer. To move one, use the \(Image(systemName: "chevron.up")) \(Image(systemName: "chevron.down")) arrows on its row below - each click moves it one place in Finder's sidebar.")
+                .font(.callout)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.accentColor.opacity(0.08))
+    }
+
     private var favoritesList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
@@ -224,7 +280,8 @@ struct ContentView: View {
                         onEdit: { openEditor(favorite.id.uuidString) },
                         onDelete: { favoritePendingDeletion = favorite },
                         onToggle: { toggleFavorite(favorite) },
-                        onReveal: { coordinator.revealInFinder(favorite.folderPath) }
+                        onReveal: { coordinator.revealInFinder(favorite.folderPath) },
+                        onMove: { offset in Task { await coordinator.moveInSidebar(favorite, by: offset) } }
                     )
                     // Reconciling a delete can take a moment (helper rebuild, sidebar
                     // patch, possible Finder restart); disable the row's controls while
@@ -418,6 +475,30 @@ struct ContentView: View {
         return coordinator.lastError
     }
 
+    private func addSpacer() {
+        if spacerNoticeAcknowledged {
+            createSpacer()
+        } else {
+            showingSpacerNotice = true
+        }
+    }
+
+    /// A spacer needs no choices, so it skips the editor: its app and blank
+    /// artwork are made here (off the main thread - that runs `codesign`) and it
+    /// goes through the same path as any new favorite. Its row is added at the
+    /// bottom of the sidebar, inserted with its icon already set, so no Finder
+    /// restart is owed.
+    private func createSpacer() {
+        Task {
+            do {
+                let spacer = try await Task.detached { try SpacerStore.makeSpacer() }.value
+                _ = await persistFavorite(spacer)
+            } catch {
+                showError(error)
+            }
+        }
+    }
+
     private func deleteFavorite(_ favorite: Favorite) {
         guard !deletingFavoriteIDs.contains(favorite.id) else { return }
         deletingFavoriteIDs.insert(favorite.id)
@@ -429,6 +510,7 @@ struct ContentView: View {
             await coordinator.favoriteRemoved(favorite)
             do {
                 try configManager.removeFavorite(id: favorite.id)
+                SpacerStore.removeFiles(for: favorite)
             } catch {
                 showError(error)
             }

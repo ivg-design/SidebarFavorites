@@ -24,13 +24,16 @@
 		4BAB0D71C84DB2038A79BE40 /* OSTypeAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F66B275483C4FD4F33A8C20C /* OSTypeAllocator.swift */; };
 		4EE036577423D8C60164D5D4 /* FavoriteEditorWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C4F19E1C4C373AA935F4520 /* FavoriteEditorWindow.swift */; };
 		673744E11E88C626D10983E1 /* SigningIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55902C37DF49AE55C76108F9 /* SigningIdentity.swift */; };
+		72276FCADC9D17B0C0B672F0 /* DiagnosticsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0AADB10E08DC32E4C2702A1 /* DiagnosticsReport.swift */; };
 		7CC8DF9C125868C87CAD7785 /* FinderSyncAppGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */; };
 		7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */; };
+		8240DFB55255FB9A49024408 /* CloudFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D312F98B36C9C2366D4C592F /* CloudFolder.swift */; };
 		8CA92AFDA6180712B2D47658 /* custom-icon-template.svg in Resources */ = {isa = PBXBuildFile; fileRef = 85F7BD2A6DD1A868DDEFA337 /* custom-icon-template.svg */; };
 		8EB0B80609899DBC7F096E63 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F186785C1B2E73BAFFE1FB7E /* ProcessRunner.swift */; };
 		8F458EA83BA78A498AD2BFDA /* IconHelperBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */; };
 		916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A544DCD893CE8880DABEB363 /* SidebarFavoritesManagerApp.swift */; };
 		92788DB54714ABFFF4DDD9BD /* SymbolTemplateSynthesizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D28DC8439D24236E5A6D298 /* SymbolTemplateSynthesizer.swift */; };
+		93A6EF86776AE7D5275E866D /* SpacerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7D796C88ED756A0AB06A09 /* SpacerStore.swift */; };
 		9C00E53E5D16EA48775FEBCF /* FavoriteSyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */; };
 		9EDAEAEFA06C0318B3818E0C /* MigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B2A2855190B236E1340ABA /* MigrationService.swift */; };
 		9F2551B574084477E0003FC0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4182B79F6FBC4556EECCB96 /* SettingsView.swift */; };
@@ -61,6 +64,7 @@
 		3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteSyncCoordinator.swift; sourceTree = "<group>"; };
 		4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersion.swift; sourceTree = "<group>"; };
 		46B2A2855190B236E1340ABA /* MigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationService.swift; sourceTree = "<group>"; };
+		4A7D796C88ED756A0AB06A09 /* SpacerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpacerStore.swift; sourceTree = "<group>"; };
 		52FEE397CF7C0505AB617A9E /* SymbolValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolValidator.swift; sourceTree = "<group>"; };
 		55902C37DF49AE55C76108F9 /* SigningIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningIdentity.swift; sourceTree = "<group>"; };
 		56994A0E52942D4D13A9956B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -81,10 +85,12 @@
 		C675A7C722D7988D48C49A11 /* SFLBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFLBridge.h; sourceTree = "<group>"; };
 		C986C47A1DC8F408F12B568D /* MigrationConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationConsentSheet.swift; sourceTree = "<group>"; };
 		CB28CC7CA854D6E918A1DDB4 /* SymbolBrowserSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolBrowserSheet.swift; sourceTree = "<group>"; };
+		D312F98B36C9C2366D4C592F /* CloudFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudFolder.swift; sourceTree = "<group>"; };
 		D519AB06160576C3DAAC6057 /* IconHelperBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconHelperBundle.swift; sourceTree = "<group>"; };
 		D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreThemeCatalogWriter.h; sourceTree = "<group>"; };
 		D78EB6AA1AB975B77E369ECE /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
 		D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolCatalogBuilder.swift; sourceTree = "<group>"; };
+		E0AADB10E08DC32E4C2702A1 /* DiagnosticsReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsReport.swift; sourceTree = "<group>"; };
 		E33EDF718268412B7F826DEC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E3439D15842AECAE640371AE /* CodeSigner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSigner.swift; sourceTree = "<group>"; };
 		E8BD9736476A052F2A50161D /* MenuBarIconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconStore.swift; sourceTree = "<group>"; };
@@ -155,10 +161,12 @@
 			isa = PBXGroup;
 			children = (
 				4026AAEABF2BA4DF82DE4E62 /* AppVersion.swift */,
+				D312F98B36C9C2366D4C592F /* CloudFolder.swift */,
 				E3439D15842AECAE640371AE /* CodeSigner.swift */,
 				EED494CB3B8D7A4460544CF9 /* ConfigManager.swift */,
 				D531C619C37A346E160EB448 /* CoreThemeCatalogWriter.h */,
 				BF9F07154C38DA5E6099DCBC /* CoreThemeCatalogWriter.m */,
+				E0AADB10E08DC32E4C2702A1 /* DiagnosticsReport.swift */,
 				3D4B63B58DDC796A0F81626E /* FavoriteSyncCoordinator.swift */,
 				D78EB6AA1AB975B77E369ECE /* FinderService.swift */,
 				C2D4A50A883319EFEAB89B57 /* FinderSyncAppGenerator.swift */,
@@ -170,6 +178,7 @@
 				C675A7C722D7988D48C49A11 /* SFLBridge.h */,
 				22FE2A878EB571297FCD1F44 /* SFLBridge.m */,
 				7F93EADB4893728A39BC0F09 /* SidebarItemManager.swift */,
+				4A7D796C88ED756A0AB06A09 /* SpacerStore.swift */,
 				B8E9F42D9171878ADD9CC1E1 /* SVGGeometryParser.swift */,
 				B2F407FE40E5EF3E23C47326 /* SymbolCatalog.swift */,
 				D80C91408215D5437D152321 /* SymbolCatalogBuilder.swift */,
@@ -295,7 +304,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "SRC=\"${SRCROOT}/SidebarFavoritesManager/FinderSyncTemplate\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FinderSyncTemplate\"\nmkdir -p \"$DEST\"\nxcrun swiftc -O -module-name SBFAdvHost \\\n  -o \"$DEST/host-bin\" \"$SRC/HostMain.swift\" || exit 1\nxcrun swiftc -O -module-name SBFAdvSync \\\n  -framework FinderSync -framework Cocoa \\\n  -Xlinker -e -Xlinker _NSExtensionMain \\\n  -o \"$DEST/appex-bin\" \"$SRC/FinderSyncExt.swift\" || exit 1\n";
+			shellScript = "SRC=\"${SRCROOT}/SidebarFavoritesManager/FinderSyncTemplate\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FinderSyncTemplate\"\nmkdir -p \"$DEST\"\nxcrun swiftc -O -module-name SBFAdvHost \\\n  -o \"$DEST/host-bin\" \"$SRC/HostMain.swift\" || exit 1\nxcrun swiftc -O -module-name SBFAdvSync \\\n  -framework FinderSync -framework Cocoa \\\n  -Xlinker -e -Xlinker _NSExtensionMain \\\n  -o \"$DEST/appex-bin\" \"$SRC/FinderSyncExt.swift\" || exit 1\n# Spacers' no-op executable (#23). Universal, because it is copied into\n# an app LaunchServices starts on whatever Mac the user has.\nxcrun clang -O2 -arch arm64 -arch x86_64 \\\n  -o \"$DEST/spacer-bin\" \"$SRC/SpacerMain.c\" || exit 1\n";
 		};
 		A9A75BFFD0DF6263973369A5 /* Increment Build Number */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -325,11 +334,13 @@
 			files = (
 				3449045C82D58B47741DDADC /* AddEditFavoriteSheet.swift in Sources */,
 				B3A8B76884C393684672A21B /* AppVersion.swift in Sources */,
+				8240DFB55255FB9A49024408 /* CloudFolder.swift in Sources */,
 				DA5D5EF17A7593BD90F16600 /* CodeSigner.swift in Sources */,
 				0552EC52E6F42FD0F91E5974 /* Config.swift in Sources */,
 				F32E055B42B58F53E01013A1 /* ConfigManager.swift in Sources */,
 				2876AF87BAC9189EE99832FC /* ContentView.swift in Sources */,
 				439029DFB0848F9B8C785302 /* CoreThemeCatalogWriter.m in Sources */,
+				72276FCADC9D17B0C0B672F0 /* DiagnosticsReport.swift in Sources */,
 				A5C170C9BEBCFFE9C572BC96 /* Favorite.swift in Sources */,
 				4EE036577423D8C60164D5D4 /* FavoriteEditorWindow.swift in Sources */,
 				25145B574968F42275F591B8 /* FavoriteRow.swift in Sources */,
@@ -352,6 +363,7 @@
 				916DD0CD6E5D7AA601D28BF5 /* SidebarFavoritesManagerApp.swift in Sources */,
 				4ADB732FAB8E4AE835B12766 /* SidebarItemManager.swift in Sources */,
 				673744E11E88C626D10983E1 /* SigningIdentity.swift in Sources */,
+				93A6EF86776AE7D5275E866D /* SpacerStore.swift in Sources */,
 				D1CE144B2D1020278777A481 /* SymbolBrowserSheet.swift in Sources */,
 				05E0B44F360252FE90D8BF35 /* SymbolCatalog.swift in Sources */,
 				7F66D24001BE09AA1AF29DE0 /* SymbolCatalogBuilder.swift in Sources */,

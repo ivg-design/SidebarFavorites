@@ -11,6 +11,7 @@
 
 #import "SFLBridge.h"
 #import <CoreServices/CoreServices.h>
+#include <dlfcn.h>
 
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -20,6 +21,7 @@ NSString * const SFLBridgeErrorDomain     = @"com.ivg-design.SidebarFavorites.SF
 NSString * const SFLItemIDKey          = @"itemID";
 NSString * const SFLItemDisplayNameKey = @"displayName";
 NSString * const SFLItemPathKey        = @"path";
+NSString * const SFLItemRecordedPathKey = @"recordedPath";
 NSString * const SFLItemOSTypeKey      = @"osType";
 
 #pragma mark - Helpers
@@ -85,6 +87,53 @@ static NSString * _Nullable SFLOSType(LSSharedFileListItemRef item) {
     return [boxed isKindOfClass:[NSString class]] ? (NSString *)boxed : nil;
 }
 
+/// The path a row's bookmark was recorded with, read WITHOUT resolving it.
+///
+/// `SFLResolvedPath` answers nil whenever resolution fails - a volume that is not
+/// mounted yet, a File Provider domain still starting up - and a row that cannot
+/// be found is a row that gets inserted again. The list de-duplicates by URL, so
+/// that "insert" lands on the user's own row and moves it to wherever the anchor
+/// says (measured on macOS 26.6: an insert anchored after the last row moves an
+/// existing row to the bottom and keeps its ID). The recorded path still says
+/// which folder the row is for, which is all matching needs.
+///
+/// `LSSharedFileListItemCopyBookmarkData` is exported but undeclared. It takes the
+/// item alone and returns a +1 CFData (measured: disassembly reads only x0; the
+/// data parses as an ordinary bookmark). It is looked up at run time, so a macOS
+/// without it degrades to resolution-only matching instead of failing to launch.
+typedef CFDataRef _Nullable (*SFLCopyBookmarkDataFunction)(LSSharedFileListItemRef);
+
+static NSString * _Nullable SFLRecordedPath(LSSharedFileListItemRef item) {
+    static SFLCopyBookmarkDataFunction copyBookmarkData = NULL;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        copyBookmarkData = (SFLCopyBookmarkDataFunction)dlsym(RTLD_DEFAULT, "LSSharedFileListItemCopyBookmarkData");
+    });
+    if (copyBookmarkData == NULL) {
+        return nil;
+    }
+    CFDataRef data = copyBookmarkData(item);
+    if (data == NULL) {
+        return nil;
+    }
+    id boxed = (__bridge_transfer id)data;
+    if (![boxed isKindOfClass:[NSData class]]) {
+        return nil;
+    }
+    NSDictionary<NSURLResourceKey, id> *values = [NSURL resourceValuesForKeys:@[ NSURLPathKey ]
+                                                             fromBookmarkData:(NSData *)boxed];
+    NSString *path = values[NSURLPathKey];
+    return ([path isKindOfClass:[NSString class]] && path.length > 0) ? path : nil;
+}
+
+/// Where a row points: its resolved path, or failing that the recorded one.
+///
+/// The recorded path is only a fallback. A row that DOES resolve, but somewhere
+/// else, is a folder that moved, and must not be matched to its old location.
+static NSString * _Nullable SFLRowPath(LSSharedFileListItemRef item) {
+    return SFLResolvedPath(item) ?: SFLRecordedPath(item);
+}
+
 /// True when two paths denote the same location.
 ///
 /// Plain string equality is not enough: a bookmark can resolve through a different
@@ -113,7 +162,7 @@ static CFIndex SFLIndexOfURL(CFArrayRef snapshot, NSURL *url) {
     CFIndex count = CFArrayGetCount(snapshot);
     for (CFIndex index = 0; index < count; index++) {
         LSSharedFileListItemRef item = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, index);
-        if (SFLPathsMatch(SFLResolvedPath(item), wanted)) {
+        if (SFLPathsMatch(SFLRowPath(item), wanted)) {
             return index;
         }
     }
@@ -179,6 +228,11 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
         NSString *path = SFLResolvedPath(item);
         if (path != nil) {
             row[SFLItemPathKey] = path;
+        } else {
+            NSString *recorded = SFLRecordedPath(item);
+            if (recorded != nil) {
+                row[SFLItemRecordedPathKey] = recorded;
+            }
         }
 
         NSString *name = SFLDisplayName(item);
@@ -287,6 +341,11 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
         NSString *existingPath = SFLResolvedPath(existing);
         if (existingPath != nil) {
             row[SFLItemPathKey] = existingPath;
+        } else {
+            NSString *recorded = SFLRecordedPath(existing);
+            if (recorded != nil) {
+                row[SFLItemRecordedPathKey] = recorded;
+            }
         }
 
         NSString *existingName = SFLDisplayName(existing);
@@ -324,6 +383,78 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
         }
         return SFLFail(error, SFLBridgeErrorCodeInsertFailed,
                        [NSString stringWithFormat:@"Couldn't add '%@' to Finder's sidebar.", name]);
+    }
+    return YES;
+}
+
+/// Put the row for `url` straight after the row `anchorID`, or first when nil.
+///
+/// The repair for an insert that moved a row. Re-inserting a URL the list already
+/// holds is an in-place update anchored wherever the caller says, so this moves the
+/// row and keeps its persistent ID; with no properties passed, the row's icon
+/// override is left exactly as it was (both measured on macOS 26.6).
++ (BOOL)placeURL:(NSURL *)url
+     displayName:(NSString *)name
+     afterItemID:(nullable NSNumber *)anchorID
+           error:(NSError **)error {
+    if (name.length == 0) {
+        return SFLFail(error, SFLBridgeErrorCodeInsertFailed,
+                       @"A sidebar row cannot be written without a display name.");
+    }
+
+    LSSharedFileListRef list = SFLCreateFavoritesList();
+    if (list == NULL) {
+        return SFLFail(error, SFLBridgeErrorCodeListUnavailable, @"Finder's Favorites list is unavailable.");
+    }
+
+    UInt32 seed = 0;
+    CFArrayRef snapshot = LSSharedFileListCopySnapshot(list, &seed);
+    if (snapshot == NULL) {
+        CFRelease(list);
+        return SFLFail(error, SFLBridgeErrorCodeSnapshotFailed, @"Couldn't read Finder's Favorites list.");
+    }
+
+    // Only ever a move: a URL with no row would be added, which is not this call's job.
+    if (SFLIndexOfURL(snapshot, url) < 0) {
+        CFRelease(snapshot);
+        CFRelease(list);
+        return SFLFail(error, SFLBridgeErrorCodeItemNotFound, @"That sidebar row is no longer in Finder's Favorites.");
+    }
+
+    LSSharedFileListItemRef anchor = NULL;
+    if (anchorID != nil) {
+        CFIndex count = CFArrayGetCount(snapshot);
+        for (CFIndex index = 0; index < count; index++) {
+            LSSharedFileListItemRef item = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, index);
+            if (LSSharedFileListItemGetID(item) == anchorID.unsignedIntValue) {
+                anchor = item;
+                break;
+            }
+        }
+        if (anchor == NULL) {
+            CFRelease(snapshot);
+            CFRelease(list);
+            return SFLFail(error, SFLBridgeErrorCodeItemNotFound, @"The row this one belongs after is no longer in Finder's Favorites.");
+        }
+    }
+
+    LSSharedFileListItemRef placed = LSSharedFileListInsertItemURL(list,
+                                                                   anchor,
+                                                                   (__bridge CFStringRef)name,
+                                                                   NULL,
+                                                                   (__bridge CFURLRef)url,
+                                                                   NULL,
+                                                                   NULL);
+    BOOL succeeded = (placed != NULL);
+    if (placed != NULL) {
+        CFRelease(placed);
+    }
+    CFRelease(snapshot);
+    CFRelease(list);
+
+    if (!succeeded) {
+        return SFLFail(error, SFLBridgeErrorCodeInsertFailed,
+                       [NSString stringWithFormat:@"Couldn't move '%@' back to its place in Finder's sidebar.", name]);
     }
     return YES;
 }

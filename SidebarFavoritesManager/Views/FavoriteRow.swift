@@ -8,6 +8,9 @@ struct FavoriteRow: View {
     let onDelete: () -> Void
     let onToggle: () -> Void
     let onReveal: () -> Void
+    /// Moves the row one place in Finder's sidebar: -1 up, +1 down. Spacers only -
+    /// a blank row gives Finder nothing to drag.
+    var onMove: ((Int) -> Void)? = nil
 
     @State private var isHovering = false
 
@@ -27,7 +30,7 @@ struct FavoriteRow: View {
             // Info
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(favorite.name)
+                    Text(favorite.listTitle)
                         .font(.headline)
                     if favorite.mode == .advanced {
                         Text("BOTH ICONS")
@@ -50,29 +53,60 @@ struct FavoriteRow: View {
                     }
                 }
 
-                Text(favorite.folderPath)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                // A spacer's path is the app's own bookkeeping, not the user's.
+                if !favorite.isSpacer {
+                    Text(favorite.folderPath)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
             }
 
             Spacer()
 
             // Status and actions
-            if isHovering {
-                HStack(spacing: 8) {
-                    Button(action: onReveal) {
-                        Image(systemName: "folder")
+            // Finder cannot drag a blank row, so a spacer is moved from here - and
+            // the arrows stay on screen, not behind a hover, so that is obvious.
+            if favorite.isSpacer, let onMove {
+                HStack(spacing: 4) {
+                    Button(action: { onMove(-1) }) {
+                        Image(systemName: "chevron.up")
                     }
-                    .buttonStyle(.borderless)
-                    .help("Reveal in Finder")
+                    .help("Move this spacer up one place in Finder's sidebar")
 
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil")
+                    Button(action: { onMove(1) }) {
+                        Image(systemName: "chevron.down")
                     }
-                    .buttonStyle(.borderless)
-                    .help("Edit")
+                    .help("Move this spacer down one place in Finder's sidebar")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!inSidebar)
+            }
+
+            // The status and the hover actions share one slot, sized to the wider
+            // of the two and swapped by opacity, so nothing to their left - a
+            // spacer's arrows above all - shifts when the pointer enters the row.
+            ZStack(alignment: .trailing) {
+                statusIndicator
+                    .opacity(isHovering ? 0 : 1)
+
+                HStack(spacing: 8) {
+                    // A spacer has no folder worth revealing and nothing to edit.
+                    if !favorite.isSpacer {
+                        Button(action: onReveal) {
+                            Image(systemName: "folder")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Reveal in Finder")
+
+                        Button(action: onEdit) {
+                            Image(systemName: "pencil")
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Edit")
+                    }
 
                     Button(action: onDelete) {
                         Image(systemName: "trash")
@@ -81,8 +115,9 @@ struct FavoriteRow: View {
                     .foregroundColor(.red)
                     .help("Delete")
                 }
-            } else {
-                statusIndicator
+                .opacity(isHovering ? 1 : 0)
+                .allowsHitTesting(isHovering)
+                .accessibilityHidden(!isHovering)
             }
 
             // Enable/disable toggle
@@ -138,7 +173,10 @@ struct FavoriteRow: View {
 
     @ViewBuilder
     private var iconImage: some View {
-        if favorite.iconType == .custom, let svgPath = favorite.customSVGPath {
+        if favorite.isSpacer {
+            // Its real glyph is blank by design; show what it is instead.
+            Image(systemName: "rectangle.dashed")
+        } else if favorite.iconType == .custom, let svgPath = favorite.customSVGPath {
             let url = ConfigManager.shared.customIconURL(relativePath: svgPath)
             SVGThumbnailView(
                 url: url,

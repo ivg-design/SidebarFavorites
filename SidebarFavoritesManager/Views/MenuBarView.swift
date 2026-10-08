@@ -13,17 +13,22 @@ struct MenuBarView: View {
                 .foregroundColor(.secondary)
         } else {
             ForEach(configManager.config.favorites) { favorite in
-                Button(action: {
-                    coordinator.revealInFinder(favorite.folderPath)
-                }) {
-                    Label {
-                        Text(favorite.name)
-                    } icon: {
-                        if let image = iconStore.icons[favorite.id] {
-                            Image(nsImage: image)
-                                .renderingMode(.template)
-                        } else {
-                            Image(systemName: favorite.iconType == .sfSymbol ? favorite.iconValue : "folder")
+                // A spacer separates the sidebar, so it separates the menu too.
+                if favorite.isSpacer {
+                    Divider()
+                } else {
+                    Button(action: {
+                        coordinator.revealInFinder(favorite.folderPath)
+                    }) {
+                        Label {
+                            Text(favorite.name)
+                        } icon: {
+                            if let image = iconStore.icons[favorite.id] {
+                                Image(nsImage: image)
+                                    .renderingMode(.template)
+                            } else {
+                                Image(systemName: favorite.iconType == .sfSymbol ? favorite.iconValue : "folder")
+                            }
                         }
                     }
                 }

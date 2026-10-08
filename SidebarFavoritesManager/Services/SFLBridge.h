@@ -37,6 +37,7 @@ extern NSString * const SFLBridgeErrorDomain;
 extern NSString * const SFLItemIDKey;           ///< NSNumber wrapping a uint32_t. Always present.
 extern NSString * const SFLItemDisplayNameKey;  ///< NSString. Always present (empty string if unnamed).
 extern NSString * const SFLItemPathKey;         ///< NSString. ABSENT when the row cannot be resolved.
+extern NSString * const SFLItemRecordedPathKey; ///< NSString. Present only when the path is absent: where the row's bookmark was recorded, read without resolving it.
 extern NSString * const SFLItemOSTypeKey;       ///< NSString. ABSENT when no override is set.
 
 /// Failures that have no OSStatus of their own.
@@ -137,6 +138,14 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
             error:(NSError **)error
     NS_SWIFT_NAME(setOSType(_:volumePath:patched:));
 
+/// Moves the row for `url` to just after the row `anchorID` (first when nil),
+/// keeping its ID and its icon override. Fails rather than inserting when the list
+/// has no row for `url`.
++ (BOOL)placeURL:(NSURL *)url
+     displayName:(NSString *)name
+     afterItemID:(nullable NSNumber *)anchorID
+           error:(NSError **)error
+    NS_SWIFT_NAME(place(url:displayName:afterItemID:));
 /// Removes a row by its persistent item ID. There is deliberately no
 /// remove-by-path: the caller owns the decision about which rows may be deleted.
 + (BOOL)removeItemID:(uint32_t)itemID error:(NSError **)error

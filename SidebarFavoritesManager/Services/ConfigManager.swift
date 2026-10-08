@@ -147,7 +147,11 @@ final class ConfigManager: ObservableObject {
     /// Add a new favorite
     func addFavorite(_ favorite: Favorite) throws {
         var added = favorite
-        added.name = Favorite.canonicalName(forFolderPath: added.folderPath)
+        // A spacer's target is `⠀.app`; its label is the blank name without the
+        // extension, exactly as Finder shows an app.
+        if !added.isSpacer {
+            added.name = Favorite.canonicalName(forFolderPath: added.folderPath)
+        }
         config.favorites.append(added)
         try save()
     }
@@ -158,7 +162,9 @@ final class ConfigManager: ObservableObject {
             throw ConfigError.favoriteNotFound
         }
         var updated = favorite
-        updated.name = Favorite.canonicalName(forFolderPath: updated.folderPath)
+        if !updated.isSpacer {
+            updated.name = Favorite.canonicalName(forFolderPath: updated.folderPath)
+        }
         updated.markUpdated()
         config.favorites[index] = updated
         try save()

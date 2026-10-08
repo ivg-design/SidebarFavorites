@@ -98,6 +98,22 @@ struct Favorite: Identifiable, Codable, Equatable {
     /// identical in both modes.
     var mode: Mode = .regular
 
+    /// What the row is for. A spacer is a row with nothing to show: an empty
+    /// folder the app owns, named with a blank character and drawn with a blank
+    /// glyph, which the user drags into place to break up a long sidebar (#23).
+    enum Kind: String, Codable {
+        case folder
+        case spacer
+    }
+
+    var kind: Kind = .folder
+
+    var isSpacer: Bool { kind == .spacer }
+
+    /// The name to show in this app's own lists. A spacer's real name is a blank
+    /// character - that is what keeps its sidebar row empty - so it needs a label.
+    var listTitle: String { isSpacer ? "Spacer" : name }
+
     /// The type of icon being used
     enum IconType: String, Codable {
         case sfSymbol = "sfSymbol"
@@ -130,6 +146,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         case locationsOnly
         case iconScale
         case mode
+        case kind
     }
 
     init(
@@ -147,7 +164,8 @@ struct Favorite: Identifiable, Codable, Equatable {
         sidebarProvenance: SidebarProvenance = .unbound,
         locationsOnly: Bool = false,
         iconScale: Double = Favorite.defaultIconScale,
-        mode: Mode = .regular
+        mode: Mode = .regular,
+        kind: Kind = .folder
     ) {
         self.id = id
         self.name = name
@@ -166,6 +184,7 @@ struct Favorite: Identifiable, Codable, Equatable {
         // `iconScale` carries has to be established by hand in both initializers.
         self.iconScale = Favorite.clampedIconScale(iconScale)
         self.mode = mode
+        self.kind = kind
     }
 
     /// Decodes tolerantly so a 0.6.0 config.json - which has none of the
@@ -192,6 +211,10 @@ struct Favorite: Identifiable, Codable, Equatable {
             try container.decodeIfPresent(Double.self, forKey: .iconScale) ?? Favorite.defaultIconScale
         )
         mode = try container.decodeIfPresent(Mode.self, forKey: .mode) ?? .regular
+        // Absent means an ordinary folder, so configs from before spacers existed
+        // load unchanged. An older build ignores the key - and shows a spacer as a
+        // favorite named with a blank character, which is harmless.
+        kind = try container.decodeIfPresent(Kind.self, forKey: .kind) ?? .folder
     }
 
     /// The scale that is actually applied to this favorite's artwork.

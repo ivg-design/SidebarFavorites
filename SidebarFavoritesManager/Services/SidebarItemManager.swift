@@ -16,6 +16,16 @@ struct SidebarItem: Equatable, Sendable {
     /// The row's current `OverrideIcon.OSType`, or nil when it carries no override.
     let osType: String?
 
+    /// Where the row's bookmark was recorded, read without resolving it - set only
+    /// when `path` is nil. A row that cannot be resolved right now (a File Provider
+    /// domain still starting, a volume not mounted yet) is still a row FOR that
+    /// folder; treating it as a row for nothing is what used to unlink a favorite
+    /// and then re-insert it, which moves the user's row to the bottom.
+    var recordedPath: String? = nil
+
+    /// Where the row points: resolved if possible, otherwise as recorded.
+    var location: String? { path ?? recordedPath }
+
     /// True when this row points at one of `candidates`.
     ///
     /// Prefer this over `candidates.contains(item.path!)`. A bookmark can resolve
@@ -24,7 +34,7 @@ struct SidebarItem: Equatable, Sendable {
     /// 0.6.0 users were told to point favorites at symlinks into
     /// `~/Library/CloudStorage`.
     func matches(anyOf candidates: Set<String>) -> Bool {
-        guard let path else { return false }
+        guard let path = location else { return false }
         if candidates.contains(path) { return true }
         let forms = Self.equivalentForms(of: path)
         return candidates.contains { !forms.isDisjoint(with: Self.equivalentForms(of: $0)) }
@@ -177,6 +187,19 @@ final class SidebarItemManager: @unchecked Sendable {
         return patched.boolValue
     }
 
+    /// Move the row for `url` back to just after `anchorID` (first when nil),
+    /// keeping its ID and icon. Never inserts: fails if `url` has no row.
+    func place(url: URL, displayName: String, after anchorID: UInt32?) throws {
+        lock.lock()
+        defer { lock.unlock() }
+
+        do {
+            try SFLBridge.place(url: url, displayName: displayName, afterItemID: anchorID.map { NSNumber(value: $0) })
+        } catch {
+            throw Self.sidebarError(from: error)
+        }
+    }
+
     /// Deletes a row. Only ever called for rows this app inserted itself — the
     /// coordinator owns that decision, which is why there is no remove-by-path.
     func remove(itemID: UInt32) throws {
@@ -209,7 +232,8 @@ final class SidebarItemManager: @unchecked Sendable {
             itemID: identifier.uint32Value,
             displayName: row[SFLItemDisplayNameKey] as? String ?? "",
             path: row[SFLItemPathKey] as? String,
-            osType: row[SFLItemOSTypeKey] as? String
+            osType: row[SFLItemOSTypeKey] as? String,
+            recordedPath: row[SFLItemRecordedPathKey] as? String
         )
     }
 

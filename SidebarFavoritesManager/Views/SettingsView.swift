@@ -25,6 +25,7 @@ struct SettingsView: View {
     // @State removeAllSidebarIconsMessage, so whichever finishes last silently
     // overwrites the other's result text.
     @State private var isRemovingAllSidebarIcons = false
+    @State private var diagnosticsCopied = false
 
     /// Live PlugInKit state per advanced favorite - the "permissions" panel.
     @State private var helperStatuses: [UUID: FinderSyncAppGenerator.HelperStatus] = [:]
@@ -127,6 +128,11 @@ struct SettingsView: View {
                 }
                 .foregroundColor(.red)
                 .disabled(isRemovingAllSidebarIcons)
+
+                Button(diagnosticsCopied ? "Diagnostics Copied" : "Copy Diagnostics") {
+                    copyDiagnostics()
+                }
+                .help("Copies a plain-text report of your favorites and Finder's sidebar rows, for a GitHub issue. It includes your folder paths.")
             }
         }
         .formStyle(.grouped)
@@ -353,6 +359,20 @@ struct SettingsView: View {
         // Re-read the authoritative system state regardless of success or failure so the
         // toggle always reflects reality instead of whatever the user just picked.
         syncLaunchAtLoginFromSystem()
+    }
+
+    /// Read-only: builds the report off the main thread (it reads Finder's list
+    /// and the helper's declarations) and puts it on the pasteboard.
+    private func copyDiagnostics() {
+        let favorites = configManager.config.favorites
+        Task {
+            let report = await Task.detached { DiagnosticsReport.make(favorites: favorites) }.value
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(report, forType: .string)
+            diagnosticsCopied = true
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            diagnosticsCopied = false
+        }
     }
 
     private func updateSettings() {
