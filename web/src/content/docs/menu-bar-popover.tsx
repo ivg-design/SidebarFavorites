@@ -34,6 +34,7 @@ export function Body() {
         <thead><tr><th>Item</th><th>Shortcut</th><th>What it does</th></tr></thead>
         <tbody>
           <tr><td>Each favorite, by name</td><td>None</td><td>Opens the favorite&rsquo;s folder in a Finder window.</td></tr>
+          <tr><td>A spacer</td><td>None</td><td>Shows as a divider line between the favorites above and below it. See <DocLink to="spacers">Spacers</DocLink>.</td></tr>
           <tr><td><strong>No Favorites</strong></td><td>None</td><td>Takes the place of the list when you have not added a favorite. It is dimmed and does nothing.</td></tr>
           <tr><td><strong>Open SidebarFavorites...</strong></td><td><Kbd>⌘O</Kbd></td><td>Brings the manager window to the front, and opens it if it was closed.</td></tr>
           <tr><td><strong>Refresh All</strong></td><td>None</td><td>Rebuilds the icons and the sidebar rows and registers them again. It is the same action as <strong>Refresh</strong> in the manager window.</td></tr>

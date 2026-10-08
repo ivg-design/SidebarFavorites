@@ -11,7 +11,7 @@ export const meta: DocMeta = {
   group: "Reference",
   description: "SidebarFavorites ships a Nix flake that installs the released DMG. This page is for people who manage their Mac with Nix. It says what the flake installs, which release it is pinned to, and how to run it.",
   keywords: ["nix", "flake", "nix run", "rohanp2051", "nixpkgs", "package"],
-  excerpt: "nix run github:ivg-design/SidebarFavorites installs the released DMG. The package is pinned to release 1.2.2.",
+  excerpt: "nix run github:ivg-design/SidebarFavorites installs the released DMG. The package is pinned to release 1.3.0.",
   sections: [
     { id: "what-it-does", title: "What the flake does" },
     { id: "run", title: "Run it" },
@@ -27,7 +27,7 @@ export function Body() {
         <thead><tr><th>Property</th><th>Value</th></tr></thead>
         <tbody>
           <tr><td>Source</td><td>The DMG attached to the matching GitHub release.</td></tr>
-          <tr><td>Pinned version</td><td><code>1.2.2</code>, set in <code>nix/default.nix</code>.</td></tr>
+          <tr><td>Pinned version</td><td><code>1.3.0</code>, set in <code>nix/default.nix</code>.</td></tr>
           <tr><td>Builds from source?</td><td>No.</td></tr>
           <tr><td>Systems</td><td><code>aarch64-darwin</code> and <code>x86_64-darwin</code>.</td></tr>
           <tr><td>License</td><td>MIT.</td></tr>

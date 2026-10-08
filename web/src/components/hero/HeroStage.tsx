@@ -200,6 +200,11 @@ export default function HeroStage({ dmgUrl, brew }: { dmgUrl: string; brew: stri
         tl.fromTo(head, { y: 0, opacity: 1 }, { y: -48, opacity: 0, duration: 0.3 }, 0)
           .fromTo(tools, { opacity: 1 }, { opacity: 0, duration: 0.3 }, 0)
           .fromTo(col, { x: 0, y: 0, scale: zNow }, { x: () => target().x, y: () => target().y, scale: () => target().sc, duration: LAND }, 0)
+          // corners follow the move: rounded on the left once it leaves the page edge, square on the right as it seats
+          // against the pane - so at the swap it is the window's left part exactly (window radius 11 px, same scale).
+          // Set on the column, not .hx-col-in: that node is re-keyed on replay and would leave the tween on a detached copy.
+          .fromTo(col, { "--hx-rl": "0px" }, { "--hx-rl": "11px", duration: 0.12 }, 0)
+          .fromTo(col, { "--hx-rr": "11px" }, { "--hx-rr": "0px", duration: LAND - CHROME }, CHROME)
           .fromTo(shade, { opacity: 0 }, { opacity: 1, duration: 0.3 }, CHROME)
           .fromTo(rest, { opacity: 0 }, { opacity: 1, duration: LAND - CHROME }, CHROME)
           .fromTo(how, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1 - COPY }, COPY);

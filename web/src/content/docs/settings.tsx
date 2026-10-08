@@ -11,9 +11,9 @@ export const meta: DocMeta = {
   slug: "settings",
   title: "Settings",
   group: "Reference",
-  description: "This page describes every control in the SidebarFavorites Settings window, in the order the window shows them: what it does, its default, and when to use it. Read it when you want the app to start at login, hide its menu bar item, check a helper, restart Finder, or remove all icons.",
-  keywords: ["settings", "preferences", "launch at login", "show in menu bar", "restart finder", "remove all sidebar icons", "finder sync helpers", "helper app", "reveal backup", "configuration issue"],
-  excerpt: "Launch at Login, Show in Menu Bar, the About section, the Finder Sync Helpers list, Restart Finder and Remove All Sidebar Icons.",
+  description: "This page describes every control in the SidebarFavorites Settings window, in the order the window shows them: what it does, its default, and when to use it. Read it when you want the app to start at login, hide its menu bar item, check a helper, restart Finder, remove all icons, or copy a report for an issue.",
+  keywords: ["settings", "preferences", "launch at login", "show in menu bar", "restart finder", "remove all sidebar icons", "copy diagnostics", "diagnostics", "finder sync helpers", "helper app", "reveal backup", "configuration issue"],
+  excerpt: "Launch at Login, Show in Menu Bar, the About section, the Finder Sync Helpers list, Restart Finder, Remove All Sidebar Icons and Copy Diagnostics.",
   sections: [
     { id: "open", title: "Open Settings" },
     { id: "general", title: "General" },
@@ -94,7 +94,7 @@ export function Body() {
       </Table>
 
       <H2 id="actions">Actions</H2>
-      <p>These two buttons act on Finder and on your sidebar. Neither asks you to choose a favorite.</p>
+      <p>These three buttons act on Finder and on your sidebar. None of them asks you to choose a favorite.</p>
       <H3 id="restart-finder">Restart Finder</H3>
       <p>Quits Finder, which macOS then starts again, so that Finder redraws sidebar rows whose icon changed. The app never does this by itself, and it asks no confirmation here because you pressed the button on purpose. The manager window shows a banner with the same button when a restart is owed, and the editor&rsquo;s <strong>Apply</strong> button restarts Finder as well.</p>
       <Table label="Restart Finder">
@@ -128,6 +128,15 @@ export function Body() {
       <Callout kind="warn">The action cannot be undone. Your favorites stay in the manager window&rsquo;s list, but their rows and icons are removed from Finder.</Callout>
       <p>When the work is done, an alert titled <q>Remove All Sidebar Icons</q> reports <q>All sidebar icons were removed.</q> or, if something failed, <q>Some sidebar icons could not be fully removed:</q> followed by one line per problem. Finder may still show an old icon on a row you added yourself until it restarts; the manager window then offers <strong>Restart Finder</strong>.</p>
       <p>The favorites themselves stay in the manager window&rsquo;s list. Delete them there as well if you want them gone for good. To remove the app altogether, follow <DocLink to="uninstalling">Uninstalling</DocLink>.</p>
+
+      <H3 id="copy-diagnostics">Copy Diagnostics</H3>
+      <p>Copies a plain-text report of your favorites and of Finder&rsquo;s sidebar rows to the clipboard, for pasting into a GitHub issue. It only reads: it changes no favorite and no sidebar row. For each favorite the report lists its settings and whether its folder exists. For each row under Favorites in Finder&rsquo;s sidebar it lists the icon code, where the row points and which symbol that code resolves to. The report contains your folder paths, so read it before you post it.</p>
+      <Table label="Copy Diagnostics">
+        <thead><tr><th>Control</th><th>What it does</th><th>When to use it</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Copy Diagnostics</strong></td><td>Copies the report. The label changes to <strong>Diagnostics Copied</strong> for two seconds.</td><td>You are reporting a problem. See <DocLink to="report-an-issue">Report an issue</DocLink>.</td></tr>
+        </tbody>
+      </Table>
 
       <H2 id="if-it-does-not-work">If it does not work</H2>
       <Table label="Settings problems">

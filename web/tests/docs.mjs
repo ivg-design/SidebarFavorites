@@ -6,7 +6,7 @@ import puppeteer from "puppeteer-core";
 const BASE = process.env.BASE || "http://localhost:3249";
 const CH = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 // Registry order = nav order = prev/next order.
-const SLUGS = ["quick-start", "install", "updates", "custom-svg-icons", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "settings", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
+const SLUGS = ["quick-start", "install", "updates", "custom-svg-icons", "spacers", "cloud-folders", "disks-and-shares", "keeping-both-icons", "menu-bar-popover", "how-it-works", "settings", "config-json", "uninstalling", "building-from-source", "nix-flake", "troubleshooting", "faq", "report-an-issue"];
 const path = (slug) => (slug === "quick-start" ? "/docs" : `/docs/${slug}`);
 const ENTITY = /&(?:[a-z][a-z0-9]*|#\d+|#x[0-9a-f]+);/i;
 let browser;
@@ -83,6 +83,29 @@ test("docs: no HTML entities in any page text, title, nav, toc, search or the ch
   await page.type('[data-testid="docs-search-input"]', "Finder");
   const txt = await page.$eval(".dx-pal-list", (e) => e.textContent);
   assert.ok(!ENTITY.test(txt), "entity in search results");
+  await page.close();
+});
+
+test("docs: the search palette covers the viewport and its input can be typed into (not trapped in the sticky bar)", async () => {
+  // `.dx-top` has a backdrop-filter, which makes it the containing block for fixed descendants; a palette rendered
+  // inside it was clipped to the bar - a grey band with no input. It is portalled to <body>.
+  const page = await open("/docs/settings");
+  await page.click('[data-testid="docs-search-open"]');
+  await page.waitForSelector('[data-testid="docs-search-input"]');
+  await new Promise((r) => setTimeout(r, 300));
+  const r = await page.evaluate(() => {
+    const pal = document.querySelector(".dx-pal").getBoundingClientRect();
+    const input = document.querySelector('[data-testid="docs-search-input"]');
+    const box = input.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return { palH: pal.height, vh: innerHeight, inH: box.height, inTop: box.top, onTop: hit === input, inHeader: !!input.closest(".dx-top") };
+  });
+  assert.ok(r.palH >= r.vh - 1, `overlay covers ${r.palH}px of a ${r.vh}px viewport`);
+  assert.ok(!r.inHeader, "palette is not rendered inside the sticky bar");
+  assert.ok(r.inH > 20 && r.inTop >= 0 && r.inTop < r.vh, "input is on screen");
+  assert.ok(r.onTop, "input is the topmost element at its centre");
+  await page.type('[data-testid="docs-search-input"]', "spacer");
+  assert.equal(await page.$eval('[data-testid="docs-search-input"]', (e) => e.value), "spacer");
   await page.close();
 });
 

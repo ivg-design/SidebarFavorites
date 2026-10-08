@@ -153,6 +153,7 @@ export function Body() {
           <tr><td><code>id</code></td><td>UUID</td><td>Identifies the favorite. Required, and unique in the file.</td><td></td></tr>
           <tr><td><code>name</code></td><td>Text</td><td>The name shown in the app. Required. It is the folder&rsquo;s own name, because Finder labels a sidebar row with the folder name.</td><td></td></tr>
           <tr><td><code>folderPath</code></td><td>Text</td><td>The folder, as a path. Required. A leading <code>~</code> stands for your home folder.</td><td></td></tr>
+          <tr><td><code>kind</code></td><td>Text</td><td>What the entry is: <code>folder</code> for a favorite that points at a folder, or <code>spacer</code> for a blank row. When the field is absent the entry is a folder. A spacer keeps the app&rsquo;s own file path in <code>folderPath</code>; see <DocLink to="spacers">Spacers</DocLink>.</td><td><code>folder</code></td></tr>
           <tr><td><code>enabled</code></td><td>true or false</td><td>Whether the favorite is active. A disabled favorite stays in the list but its icon is not applied.</td><td><code>true</code></td></tr>
           <tr><td><code>createdAt</code></td><td>Date</td><td>When the favorite was added, as an ISO 8601 date in UTC.</td><td>The time of loading.</td></tr>
           <tr><td><code>updatedAt</code></td><td>Date</td><td>When the favorite was last changed, in the same format.</td><td>The time of loading.</td></tr>

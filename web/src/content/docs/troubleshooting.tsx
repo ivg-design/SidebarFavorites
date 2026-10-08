@@ -11,11 +11,13 @@ export const meta: DocMeta = {
   title: "Troubleshooting",
   group: "Help",
   description: "Each section below is one problem, with its cause and its fix. Find the heading or the message you see in the app, then follow the fix. If nothing here helps, the last section tells you how to report it.",
-  keywords: ["problem", "fix", "restart finder", "glyph disappears", "macos 26", "duplicate", "refused", "svg warning", "helper", "login items", "refresh", "locations", "icloud drive", "not working", "wrong icon", "launch at login", "configuration issue", "folder no longer exists", "eject", "error"],
-  excerpt: "Fixes for a stale icon in Finder, a glyph that disappears, a refused folder, Locations rows, SVG warnings, helper status, launch at login, a missing folder, an offline disk, a configuration issue and leftovers after uninstalling.",
+  keywords: ["problem", "fix", "restart finder", "glyph disappears", "cloud folder", "spacer", "macos 26", "duplicate", "refused", "svg warning", "helper", "login items", "refresh", "locations", "icloud drive", "not working", "wrong icon", "launch at login", "configuration issue", "folder no longer exists", "eject", "error"],
+  excerpt: "Fixes for a stale icon in Finder, a glyph that disappears, a cloud folder that turns plain, a spacer that will not drag, a refused folder, Locations rows, SVG warnings, helper status, launch at login, a missing folder, an offline disk, a configuration issue and leftovers after uninstalling.",
   sections: [
     { id: "old-icon", title: "Finder shows a stale icon" },
     { id: "glyph-disappears", title: "The glyph disappears from a folder" },
+    { id: "cloud-glyph", title: "A cloud folder shows a plain folder again" },
+    { id: "spacer-drag", title: "A spacer cannot be dragged in Finder" },
     { id: "folder-refused", title: "The folder is refused when I add it" },
     { id: "folder-missing", title: "A warning says a folder is missing" },
     { id: "volume-offline", title: "A disk or share is not mounted" },
@@ -56,6 +58,14 @@ export function Body() {
         </tbody>
       </Table>
       <p>All three are in the favorite editor. Details: <DocLink to="keeping-both-icons">Keeping both icons</DocLink>.</p>
+
+      <H2 id="cloud-glyph">A cloud folder shows a plain folder again</H2>
+      <p><strong>Cause.</strong> A row for a folder in iCloud Drive, Google Drive, Dropbox or OneDrive can lose its glyph while the account syncs. The row still carries its icon code. It happens more often with several accounts in the sidebar.</p>
+      <p>Press <strong>Refresh</strong> in the manager window. It redraws cloud rows as well as disks. See <DocLink to="cloud-folders">Cloud folders</DocLink>.</p>
+
+      <H2 id="spacer-drag">A spacer cannot be dragged in Finder</H2>
+      <p><strong>Cause.</strong> A spacer is a blank row with nothing to grab, so Finder cannot drag it.</p>
+      <p>Click the up or down arrow on the spacer&rsquo;s row in the manager window. Each click moves it one place in Finder&rsquo;s sidebar. See <DocLink to="spacers" hash="place">Place a spacer</DocLink>.</p>
 
       <H2 id="folder-refused">The folder is refused when I add it</H2>
       <p><strong>Cause.</strong> A folder can have only one favorite. The editor shows <q>&lsquo;Name&rsquo; already uses this folder.</q> and the text <q>A folder can only have one favorite - two would fight over the same sidebar row. Edit &lsquo;Name&rsquo; instead, or choose a different folder.</q> The <strong>Add</strong> button stays disabled until you do.</p>

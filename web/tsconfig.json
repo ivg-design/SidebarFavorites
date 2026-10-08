@@ -66,7 +66,9 @@
     ".next-sym/types/**/*.ts",
     ".next-sym/dev/types/**/*.ts",
     ".next-lead/types/**/*.ts",
-    ".next-lead/dev/types/**/*.ts"
+    ".next-lead/dev/types/**/*.ts",
+    ".next-x/types/**/*.ts",
+    ".next-x/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

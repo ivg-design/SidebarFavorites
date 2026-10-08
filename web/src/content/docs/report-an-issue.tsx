@@ -48,6 +48,7 @@ export function Body() {
           <tr><td>What happened instead.</td><td>Your own notes, plus a screenshot of the sidebar or the window if it helps.</td></tr>
           <tr><td>Whether the favorite uses <strong>Both icons</strong> mode.</td><td>In the favorite editor, under the icon mode choice. See <DocLink to="keeping-both-icons">Keeping both icons</DocLink>.</td></tr>
           <tr><td>The state of the favorite&rsquo;s helper.</td><td>Under <strong>Finder Sync Helpers</strong> in the Settings window, as the line shown beside the favorite&rsquo;s <code>SBF-</code> name.</td></tr>
+          <tr><td>A diagnostics report.</td><td><MenuPath items={["Settings", "Actions", "Copy Diagnostics"]} />, then paste into the issue. The report lists every favorite and every row under Favorites in Finder&rsquo;s sidebar, with each row&rsquo;s icon code and where it points.</td></tr>
           <tr><td>The warnings for an SVG.</td><td>In the import sheet and the editor. Copy the text as shown. Attach the SVG too if you can share it.</td></tr>
           <tr><td>A configuration issue.</td><td>A <strong>Configuration Issue</strong> notice in Settings. Say that it appeared. The unreadable file is kept as <code>config.corrupt-&lt;timestamp&gt;.json</code> next to the original. See <DocLink to="config-json" hash="if-unreadable">If the file cannot be read</DocLink>.</td></tr>
         </tbody>
@@ -67,7 +68,7 @@ export function Body() {
 
       <H2 id="private">What not to attach</H2>
       <p>GitHub issues are public. Look at anything you attach before you submit it.</p>
-      <Callout kind="warn">Do not attach a <code>config.json</code> or a screenshot that shows folder names or paths you do not want public. The file lists the path of every favorite. Copy only the lines that matter and replace private names, or describe the setup in words.</Callout>
+      <Callout kind="warn">Do not attach a <code>config.json</code>, an unread diagnostics report or a screenshot that shows folder names or paths you do not want public. The file lists the path of every favorite, and so does the diagnostics report, so read the report before you paste it. Copy only the lines that matter and replace private names, or describe the setup in words.</Callout>
     </>
   );
 }

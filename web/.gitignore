@@ -7,3 +7,4 @@ next-env.d.ts
 .env*.local
 /.screenshots/
 /.reviews/v3/lighthouse/
+.vercel

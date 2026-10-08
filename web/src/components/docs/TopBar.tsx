@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { asset, REPO_URL } from "@/lib/config";
@@ -10,9 +11,15 @@ import SearchPalette from "./SearchPalette";
 export default function TopBar({ index, current }: { index: DocIndexEntry[]; current?: "changelog" }) {
   const [open, setOpen] = useState(false);
   const [mac, setMac] = useState(true);
+  // The palette is portalled to <body>: `.dx-top` has a backdrop-filter, which makes it the containing block for
+  // fixed-position descendants, so a palette rendered inside it was confined to the bar - a grey band, no input.
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)));
+    const raf = requestAnimationFrame(() => {
+      setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
+      setMounted(true);
+    });
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setOpen((o) => !o); }
     };
@@ -40,7 +47,7 @@ export default function TopBar({ index, current }: { index: DocIndexEntry[]; cur
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </nav>
       </div>
-      <SearchPalette index={index} open={open} onClose={() => setOpen(false)} />
+      {mounted && createPortal(<SearchPalette index={index} open={open} onClose={() => setOpen(false)} />, document.body)}
     </header>
   );
 }

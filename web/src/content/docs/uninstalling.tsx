@@ -75,7 +75,7 @@ export function Body() {
       <Table label="What is left behind and how to remove it">
         <thead><tr><th>Item</th><th>Where</th><th>How to remove it</th></tr></thead>
         <tbody>
-          <tr><td>The data folder: your configuration, imported SVGs, icon backups, the helper bundle and the Both-icons helpers.</td><td><code>~/Library/Application Support/SidebarFavorites</code></td><td>In Finder, choose <MenuPath items={["Go", "Go to Folder…"]} />, paste the path, press Return, then move the folder to the Trash. See <DocLink to="config-json" hash="location">config.json</DocLink> for its contents.</td></tr>
+          <tr><td>The data folder: your configuration, imported SVGs, icon backups, the helper bundle, the Both-icons helpers, and the spacer files and spacer helper in <code>Spacers.noindex</code>.</td><td><code>~/Library/Application Support/SidebarFavorites</code></td><td>In Finder, choose <MenuPath items={["Go", "Go to Folder…"]} />, paste the path, press Return, then move the folder to the Trash. See <DocLink to="config-json" hash="location">config.json</DocLink> for its contents.</td></tr>
           <tr><td>Both-icons helpers still listed in System Settings, named <q>SBF-</q> followed by a favorite&rsquo;s name.</td><td><MenuPath items={["System Settings", "General", "Login Items & Extensions"]} /></td><td>Delete the data folder above, or switch each helper off in that pane. Switching it off is enough, because a disabled helper does nothing.</td></tr>
           <tr><td>A login item for the app, if you left <strong>Launch at Login</strong> on.</td><td><MenuPath items={["System Settings", "General", "Login Items & Extensions"]} /></td><td>Turn it off in that pane.</td></tr>
         </tbody>

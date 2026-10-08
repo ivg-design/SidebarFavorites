@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bug, Braces, ChevronDown, CircleHelp, Cloud, Copy, Cpu, Download, FileCode, Hammer, HardDrive, LifeBuoy, PanelTop, RefreshCw, Rocket, Snowflake, Trash2, type LucideIcon, SlidersHorizontal } from "lucide-react";
+import { Bug, Braces, ChevronDown, CircleHelp, Cloud, Copy, Cpu, Download, FileCode, Hammer, HardDrive, LifeBuoy, PanelTop, RectangleHorizontal, RefreshCw, Rocket, Snowflake, Trash2, type LucideIcon, SlidersHorizontal } from "lucide-react";
 import { asset, basePath, REPO_URL } from "@/lib/config";
 import { DOC_GROUPS, type DocIndexEntry } from "@/content/docs/types";
 import TopBar from "./TopBar";
@@ -15,7 +15,7 @@ function currentSlug(pathname: string): string {
 
 /** One grey 16 px glyph per page, like a Finder Favorites row. */
 const ICONS: Record<string, LucideIcon> = {
-  "quick-start": Rocket, install: Download, updates: RefreshCw, "custom-svg-icons": FileCode, "cloud-folders": Cloud,
+  "quick-start": Rocket, install: Download, updates: RefreshCw, "custom-svg-icons": FileCode, spacers: RectangleHorizontal, "cloud-folders": Cloud,
   "disks-and-shares": HardDrive, "keeping-both-icons": Copy, "menu-bar-popover": PanelTop, "how-it-works": Cpu,
   settings: SlidersHorizontal, "config-json": Braces, uninstalling: Trash2, "building-from-source": Hammer, "nix-flake": Snowflake,
   troubleshooting: LifeBuoy, faq: CircleHelp, "report-an-issue": Bug,

@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-10-07
+
+### Added
+
+- **Spacers** ([#23](https://github.com/ivg-design/SidebarFavorites/issues/23)).
+  The new dashed-rectangle button next to **+** adds a blank row to Finder's
+  sidebar - no icon, no name - and arrows on the spacer's row in the app move it
+  up or down (Finder can't drag a row with nothing to show). Clicking a spacer
+  does nothing: each one is an empty, blank-named file of a private type that
+  only a small do-nothing helper app opens. The app says so before the first
+  spacer is made, creates, ad-hoc signs and registers the helper in its own
+  support directory, and deletes it with the last spacer. The menu bar menu
+  shows a spacer as a divider.
+- **Copy Diagnostics** in Settings: a plain-text report of every favorite and
+  every Favorites row - its code, where it points, and what that code resolves
+  to - for pasting into a GitHub issue. It reads; it changes nothing.
+
+### Fixed
+
+- **A sidebar row could jump to the bottom of the list**
+  ([#24](https://github.com/ivg-design/SidebarFavorites/issues/24)). When the app
+  couldn't resolve a row's location for a moment - a disk still mounting, a
+  cloud account still starting - it treated the row as gone, unlinked it, and on
+  the next pass added the folder again; Finder's list keeps one row per folder,
+  so that "add" moved the row you had placed to the bottom. Rows are now matched
+  by the location they were saved with when they can't be resolved, a linked row
+  is never unlinked just because its location can't be read, and if an add ever
+  does land on an existing row, the row is put back where it was.
+- **Refresh now repairs cloud folders**
+  ([#25](https://github.com/ivg-design/SidebarFavorites/issues/25)). Rows for
+  Google Drive, Dropbox, OneDrive and iCloud Drive folders can lose their glyph
+  while every one of them still carries its icon code - most visibly with
+  several Google Drive accounts, where which rows draw changes from one Finder
+  launch to the next. Refresh used to skip cloud folders; it now redraws them
+  the same way it redraws disks.
+
 ## [1.2.2] - 2026-08-01
 
 ### Changed

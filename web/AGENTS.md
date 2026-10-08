@@ -33,7 +33,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   regenerates public/shots and src/lib/shots.ts. Stale captures: .reviews/screenshots-needed.md.
 - Owner rules: proper nouns never wrap (`nb()`); `scrollbar-gutter: stable`; entities decoded; tables never wrap
   code; no speechSynthesis/`say`; transparent assets only; reduced motion shows the end state; nothing hoverable
-  that does nothing; demo video slot only (none exists); facts from the latest release with the 1.2.2 fallback.
+  that does nothing; demo video slot only (none exists); facts from the latest release with the 1.3.0 fallback.
 - Verification is headless only: `NEXT_DIST_DIR=.next-x npm run build && NEXT_DIST_DIR=.next-x npx next start -p 32xx`
   (ports 3243–3249 and 3263 only; 3103 is the owner's dev server, never touch it), then
   `BASE=http://localhost:32xx node --test tests/*.mjs`; captures with `node scripts/shot.mjs <url> <out.png> <width>

@@ -11,9 +11,9 @@ export interface SiteRelease {
 }
 
 const FALLBACK: SiteRelease = {
-  version: "1.2.2",
-  dmgName: "SidebarFavorites-1.2.2.dmg",
-  dmgUrl: `${REPO_URL}/releases/download/v1.2.2/SidebarFavorites-1.2.2.dmg`,
+  version: "1.3.0",
+  dmgName: "SidebarFavorites-1.3.0.dmg",
+  dmgUrl: `${REPO_URL}/releases/download/v1.3.0/SidebarFavorites-1.3.0.dmg`,
   sizeLabel: "14 MB",
   date: "2026-08-01",
 };
@@ -22,7 +22,7 @@ function formatSize(bytes: number): string {
   return `${Math.round(bytes / 1_000_000)} MB`;
 }
 
-/** Latest GitHub release at build time (revalidated hourly), with a pinned 1.2.2 fallback. */
+/** Latest GitHub release at build time (revalidated hourly), with a pinned 1.3.0 fallback. */
 export async function getSiteRelease(): Promise<SiteRelease> {
   try {
     const res = await fetch(API, {

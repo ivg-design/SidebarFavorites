@@ -55,7 +55,12 @@
 /* the poster column: a standalone Finder sidebar */
 .hx-colbox { order: 2; position: relative; flex: none; width: calc(204px * var(--z)); height: calc(330px * var(--z)); }
 .hx-col { position: absolute; left: 0; top: 0; width: 204px; height: 330px; transform-origin: 0 0; transform: scale(var(--z)); will-change: transform; }
-.hx-col-in { position: absolute; inset: 0; overflow: hidden; border-radius: 0 11px 11px 0; font-family: var(--mac-font); font-size: 13px; line-height: 1.25; color: var(--mac-text);
+/* Corners as variables so the zoom-out can turn them independently: flush (square) on the page's left edge and
+   rounded on the right at rest; once it leaves the edge the left corners round to the window's 11 px, and as the
+   window's chrome arrives the right corners square off against the pane - landing as the window's left part exactly.
+   The timeline sets them on .hx-col: this element is re-keyed (remounted) on replay, its parent is not. */
+.hx-col-in { position: absolute; inset: 0; overflow: hidden;
+  border-radius: var(--hx-rl, 0px) var(--hx-rr, 11px) var(--hx-rr, 11px) var(--hx-rl, 0px); font-family: var(--mac-font); font-size: 13px; line-height: 1.25; color: var(--mac-text);
   -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
   box-shadow: 0 0 0 .5px rgba(0,0,0,.7), 0 40px 80px -24px rgba(0,0,0,.6), 0 14px 28px -14px rgba(0,0,0,.5);
   animation: hx-settle 700ms var(--ease) both; } /* CSS-only: paints without waiting for JS; replay remounts the node */
@@ -127,7 +132,6 @@
   .hx-tools { position: absolute; left: var(--s-4); right: var(--gutter); bottom: var(--s-3); z-index: 3; pointer-events: none; }
   .hx-tools > * { pointer-events: auto; }
   .hx-how { padding-inline: var(--gutter); }
-  .hx-col-in { border-radius: 0 11px 11px 0; }
 }
 
 /* scrub layout */

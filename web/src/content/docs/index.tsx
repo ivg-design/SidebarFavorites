@@ -4,6 +4,7 @@ import * as quickStart from "./quick-start";
 import * as install from "./install";
 import * as updates from "./updates";
 import * as customSvg from "./custom-svg-icons";
+import * as spacers from "./spacers";
 import * as cloud from "./cloud-folders";
 import * as disks from "./disks-and-shares";
 import * as both from "./keeping-both-icons";
@@ -27,6 +28,7 @@ const rawPages: DocPage[] = [
   { ...install.meta, Body: install.Body },
   { ...updates.meta, Body: updates.Body },
   { ...customSvg.meta, Body: customSvg.Body },
+  { ...spacers.meta, Body: spacers.Body },
   { ...cloud.meta, Body: cloud.Body },
   { ...disks.meta, Body: disks.Body },
   { ...both.meta, Body: both.Body },

@@ -69,6 +69,7 @@ export function Body() {
         <thead><tr><th>What you see</th><th>Cause</th><th>Fix</th></tr></thead>
         <tbody>
           <tr><td>A warning in the manager window of the form <q>Name: folder no longer exists at</q> followed by the path.</td><td>The folder is not on disk. The provider may not be running, or you may be signed out of it.</td><td>Start the provider and make sure the folder is there in Finder. Then press <strong>Refresh</strong> in the manager window.</td></tr>
+          <tr><td>A cloud folder&rsquo;s row shows a plain folder instead of its glyph.</td><td>The row lost its glyph while the account was syncing. This happens more often with several accounts in the sidebar.</td><td>Press <strong>Refresh</strong> in the manager window. It redraws cloud rows as well as disks.</td></tr>
           <tr><td>The sidebar shows a stale icon.</td><td>Finder has not redrawn the row yet.</td><td>Press <strong>Restart Finder</strong> on the banner, or in Settings.</td></tr>
           <tr><td>You cannot give Finder&rsquo;s iCloud Drive row an icon.</td><td>Finder&rsquo;s own cloud rows never draw a custom icon.</td><td>Add a folder inside iCloud Drive instead.</td></tr>
         </tbody>
