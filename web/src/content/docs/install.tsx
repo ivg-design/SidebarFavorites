@@ -5,7 +5,7 @@ import Figure from "@/components/docs/Figure";
 import { Steps, Step } from "@/components/docs/Steps";
 import { H2 } from "@/components/docs/Headings";
 import DocLink from "@/components/docs/DocLink";
-import { BREW_LINES, RELEASES_URL } from "@/lib/config";
+import { BREW_CMD, BREW_CASK_URL, RELEASES_URL } from "@/lib/config";
 
 export const meta: DocMeta = {
   slug: "install",
@@ -14,11 +14,12 @@ export const meta: DocMeta = {
   group: "Getting started",
   description: "This page shows the two ways to install SidebarFavorites: with Homebrew, or from the signed DMG on GitHub. Read it before your first launch; you need macOS 13.0 or later.",
   keywords: ["homebrew", "brew", "cask", "tap", "trust", "dmg", "download", "gatekeeper", "notarized", "ventura", "requirements"],
-  excerpt: "Install with three Homebrew commands, or download the DMG and drag SidebarFavorites Manager to Applications. Releases are Developer ID signed and notarized, and need macOS 13.0 or later.",
+  excerpt: "Install from the official Homebrew Cask repository with one command, or download the DMG and drag SidebarFavorites Manager to Applications. Releases are Developer ID signed and notarized, and need macOS 13.0 or later.",
   sections: [
     { id: "choose", title: "Choose a method" },
     { id: "requirements", title: "Requirements" },
     { id: "homebrew", title: "Install with Homebrew" },
+    { id: "migrate-from-tap", title: "Move from the old tap" },
     { id: "direct-download", title: "Install from the DMG" },
     { id: "first-launch", title: "What you see on first launch" },
     { id: "if-it-does-not-work", title: "If it does not work" },
@@ -49,21 +50,18 @@ export function Body() {
       </Table>
 
       <H2 id="homebrew">Install with Homebrew</H2>
-      <p>Run the three commands in Terminal, one after the other. Each one needs the one before it.</p>
+      <p>SidebarFavorites is available in the official <a href={BREW_CASK_URL}>Homebrew Cask repository</a> as <code>sidebarfavorites-manager</code>. No third-party tap or <code>brew trust</code> step is needed.</p>
       <Steps>
-        <Step title="Add the SidebarFavorites tap." see="Homebrew confirms that the tap was added.">
-          <p>A tap is a third-party repository of Homebrew recipes. This one holds the SidebarFavorites cask.</p>
-          <CodeBlock code={BREW_LINES[0]} prompt lang="bash" label="Add the Homebrew tap" />
-        </Step>
-        <Step title="Trust the tap." see="The command returns without an error.">
-          <p>Homebrew will not load casks from a third-party tap until you explicitly trust it. You run this command once, and it is the step people miss.</p>
-          <CodeBlock code={BREW_LINES[1]} prompt lang="bash" label="Trust the Homebrew tap" />
-        </Step>
-        <Step title="Install the cask." see={<>Homebrew downloads the app and places <strong>SidebarFavorites Manager</strong> in your Applications folder.</>}>
-          <CodeBlock code={BREW_LINES[2]} prompt lang="bash" label="Install the SidebarFavorites cask" />
+        <Step title="Run this command in Terminal." see={<>Homebrew downloads the app and places <strong>SidebarFavorites Manager</strong> in your Applications folder.</>}>
+          <CodeBlock code={BREW_CMD} prompt lang="bash" label="Install the SidebarFavorites cask" />
         </Step>
         <Step title={<>Open <strong>SidebarFavorites Manager</strong> from the Applications folder.</>} see={<>The manager window opens. See <a href="#first-launch">What you see on first launch</a>.</>} />
       </Steps>
+
+      <H2 id="migrate-from-tap">Move from the old tap</H2>
+      <p>For an existing <code>sidebarfavorites</code> installation from <code>ivg-design/tap</code>, quit SidebarFavorites Manager and run these commands in order:</p>
+      <CodeBlock code={`brew update\nbrew uninstall --cask ivg-design/tap/sidebarfavorites\n${BREW_CMD}`} lang="bash" label="Move to the official Homebrew cask" />
+      <p>Use a regular uninstall, without <code>--zap</code>, to keep your saved favorites, custom icons and preferences.</p>
 
       <H2 id="direct-download">Install from the DMG</H2>
       <Steps>
@@ -82,7 +80,7 @@ export function Body() {
       <Table label="Installation problems">
         <thead><tr><th>What you see</th><th>Cause</th><th>Fix</th></tr></thead>
         <tbody>
-          <tr><td>Homebrew refuses the tap or the cask and mentions trust.</td><td>The tap has not been trusted yet.</td><td>Run <code>{BREW_LINES[1]}</code>, then run the install command again.</td></tr>
+          <tr><td>Homebrew cannot find <code>sidebarfavorites-manager</code>.</td><td>Homebrew may have outdated package information.</td><td>Run <code>brew update</code>, then run <code>{BREW_CMD}</code> again.</td></tr>
           <tr><td>The app will not open.</td><td>The Mac runs a macOS older than 13.0, which the app does not support.</td><td>Update macOS to 13.0 or later.</td></tr>
           <tr><td>Anything else.</td><td>Varies.</td><td>See <DocLink to="troubleshooting">Troubleshooting</DocLink>.</td></tr>
         </tbody>

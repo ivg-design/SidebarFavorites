@@ -13,7 +13,7 @@
 .in-term .btn-ghost { min-height: 44px; border-color: rgba(255,255,255,.25); color: var(--paper-on-dark); }
 .in-term .btn-ghost:hover { border-color: var(--paper-on-dark); }
 .in-term :focus-visible { outline-color: var(--paper-on-dark); }
-.in-lines { margin: 0; font-size: var(--t-14); line-height: 2; overflow-x: auto; white-space: pre; }
+.in-lines { margin: 0; font-size: var(--t-14); line-height: 2; white-space: pre-wrap; overflow-wrap: anywhere; }
 .in-p { color: var(--muted-on-dark); user-select: none; }
 .in-trust { margin-top: var(--s-3); max-width: 44ch; }
 @media (max-width: 420px) { .in-lines { font-size: var(--t-13); } .in-term { padding-inline: var(--s-4); } }

@@ -23,14 +23,23 @@ The app is only needed when you want to add, edit or remove a favorite. Quit it 
 
 ### Homebrew
 
+SidebarFavorites is available in the official [Homebrew Cask repository](https://formulae.brew.sh/cask/sidebarfavorites-manager):
+
 ```sh
-brew tap ivg-design/tap
-brew trust ivg-design/tap
-brew install --cask sidebarfavorites
+brew install --cask sidebarfavorites-manager
 ```
 
-`brew trust` is required once - Homebrew asks you to explicitly trust a
-third-party tap before it will load casks from it.
+No third-party tap or `brew trust` step is needed.
+
+**Moving from the old `ivg-design/tap` cask?** Quit SidebarFavorites Manager, then run:
+
+```sh
+brew update
+brew uninstall --cask ivg-design/tap/sidebarfavorites
+brew install --cask sidebarfavorites-manager
+```
+
+Use a regular uninstall, without `--zap`, to keep your saved favorites, custom icons and preferences.
 
 ### Direct download
 

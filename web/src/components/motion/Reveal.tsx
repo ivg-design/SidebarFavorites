@@ -9,7 +9,7 @@ export const EASE_QUINT = [0.22, 1, 0.36, 1] as const;
 export function Reveal({ children, delay = 0, y = 12, className, as = "div" }: { children: ReactNode; delay?: number; y?: number; className?: string; as?: "div" | "section" | "li" | "p" }) {
   const reduce = useReducedMotion();
   const M = motion[as];
-  if (reduce) return <M className={className}>{children}</M>;
+  if (reduce) return <M className={className} initial={false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0 }}>{children}</M>;
   return (
     <M className={className} initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.6, delay, ease: EASE_QUART }}>

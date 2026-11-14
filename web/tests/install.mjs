@@ -1,4 +1,4 @@
-// Install: DMG link, Homebrew lines, copy.
+// Install: DMG link, official Homebrew command, copy.
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import puppeteer from "puppeteer-core";
@@ -27,17 +27,15 @@ test("install: DMG link points at a .dmg and names version and size", async () =
   await page.close();
 });
 
-test("install: the terminal lists tap, trust, install in order", async () => {
+test("install: the terminal shows the official Homebrew cask command", async () => {
   const page = await open();
   const lines = await page.$$eval('[data-testid="install-term"] .in-line', (l) => l.map((x) => x.textContent.replace(/^\$ /, "").trim()));
-  assert.equal(lines.length, 3);
-  assert.match(lines[0], /^brew tap /);
-  assert.match(lines[1], /^brew trust /);
-  assert.match(lines[2], /^brew install /);
+  assert.deepEqual(lines, ["brew install --cask sidebarfavorites-manager"]);
+  assert.ok(await page.$eval('[data-testid="install-term"]', (e) => e.checkVisibility({ opacityProperty: true, visibilityProperty: true })), "install command must remain visible with reduced motion");
   await page.close();
 });
 
-test("install: Copy all shows the copied state and copies the three lines", async () => {
+test("install: Copy shows the copied state and copies the official command", async () => {
   await browser.defaultBrowserContext().overridePermissions(BASE, ["clipboard-read", "clipboard-write"]);
   const page = await open();
   const lines = await page.$$eval('[data-testid="install-term"] .in-line', (l) => l.map((x) => x.textContent.replace(/^\$ /, "").trim()));
@@ -50,13 +48,11 @@ test("install: Copy all shows the copied state and copies the three lines", asyn
   await page.close();
 });
 
-test("install: brew lines never wrap at 390 and the page does not overflow", async () => {
+test("install: the full brew command fits at 390 without horizontal scrolling", async () => {
   const page = await open({ width: 390, height: 800 });
-  const r = await page.$$eval('[data-testid="install-term"] .in-line', (ls) => ls.map((l) => { return Math.round(l.getBoundingClientRect().height) <= 24 ? 1 : 2; }));
-  assert.ok(r.every((n) => n === 1), r.join());
   const m = await page.$eval('[data-testid="install-term"] .in-lines', (e) => ({ sw: e.scrollWidth, cw: e.clientWidth, ws: getComputedStyle(e).whiteSpace }));
-  assert.equal(m.ws, "pre");
-  console.log("brew block at 390: scrollWidth", m.sw, "clientWidth", m.cw);
+  assert.equal(m.ws, "pre-wrap");
+  assert.ok(m.sw <= m.cw, `brew block scrolls: ${m.sw} > ${m.cw}`);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
   await page.close();
 });

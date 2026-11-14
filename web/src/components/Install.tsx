@@ -1,6 +1,6 @@
 import { Download } from "lucide-react";
 import type { SiteRelease } from "@/lib/github";
-import { BREW_LINES, RELEASES_URL } from "@/lib/config";
+import { BREW_CMD, BREW_CASK_URL, RELEASES_URL } from "@/lib/config";
 import { Reveal } from "./motion/Reveal";
 import CopyButton from "./CopyButton";
 import { nb } from "@/lib/nowrap";
@@ -26,12 +26,12 @@ export default function Install({ release }: { release: SiteRelease }) {
             <div className="in-term-bar">
               <span className="in-term-label mono">Homebrew</span>
               <span data-testid="install-copy">
-                <CopyButton variant="box" text={BREW_LINES.join("\n")} label="Copy all" ariaLabel="Copy all three Homebrew commands" />
+                <CopyButton variant="box" text={BREW_CMD} label="Copy" ariaLabel="Copy Homebrew install command" />
               </span>
             </div>
-            <pre className="in-lines mono" tabIndex={0} aria-label="Homebrew commands">{BREW_LINES.map((l) => (<span key={l} className="in-line"><span className="in-p" aria-hidden="true">$ </span>{l}{"\n"}</span>))}</pre>
+            <pre className="in-lines mono" tabIndex={0} aria-label="Homebrew install command"><span className="in-line"><span className="in-p" aria-hidden="true">$ </span>{BREW_CMD}{"\n"}</span></pre>
           </div>
-          <p className="fine in-trust">{nb("Homebrew asks you to trust a third-party tap once.")}</p>
+          <p className="fine in-trust">Available in <a className="in-link" href={BREW_CASK_URL}>Homebrew Cask</a>. No third-party tap needed.</p>
         </Reveal>
       </div>
     </section>

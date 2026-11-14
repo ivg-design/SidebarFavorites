@@ -49,6 +49,7 @@
 .hx .hx-dmg { background: var(--mac-win); color: #fff; }
 .hx .hx-dmg:hover { background: var(--mac-side); }
 .hx .chip { background: rgba(20,20,22,.78); border-color: rgba(255,255,255,.2); color: #fff; }
+.hx .chip > span:first-child { white-space: normal; overflow-wrap: anywhere; text-align: left; padding-block: var(--s-2); }
 .hx .chip:hover { border-color: rgba(255,255,255,.7); }
 .hx .chip .copied-in { background: var(--mac-win); color: #fff; }
 
