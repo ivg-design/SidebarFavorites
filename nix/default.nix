@@ -8,11 +8,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "sidebarfavorites";
-  version = "1.3.1";
+  version = "1.3.2";
 
   src = fetchurl {
     url = "https://github.com/ivg-design/SidebarFavorites/releases/download/v${finalAttrs.version}/SidebarFavorites-${finalAttrs.version}.dmg";
-    hash = "sha256-8zEV0ywXvo+J3G57t7DT9ZUWFQD7WLEiXjV2uWBctvM=";
+    hash = "sha256-Xx9Mkw4YNBDfhVVVCFgxzHIuWgmlWr5RroTeDQP82ck=";
   };
 
   nativeBuildInputs = [ _7zz ];
