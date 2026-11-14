@@ -75,6 +75,8 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
 ///
 /// `name` must never be empty: passing no display name resets the row's label to
 /// the folder's file-system name (measured).
+/// When `expectedItemID` is supplied, refresh only the matching, resolved row
+/// and preserve the label Finder currently shows for it.
 ///
 /// `preexisting` reports whether this was a patch or a genuine insert, and it is
 /// the ONLY trustworthy answer to that question: it is read from the snapshot the
@@ -90,9 +92,10 @@ typedef NS_ENUM(NSInteger, SFLBridgeErrorCode) {
 + (BOOL)upsertURL:(NSURL *)url
       displayName:(NSString *)name
            osType:(NSString *)osType
+   expectedItemID:(nullable NSNumber *)expectedItemID
       preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error
-    NS_SWIFT_NAME(upsert(url:displayName:osType:preexisting:));
+    NS_SWIFT_NAME(upsert(url:displayName:osType:expectedItemID:preexisting:));
 
 /// Removes the OverrideIcon.OSType property while leaving the row otherwise intact.
 ///

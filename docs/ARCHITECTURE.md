@@ -184,7 +184,7 @@ Only `@Published` writes and cheap config bookkeeping run on the main actor. `ac
 
 **Nothing in the app calls `killall Finder` on its own.** `restartFinder()` is the single path to `FinderService.restart()` and only a user action reaches it - the banner button, the Settings action, or the Add/Edit sheet's Apply button. A reconcile runs on launch and after any edit, and killing Finder mid-copy aborts the copy and loses every open window, tab and in-flight rename.
 
-**Refresh** (`syncAll(force: true)`) re-inserts in place - not just re-stamps - every row whose target can lose its drawing: volume roots, folders with an icon of their own, and folders in a File Provider mount or iCloud Drive (#25). A cloud row that refuses the in-place insert gets the property rewritten instead, silently.
+**Refresh** (`syncAll(force: true)`) redraws enabled Favorites rows even when they already carry the correct icon code. Google Drive mirrors can live at any path, including directly under Home (#25). For each resolved row, the app verifies its ID and rewrites it in place with its current Finder label and position. Ordinary sync skips this redraw.
 
 A restart is *owed* (`needsFinderRestart`) from two independent sources, because Finder caches two different things:
 

@@ -84,8 +84,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
     /// Finder on the next line - so a request that arrives mid-pass waits for the
     /// pass that will service it instead of returning early.
     private var reconcileDriver: Task<Void, Never>?
-    private var pendingReconcile = false
-    private var pendingForce = false
+    private var pendingReconcile: ReconcileReason?
 
     /// How many "Remove All Sidebar Icons" runs currently own the pipeline.
     ///
@@ -164,13 +163,13 @@ final class FavoriteSyncCoordinator: ObservableObject {
             }
         }
 
-        await finishBootstrap(force: false)
+        await finishBootstrap(reason: .sync)
     }
 
-    private func finishBootstrap(force: Bool) async {
+    private func finishBootstrap(reason: ReconcileReason) async {
         // Restore Both icons before either reconcile can discard a recovered helper.
         await restoreModesLostToAnOlderBuild()
-        await requestReconcile(force: force)
+        await requestReconcile(reason)
         await syncAdvancedHelpers()
     }
 
@@ -209,7 +208,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         // A migrated config has never had a helper bundle built for it, so the
         // digest short-circuit must not be allowed to skip the first build.
-        await finishBootstrap(force: outcome.migrated)
+        await finishBootstrap(reason: outcome.migrated ? .migration : .sync)
     }
 
     /// GUARD: no work that builds the helper or touches Finder's sidebar may run
@@ -235,12 +234,12 @@ final class FavoriteSyncCoordinator: ObservableObject {
             // row the delete has just taken away.
             releasedFavorites.formIntersection(releasesInFlight)
         }
-        await requestReconcile(force: force)
+        await requestReconcile(force ? .refresh : .sync)
     }
 
     func favoriteAdded(_ favorite: Favorite) async {
         releasedFavorites.remove(favorite.id)
-        await requestReconcile(force: false)
+        await requestReconcile(.sync)
         await syncAdvancedHelpers()
     }
 
@@ -257,7 +256,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
             await release([previous], persistUnbinding: true)
         }
 
-        await requestReconcile(force: false)
+        await requestReconcile(.sync)
         await syncAdvancedHelpers()
     }
 
@@ -280,7 +279,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         // The reconcile that follows drops the declaration from the helper plist;
         // re-registering deletes the Launch Services record for that code.
-        await requestReconcile(force: false)
+        await requestReconcile(.sync)
 
         // The favorite is about to leave the config, so its helper is removed
         // directly rather than left for the sweep to find unclaimed.
@@ -300,7 +299,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
     func favoriteToggled(_ favorite: Favorite) async {
         releasedFavorites.remove(favorite.id)
-        await requestReconcile(force: false)
+        await requestReconcile(.sync)
         await syncAdvancedHelpers()
     }
 
@@ -355,8 +354,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
         activeTeardowns += 1
         teardownEpoch += 1
         // A queued pass must not start after the teardown either.
-        pendingReconcile = false
-        pendingForce = false
+        pendingReconcile = nil
         defer { activeTeardowns -= 1 }
 
         let favorites = configManager.config.favorites
@@ -477,14 +475,13 @@ final class FavoriteSyncCoordinator: ObservableObject {
     /// Apply awaits this and then restarts Finder, and a Finder that relaunches
     /// before the edit has been applied redraws the old artwork and greys the
     /// button out with no way to retry.
-    private func requestReconcile(force: Bool) async {
+    private func requestReconcile(_ reason: ReconcileReason) async {
         guard !deferForMigrationConsent() else { return }
         // A teardown owns the pipeline; anything this pass did would be undone by
         // it, or worse, would outlive it.
         guard !teardownInFlight else { return }
 
-        pendingReconcile = true
-        pendingForce = pendingForce || force
+        pendingReconcile = max(pendingReconcile ?? .sync, reason)
 
         // Somebody else owns the loop. It cannot exit while `pendingReconcile` is
         // set, so waiting on it waits for a pass that services this request too.
@@ -496,11 +493,9 @@ final class FavoriteSyncCoordinator: ObservableObject {
         let driver = Task { @MainActor in
             try? await Task.sleep(nanoseconds: Self.coalescingWindowNanoseconds)
 
-            while self.pendingReconcile && !self.teardownInFlight {
-                self.pendingReconcile = false
-                let forceThisPass = self.pendingForce
-                self.pendingForce = false
-                await self.performReconcile(force: forceThisPass)
+            while let reason = self.pendingReconcile, !self.teardownInFlight {
+                self.pendingReconcile = nil
+                await self.performReconcile(reason: reason)
             }
 
             // Cleared in the same synchronous step as the loop's final check, so a
@@ -513,7 +508,8 @@ final class FavoriteSyncCoordinator: ObservableObject {
         await driver.value
     }
 
-    private func performReconcile(force: Bool) async {
+    private func performReconcile(reason: ReconcileReason) async {
+        let force = reason != .sync
         // Captured before the first suspension - see the check after the build.
         let epoch = teardownEpoch
         lastError = nil
@@ -645,12 +641,9 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         phase = .reconciling
         let rows = await enqueue {
-            // A forced pass is the user asking for repair (Refresh, or the first
-            // pass after launch). Rows whose stored state already looks right are
-            // rewritten anyway, because Finder can be drawing something else.
             SidebarReconciler.reconcile(
                 favorites: reconciled,
-                restamp: force ? .forced : .none
+                reason: reason
             ) { update in
                 // Checkpoint: a binding for a row we have just inserted reaches
                 // config.json before the next favorite is touched, so an interrupted
@@ -830,6 +823,12 @@ private struct BuildOutcome: Sendable {
     var error: String?
 }
 
+/// Coalesced requests use the strongest pending reason. Refresh must reach every
+/// configured folder because a Drive mirror can have any name or location.
+private enum ReconcileReason: Comparable, Sendable {
+    case sync, migration, refresh
+}
+
 /// What one pass over Finder's Favorites list did.
 private struct RowOutcome: Sendable {
     var bindings: [BindingUpdate] = []
@@ -893,25 +892,9 @@ private enum SidebarReconciler {
     /// `checkpoint` is called with each binding the moment it is decided, so the
     /// caller can persist it before the pass moves on; the same bindings are also
     /// returned in `outcome` for the caller's own idempotent write at the end.
-    /// Rewrite every bound row's icon even when it already carries the right code.
-    ///
-    /// Finder can stop drawing a row's override while the property itself is
-    /// still on the row: measured on macOS 26, any metadata change on a target
-    /// that has an icon of its own (a folder with a custom Finder icon, a volume
-    /// with `.VolumeIcon.icns`) makes Finder repaint that target's own icon over
-    /// ours. Nothing about the stored state changed, so an ordinary reconcile
-    /// sees nothing to do and the user's Refresh appears to do nothing.
-    ///
-    /// Rewriting the row - not the property - is what makes Finder redraw it.
-    struct RestampPolicy: Sendable {
-        static let none = RestampPolicy(isForced: false)
-        static let forced = RestampPolicy(isForced: true)
-        let isForced: Bool
-    }
-
     static func reconcile(
         favorites: [Favorite],
-        restamp: RestampPolicy = .none,
+        reason: ReconcileReason = .sync,
         checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
     ) -> RowOutcome {
         var outcome = RowOutcome()
@@ -959,7 +942,7 @@ private enum SidebarReconciler {
                     continue
                 }
 
-                apply(favorite: favorite, osType: osType, match: match, restamp: restamp, rows: &rows, outcome: &outcome, checkpoint: checkpoint)
+                apply(favorite: favorite, osType: osType, match: match, reason: reason, rows: &rows, outcome: &outcome, checkpoint: checkpoint)
 
                 // Covers the insert path too, where `apply` lands on a row that was
                 // not in `match`. Every branch that touches a row records it here.
@@ -1058,7 +1041,7 @@ private enum SidebarReconciler {
         favorite: Favorite,
         osType: String,
         match: RowMatch,
-        restamp: RestampPolicy = .none,
+        reason: ReconcileReason = .sync,
         rows: inout [SidebarItem],
         outcome: inout RowOutcome,
         checkpoint: @Sendable (BindingUpdate) -> Void = { _ in }
@@ -1138,7 +1121,7 @@ private enum SidebarReconciler {
                     osType: osType,
                     row: inserted,
                     restoringDisplayName: preexisting.displayName,
-                    restamp: restamp,
+                    reason: reason,
                     rows: &rows,
                     outcome: &outcome
                 )
@@ -1175,7 +1158,7 @@ private enum SidebarReconciler {
             // The folder is already in the user's sidebar - adopt that row. Only the
             // icon override is set; the name the user gave it is never touched, and a
             // later delete restores the icon rather than removing the row.
-            adoptExisting(favorite: favorite, osType: osType, row: row, restamp: restamp, rows: &rows, outcome: &outcome)
+            adoptExisting(favorite: favorite, osType: osType, row: row, reason: reason, rows: &rows, outcome: &outcome)
             return
         }
 
@@ -1192,8 +1175,8 @@ private enum SidebarReconciler {
             } catch {
                 outcome.warnings.append("Couldn't update the icon for '\(favorite.listTitle)': \(error.localizedDescription)")
             }
-        } else if restamp.isForced {
-            current = repaint(row: row, osType: osType, favoriteName: favorite.listTitle, rows: &rows, outcome: &outcome)
+        } else if reason != .sync, row.displayName == favorite.name {
+            current = repaint(row: row, osType: osType, reason: reason, rows: &rows)
         }
 
         if row.displayName != favorite.name {
@@ -1375,53 +1358,37 @@ private enum SidebarReconciler {
     private static func repaint(
         row: SidebarItem,
         osType: String,
-        favoriteName: String,
-        rows: inout [SidebarItem],
-        outcome: inout RowOutcome
+        reason: ReconcileReason,
+        rows: inout [SidebarItem]
     ) -> SidebarItem {
         guard let path = row.path, !row.displayName.isEmpty else { return row }
-
-        // Only targets that can actually lose their drawing are rewritten. A plain
-        // local folder never does, so re-inserting its row on each Refresh would be
-        // churn for nothing. Cloud folders do (#25); the few of their rows that
-        // refuse an in-place insert land in the property-rewrite fallback below,
-        // which is silent - the row was healthy and stays that way.
-        guard needsRepainting(path: path) else { return row }
+        // Migration repairs known susceptible targets. On a manual Refresh a
+        // mirror at an arbitrary path needs the same redraw as a streamed folder.
+        if reason == .migration, !isVolumeRoot(path), !CloudFolder.contains(path), IconAuthority.detect(atPath: path) == nil {
+            return row
+        }
 
         do {
             let patched = try SidebarItemManager.shared.upsert(
                 url: URL(fileURLWithPath: path),
                 displayName: row.displayName,
-                osType: osType
+                osType: osType,
+                expecting: row.itemID
             ).row
             store(patched, in: &rows)
-
-            guard patched.itemID == row.itemID else {
-                // The in-place upsert keeps the row's ID; a different one means the
-                // write landed on another row for the same location. Say so rather
-                // than silently re-binding from inside a repair.
-                outcome.warnings.append("Repairing the sidebar icon for '\(favoriteName)' landed on a different row for the same folder.")
-                return patched
-            }
             return patched
+        } catch SidebarItemManager.SidebarError.itemNotFound {
+            // Finder removed or replaced the row while Refresh was running.
+            return row
         } catch {
             // A repair that could not run leaves the row exactly as it was, still
             // carrying the right code. Rewriting the property is the weaker second
             // attempt; if that fails too there is nothing to tell the user, because
             // nothing is broken that they could act on.
             try? SidebarItemManager.shared.setOSType(osType, itemID: row.itemID)
-            NSLog("SidebarFavorites: could not repaint '\(favoriteName)': \(error.localizedDescription)")
+            NSLog("SidebarFavorites: could not repaint '\(row.displayName)': \(error.localizedDescription)")
             return row
         }
-    }
-
-    /// Whether this target is one whose sidebar drawing macOS can discard.
-    ///
-    /// Measured on macOS 26: only a target with an icon of its own loses the
-    /// override when its metadata changes - a folder with a custom Finder icon, or
-    /// a mounted volume. Everything else keeps it indefinitely.
-    private static func needsRepainting(path: String) -> Bool {
-        isVolumeRoot(path) || CloudFolder.contains(path) || IconAuthority.detect(atPath: path) != nil
     }
 
     /// Put our icon on a row we did not create, and record it as `.adopted`.
@@ -1434,7 +1401,7 @@ private enum SidebarReconciler {
         osType: String,
         row: SidebarItem,
         restoringDisplayName: String? = nil,
-        restamp: RestampPolicy = .none,
+        reason: ReconcileReason = .sync,
         rows: inout [SidebarItem],
         outcome: inout RowOutcome
     ) {
@@ -1471,8 +1438,8 @@ private enum SidebarReconciler {
             } catch {
                 outcome.warnings.append("Couldn't apply the icon for '\(favorite.listTitle)' to its sidebar row: \(error.localizedDescription)")
             }
-        } else if restamp.isForced {
-            current = repaint(row: current, osType: osType, favoriteName: favorite.listTitle, rows: &rows, outcome: &outcome)
+        } else if reason != .sync {
+            current = repaint(row: current, osType: osType, reason: reason, rows: &rows)
         }
 
         mirrorToLocations(osType: osType, path: current.path, favoriteName: favorite.listTitle, outcome: &outcome)

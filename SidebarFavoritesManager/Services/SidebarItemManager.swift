@@ -112,19 +112,23 @@ final class SidebarItemManager: @unchecked Sendable {
     ///
     /// Re-reading is mandatory: the ID on the reference the insert returns is
     /// transient and can differ from the one the list persists.
+    /// Passing an expected ID restricts the write to that existing row and
+    /// preserves its current Finder label.
     @discardableResult
-    func upsert(url: URL, displayName: String, osType: String) throws -> UpsertResult {
+    func upsert(url: URL, displayName: String, osType: String, expecting itemID: UInt32? = nil) throws -> UpsertResult {
         lock.lock()
         defer { lock.unlock() }
 
         var previous: NSDictionary?
         do {
-            try SFLBridge.upsert(url: url, displayName: displayName, osType: osType, preexisting: &previous)
+            try SFLBridge.upsert(url: url, displayName: displayName, osType: osType,
+                                 expectedItemID: itemID.map { NSNumber(value: $0) }, preexisting: &previous)
         } catch {
             throw Self.sidebarError(from: error)
         }
 
-        guard let row = try loadSnapshot().first(where: { $0.matches(anyOf: [url.path]) }) else {
+        guard let row = try loadSnapshot().first(where: { $0.matches(anyOf: [url.path]) }),
+              itemID == nil || row.itemID == itemID else {
             throw SidebarError.itemNotFound
         }
         return UpsertResult(

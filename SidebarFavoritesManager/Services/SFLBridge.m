@@ -257,6 +257,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
 + (BOOL)upsertURL:(NSURL *)url
       displayName:(NSString *)name
            osType:(NSString *)osType
+   expectedItemID:(nullable NSNumber *)expectedItemID
       preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error {
     if (preexisting != NULL) {
@@ -272,6 +273,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
                displayName:name
            propertiesToSet:@{ SFLOverrideIconOSTypeKey: osType }
          propertiesToClear:nil
+            expectedItemID:expectedItemID
                preexisting:preexisting
                      error:error];
 }
@@ -283,6 +285,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
                displayName:name
            propertiesToSet:nil
          propertiesToClear:@[ SFLOverrideIconOSTypeKey ]
+            expectedItemID:nil
                preexisting:NULL
                      error:error];
 }
@@ -302,6 +305,7 @@ static BOOL SFLIsWellFormedOSType(NSString * _Nullable osType) {
       displayName:(NSString *)name
   propertiesToSet:(nullable NSDictionary<NSString *, id> *)propertiesToSet
 propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
+   expectedItemID:(nullable NSNumber *)expectedItemID
       preexisting:(NSDictionary<NSString *, id> * _Nullable * _Nullable)preexisting
             error:(NSError **)error {
     if (preexisting != NULL) {
@@ -327,14 +331,29 @@ propertiesToClear:(nullable NSArray<NSString *> *)propertiesToClear
     }
 
     CFIndex existingIndex = SFLIndexOfURL(snapshot, url);
+    LSSharedFileListItemRef existing = existingIndex < 0 ? NULL :
+        (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, existingIndex);
+    if (expectedItemID != nil) {
+        // A row may have been removed, replaced or renamed in Finder since the
+        // reconcile started. Use the same snapshot as the insertion anchor.
+        if (existing == NULL || LSSharedFileListItemGetID(existing) != expectedItemID.unsignedIntValue ||
+            !SFLPathsMatch(SFLResolvedPath(existing), url.path)) {
+            CFRelease(snapshot);
+            CFRelease(list);
+            return SFLFail(error, SFLBridgeErrorCodeItemNotFound, @"The sidebar row to refresh has changed.");
+        }
+        name = SFLDisplayName(existing);
+        if (name.length == 0) {
+            CFRelease(snapshot);
+            CFRelease(list);
+            return SFLFail(error, SFLBridgeErrorCodeInsertFailed, @"The sidebar row has no display name to preserve.");
+        }
+    }
     LSSharedFileListItemRef anchor = SFLAnchorForIndex(snapshot, existingIndex);
 
     // Read the row we are about to overwrite BEFORE overwriting it. Same shape as
     // a snapshotWithError: row, so the caller maps it with the same code.
-    if (preexisting != NULL && existingIndex >= 0) {
-        LSSharedFileListItemRef existing =
-            (LSSharedFileListItemRef)CFArrayGetValueAtIndex(snapshot, existingIndex);
-
+    if (preexisting != NULL && existing != NULL) {
         NSMutableDictionary<NSString *, id> *row = [NSMutableDictionary dictionaryWithCapacity:4];
         row[SFLItemIDKey] = @(LSSharedFileListItemGetID(existing));
 
