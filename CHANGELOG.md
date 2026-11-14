@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Both icons on Intel Macs and older macOS releases** ([#29](https://github.com/ivg-design/SidebarFavorites/issues/29), [#27](https://github.com/ivg-design/SidebarFavorites/issues/27)). The helper app and Finder extension now include Intel and Apple silicon executables targeting macOS 13. Existing enabled Both icons favorites rebuild their helpers when the updated Manager opens; there is no need to delete and recreate the favorites.
+
 ## [1.3.0] - 2026-10-07
 
 ### Added

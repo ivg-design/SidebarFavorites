@@ -50,19 +50,29 @@ targets:
       # generated appex's Info.plist.
       - name: Build FinderSync Template
         script: |
+          set -eu
           SRC="${SRCROOT}/SidebarFavoritesManager/FinderSyncTemplate"
           DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FinderSyncTemplate"
-          mkdir -p "$DEST"
-          xcrun swiftc -O -module-name SBFAdvHost \
-            -o "$DEST/host-bin" "$SRC/HostMain.swift" || exit 1
-          xcrun swiftc -O -module-name SBFAdvSync \
-            -framework FinderSync -framework Cocoa \
-            -Xlinker -e -Xlinker _NSExtensionMain \
-            -o "$DEST/appex-bin" "$SRC/FinderSyncExt.swift" || exit 1
+          SLICES="${DERIVED_FILE_DIR}/FinderSyncTemplate"
+          mkdir -p "$DEST" "$SLICES"
+          # Generated helpers run on the user's Mac, even when Xcode builds the
+          # Manager for the active architecture only. swiftc needs one target per slice.
+          for arch in arm64 x86_64; do
+            target="${arch}-apple-macosx${MACOSX_DEPLOYMENT_TARGET}"
+            xcrun swiftc -target "$target" -sdk "$SDKROOT" -O -module-name SBFAdvHost \
+              -o "$SLICES/host-$arch" "$SRC/HostMain.swift"
+            xcrun swiftc -target "$target" -sdk "$SDKROOT" -O -module-name SBFAdvSync \
+              -framework FinderSync -framework Cocoa \
+              -Xlinker -e -Xlinker _NSExtensionMain \
+              -o "$SLICES/appex-$arch" "$SRC/FinderSyncExt.swift"
+          done
+          for helper in host appex; do
+            xcrun lipo -create "$SLICES/$helper-arm64" "$SLICES/$helper-x86_64" -output "$DEST/$helper-bin"
+          done
           # Spacers' no-op executable (#23). Universal, because it is copied into
           # an app LaunchServices starts on whatever Mac the user has.
           xcrun clang -O2 -arch arm64 -arch x86_64 \
-            -o "$DEST/spacer-bin" "$SRC/SpacerMain.c" || exit 1
+            -o "$DEST/spacer-bin" "$SRC/SpacerMain.c"
         basedOnDependencyAnalysis: false
     preBuildScripts:
       - name: Increment Build Number

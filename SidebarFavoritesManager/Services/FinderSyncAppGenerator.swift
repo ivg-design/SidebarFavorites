@@ -24,21 +24,35 @@ import AppKit
 /// `SymbolCatalogBuilder` drives the asset engine, which refuses the main
 /// thread and needs the main runloop free.
 final class FinderSyncAppGenerator {
-    static let shared = FinderSyncAppGenerator()
+    static let shared = FinderSyncAppGenerator(
+        advancedAppsDirectory: ConfigManager.shared.advancedAppsDirectoryURL,
+        templateDirectory: Bundle.main.resourceURL?.appendingPathComponent("FinderSyncTemplate"))
 
     private let fileManager = FileManager.default
-    private let configManager = ConfigManager.shared
+    private let advancedAppsDirectory: URL
+    private let templateDirectory: URL?
+    private let isRegistered: (Favorite, URL) -> Bool
+    private let register: (Favorite, URL, Bool) -> [String]
 
     /// Serializes install/remove work: `sync` may be called from overlapping
     /// coordinator entry points.
     private let lock = NSLock()
 
-    private init() {}
+    init(advancedAppsDirectory: URL, templateDirectory: URL?,
+         isRegistered: @escaping (Favorite, URL) -> Bool = FinderSyncAppGenerator.isCurrentExtensionRegistered,
+         register: @escaping (Favorite, URL, Bool) -> [String] = FinderSyncAppGenerator.registerHelper) {
+        self.advancedAppsDirectory = advancedAppsDirectory
+        self.templateDirectory = templateDirectory
+        self.isRegistered = isRegistered
+        self.register = register
+    }
 
     // MARK: - Naming
 
     private static let bundleIDPrefix = "com.ivg-design.SidebarFavorites.adv"
-    private static let templateDirectoryName = "FinderSyncTemplate"
+    // Bump when generated bundles must be replaced. v1 helpers contain the old
+    // host-architecture-only binaries. Use the same revision in PlugInKit queries.
+    private static let templateRevision = "2"
 
     /// "SBF-<Name>" - the System Settings display identity.
     static func displayName(for favorite: Favorite) -> String {
@@ -63,7 +77,7 @@ final class FinderSyncAppGenerator {
     }
 
     func hostBundleURL(for favorite: Favorite) -> URL {
-        configManager.advancedAppsDirectoryURL
+        advancedAppsDirectory
             .appendingPathComponent(Self.bundleDirectoryName(for: favorite))
     }
 
@@ -89,7 +103,7 @@ final class FinderSyncAppGenerator {
         // Remove helpers no advanced favorite claims (mode switched off, favorite
         // deleted, folder renamed - the id-keyed suffix keeps rename removals
         // reliable even though the leaf-name half changed).
-        let root = configManager.advancedAppsDirectoryURL
+        let root = advancedAppsDirectory
         if let installed = try? fileManager.contentsOfDirectory(atPath: root.path) {
             for entry in installed where entry.hasSuffix(".app") && !wantedDirs.contains(entry) {
                 removeBundle(at: root.appendingPathComponent(entry), warnings: &warnings)
@@ -97,9 +111,21 @@ final class FinderSyncAppGenerator {
         }
 
         for favorite in wanted {
+            let hostURL = hostBundleURL(for: favorite)
+            let isNewHelper = !fileManager.fileExists(atPath: hostURL.path)
             if needsInstall(favorite) {
-                warnings += install(favorite)
+                do {
+                    try buildAndReplace(favorite, at: hostURL)
+                } catch {
+                    warnings.append("Couldn't set up \"\(Self.displayName(for: favorite))\": \(error.localizedDescription)")
+                    continue
+                }
+            } else if isRegistered(favorite, hostURL) {
+                continue
             }
+            // Elections belong to the stable extension ID. A new favorite opts in;
+            // upgrades and retries preserve the user's existing System Settings choice.
+            warnings += register(favorite, hostURL, isNewHelper)
         }
         return warnings
     }
@@ -108,7 +134,7 @@ final class FinderSyncAppGenerator {
     /// every pass. Captures everything the generated bundle depends on.
     private func stateFingerprint(for favorite: Favorite) -> String {
         [
-            "v1",
+            "v" + Self.templateRevision,
             favorite.expandedFolderPath,
             favorite.name,
             favorite.iconType.rawValue,
@@ -131,189 +157,190 @@ final class FinderSyncAppGenerator {
 
     // MARK: - Install
 
-    private func install(_ favorite: Favorite) -> [String] {
-        var warnings: [String] = []
-        let hostURL = hostBundleURL(for: favorite)
+    private func buildAndReplace(_ favorite: Favorite, at destination: URL) throws {
+        guard let template = templateDirectory else {
+            throw InstallFailure("the Finder Sync template is missing from this build.")
+        }
+        try fileManager.createDirectory(at: advancedAppsDirectory, withIntermediateDirectories: true)
+        let staging = try fileManager.url(for: .itemReplacementDirectory, in: .userDomainMask,
+                                          appropriateFor: destination, create: true)
+        defer { try? fileManager.removeItem(at: staging) }
+        // Keep the existing helper intact if copying, compiling artwork or signing fails.
+        let hostURL = staging.appendingPathComponent(destination.lastPathComponent)
         let displayName = Self.displayName(for: favorite)
-
-        guard let template = templateDirectoryURL() else {
-            return ["Couldn't set up \"\(displayName)\": the Finder Sync template is missing from this build. The favorite still works in regular mode."]
+        let executableName = hostURL.deletingPathExtension().lastPathComponent
+        let extURL = hostURL.appendingPathComponent("Contents/PlugIns/\(executableName)Sync.appex")
+        let hostMacOS = hostURL.appendingPathComponent("Contents/MacOS")
+        let hostResources = hostURL.appendingPathComponent("Contents/Resources")
+        let extMacOS = extURL.appendingPathComponent("Contents/MacOS")
+        let extResources = extURL.appendingPathComponent("Contents/Resources")
+        for dir in [hostMacOS, hostResources, extMacOS, extResources] {
+            try fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
         }
 
-        do {
-            try fileManager.createDirectory(
-                at: configManager.advancedAppsDirectoryURL, withIntermediateDirectories: true)
+        try fileManager.copyItem(
+            at: template.appendingPathComponent("host-bin"),
+            to: hostMacOS.appendingPathComponent(executableName))
+        try fileManager.copyItem(
+            at: template.appendingPathComponent("appex-bin"),
+            to: extMacOS.appendingPathComponent("\(executableName)Sync"))
 
-            // Fresh skeleton every install: the bundle is small and cheap, and a
-            // partially updated one must never be left signed-but-stale.
-            if fileManager.fileExists(atPath: hostURL.path) {
-                try fileManager.removeItem(at: hostURL)
+        // Artwork: the SAME synthesis chain the shared helper uses, so the
+        // glyph is identical in both modes. SF Symbols are referenced by
+        // name; custom SVGs are parsed, re-wrapped at the favorite's optical
+        // scale, and compiled into the HOST's own Assets.car.
+        let symbolName: String
+        switch favorite.iconType {
+        case .sfSymbol:
+            symbolName = favorite.iconValue
+        case .custom:
+            guard let relativePath = favorite.customSVGPath else {
+                throw InstallFailure("the favorite has no stored icon file.")
             }
-
-            let executableName = hostURL.deletingPathExtension().lastPathComponent
-            let extURL = hostURL.appendingPathComponent("Contents/PlugIns/\(executableName)Sync.appex")
-            let hostMacOS = hostURL.appendingPathComponent("Contents/MacOS")
-            let hostResources = hostURL.appendingPathComponent("Contents/Resources")
-            let extMacOS = extURL.appendingPathComponent("Contents/MacOS")
-            let extResources = extURL.appendingPathComponent("Contents/Resources")
-            for dir in [hostMacOS, hostResources, extMacOS, extResources] {
-                try fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+            symbolName = SymbolTemplateSynthesizer.uniqueSymbolName(
+                (relativePath as NSString).lastPathComponent,
+                avoiding: [])
+            let compiled = try SymbolCatalogBuilder.synchronize(
+                symbols: [SymbolCatalogBuilder.Symbol(
+                    name: symbolName,
+                    svgURL: ConfigManager.shared.customIconURL(relativePath: relativePath),
+                    iconScale: CGFloat(favorite.effectiveIconScale))],
+                inBundleAt: hostURL)
+            guard compiled.contains(symbolName) else {
+                throw InstallFailure("its icon didn't compile. The favorite still works in regular mode.")
             }
+        }
 
-            try fileManager.copyItem(
-                at: template.appendingPathComponent("host-bin"),
-                to: hostMacOS.appendingPathComponent(executableName))
-            try fileManager.copyItem(
-                at: template.appendingPathComponent("appex-bin"),
-                to: extMacOS.appendingPathComponent("\(executableName)Sync"))
+        // The Settings-row icon. Codesign rejects the resource-fork /
+        // FinderInfo metadata the repo copy carries, so it is stripped.
+        if let appIcon = Bundle.main.url(forResource: "AppIcon", withExtension: "icns") {
+            let installed = hostResources.appendingPathComponent("AppIcon.icns")
+            try? fileManager.copyItem(at: appIcon, to: installed)
+            _ = ProcessRunner.run("/usr/bin/xattr", ["-c", installed.path])
+        }
 
-            // Artwork: the SAME synthesis chain the shared helper uses, so the
-            // glyph is identical in both modes. SF Symbols are referenced by
-            // name; custom SVGs are parsed, re-wrapped at the favorite's optical
-            // scale, and compiled into the HOST's own Assets.car.
-            let symbolName: String
-            switch favorite.iconType {
-            case .sfSymbol:
-                symbolName = favorite.iconValue
-            case .custom:
-                guard let relativePath = favorite.customSVGPath else {
-                    return ["Couldn't set up \"\(displayName)\": the favorite has no stored icon file."]
-                }
-                symbolName = SymbolTemplateSynthesizer.uniqueSymbolName(
-                    (relativePath as NSString).lastPathComponent,
-                    avoiding: [])
-                let compiled = try SymbolCatalogBuilder.synchronize(
-                    symbols: [SymbolCatalogBuilder.Symbol(
-                        name: symbolName,
-                        svgURL: configManager.customIconURL(relativePath: relativePath),
-                        iconScale: CGFloat(favorite.effectiveIconScale))],
-                    inBundleAt: hostURL)
-                guard compiled.contains(symbolName) else {
-                    return ["Couldn't set up \"\(displayName)\": its icon didn't compile. The favorite still works in regular mode."]
-                }
-            }
+        let orphanNote = "SidebarFavorites helper for “\(favorite.name)” — safe to disable or delete if SidebarFavorites is no longer installed."
+        try writePlist([
+            "CFBundleExecutable": executableName,
+            "CFBundleIdentifier": Self.hostBundleID(for: favorite),
+            "CFBundleName": displayName,
+            "CFBundleDisplayName": displayName,
+            "CFBundleIconFile": "AppIcon",
+            "CFBundlePackageType": "APPL",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": Self.templateRevision,
+            "LSBackgroundOnly": true,
+            "LSMinimumSystemVersion": "13.0",
+            "NSHumanReadableCopyright": orphanNote,
+            "CFBundleIcons": [
+                "CFBundlePrimaryIcon": ["CFBundleSymbolName": symbolName]
+            ],
+        ], to: hostURL.appendingPathComponent("Contents/Info.plist"))
 
-            // The Settings-row icon. Codesign rejects the resource-fork /
-            // FinderInfo metadata the repo copy carries, so it is stripped.
-            if let appIcon = Bundle.main.url(forResource: "AppIcon", withExtension: "icns") {
-                let installed = hostResources.appendingPathComponent("AppIcon.icns")
-                try? fileManager.copyItem(at: appIcon, to: installed)
-                _ = ProcessRunner.run("/usr/bin/xattr", ["-c", installed.path])
-            }
+        try writePlist([
+            "CFBundleExecutable": "\(executableName)Sync",
+            "CFBundleIdentifier": Self.extensionBundleID(for: favorite),
+            "CFBundleName": displayName,
+            "CFBundleDisplayName": displayName,
+            "CFBundlePackageType": "XPC!",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": Self.templateRevision,
+            "LSMinimumSystemVersion": "13.0",
+            "NSHumanReadableCopyright": orphanNote,
+            "NSExtension": [
+                "NSExtensionAttributes": [String: Any](),
+                "NSExtensionPointIdentifier": "com.apple.FinderSync",
+                "NSExtensionPrincipalClass": "SBFAdvSync.FinderSyncExt",
+            ],
+        ], to: extURL.appendingPathComponent("Contents/Info.plist"))
 
-            let orphanNote = "SidebarFavorites helper for “\(favorite.name)” — safe to disable or delete if SidebarFavorites is no longer installed."
-            try writePlist([
-                "CFBundleExecutable": executableName,
-                "CFBundleIdentifier": Self.hostBundleID(for: favorite),
-                "CFBundleName": displayName,
-                "CFBundleDisplayName": displayName,
-                "CFBundleIconFile": "AppIcon",
-                "CFBundlePackageType": "APPL",
-                "CFBundleShortVersionString": "1.2",
-                "CFBundleVersion": "1",
-                "LSBackgroundOnly": true,
-                "LSMinimumSystemVersion": "13.0",
-                "NSHumanReadableCopyright": orphanNote,
-                "CFBundleIcons": [
-                    "CFBundlePrimaryIcon": ["CFBundleSymbolName": symbolName]
-                ],
-            ], to: hostURL.appendingPathComponent("Contents/Info.plist"))
+        try (favorite.expandedFolderPath + "\n")
+            .write(to: extResources.appendingPathComponent("Roots.txt"),
+                   atomically: true, encoding: .utf8)
 
-            try writePlist([
-                "CFBundleExecutable": "\(executableName)Sync",
-                "CFBundleIdentifier": Self.extensionBundleID(for: favorite),
-                "CFBundleName": displayName,
-                "CFBundleDisplayName": displayName,
-                "CFBundlePackageType": "XPC!",
-                "CFBundleShortVersionString": "1.2",
-                "CFBundleVersion": "1",
-                "LSMinimumSystemVersion": "13.0",
-                "NSHumanReadableCopyright": orphanNote,
-                "NSExtension": [
-                    "NSExtensionAttributes": [String: Any](),
-                    "NSExtensionPointIdentifier": "com.apple.FinderSync",
-                    "NSExtensionPrincipalClass": "SBFAdvSync.FinderSyncExt",
-                ],
-            ], to: extURL.appendingPathComponent("Contents/Info.plist"))
+        // Sandbox is mandatory - PlugInKit silently refuses unsandboxed
+        // appexes - and the read exception is scoped to this favorite's root
+        // only (measured sufficient; never "/").
+        let entitlements = staging.appendingPathComponent("sandbox.entitlements")
+        try writePlist([
+            "com.apple.security.app-sandbox": true,
+            "com.apple.security.files.user-selected.read-only": true,
+            "com.apple.security.temporary-exception.files.absolute-path.read-only":
+                [favorite.expandedFolderPath + "/"],
+        ], to: entitlements)
+        // The fingerprint is a signed resource. Never write it after signing.
+        try stateFingerprint(for: favorite).write(
+            to: hostResources.appendingPathComponent("SBFState.txt"), atomically: true, encoding: .utf8)
 
-            try (favorite.expandedFolderPath + "\n")
-                .write(to: extResources.appendingPathComponent("Roots.txt"),
-                       atomically: true, encoding: .utf8)
-
-            // Sandbox is mandatory - PlugInKit silently refuses unsandboxed
-            // appexes - and the read exception is scoped to this favorite's root
-            // only (measured sufficient; never "/").
-            let entitlements = hostResources.deletingLastPathComponent()
-                .deletingLastPathComponent().deletingLastPathComponent()
-                .appendingPathComponent("sbf-adv-\(Self.shortID(favorite.id)).entitlements")
-            try writePlist([
-                "com.apple.security.app-sandbox": true,
-                "com.apple.security.files.user-selected.read-only": true,
-                "com.apple.security.temporary-exception.files.absolute-path.read-only":
-                    [favorite.expandedFolderPath + "/"],
-            ], to: entitlements)
-            defer { try? fileManager.removeItem(at: entitlements) }
-
-            // Appex first, then host; ad-hoc carries no secure timestamp. The
-            // generated bundles contain real executable logic, so unlike the
-            // passive helper bundle these are signed with the hardened runtime
-            // and entitlements - CodeSigner's bare call is not enough here.
-            for (target, extraArgs) in [
-                (extURL, ["--entitlements", entitlements.path]),
-                (hostURL, []),
-            ] {
-                if let failure = ProcessRunner.failureDescription(
-                    "/usr/bin/codesign",
-                    ["--force", "--options", "runtime", "--sign", "-"] + extraArgs + [target.path],
-                    timeout: ProcessRunner.keychainTimeout
-                ) {
-                    return ["Couldn't sign \"\(displayName)\": \(failure)"]
-                }
-            }
-
+        // Appex first, then host; ad-hoc carries no secure timestamp. The
+        // generated bundles contain real executable logic, so unlike the
+        // passive helper bundle these are signed with the hardened runtime
+        // and entitlements - CodeSigner's bare call is not enough here.
+        for (target, extraArgs) in [
+            (extURL, ["--entitlements", entitlements.path]),
+            (hostURL, []),
+        ] {
             if let failure = ProcessRunner.failureDescription(
-                lsregisterPath, ["-f", "-R", "-trusted", hostURL.path]
+                "/usr/bin/codesign",
+                ["--force", "--options", "runtime", "--sign", "-"] + extraArgs + [target.path],
+                timeout: ProcessRunner.keychainTimeout
             ) {
-                warnings.append("\"\(displayName)\" installed, but Launch Services registration failed: \(failure)")
+                throw InstallFailure("couldn't sign the helper: \(failure)")
             }
+        }
 
-            // Launching the host once is what registers the appex with PlugInKit;
-            // the host exits itself ~8 s later.
-            let configuration = NSWorkspace.OpenConfiguration()
-            configuration.activates = false
-            NSWorkspace.shared.openApplication(at: hostURL, configuration: configuration) { _, error in
-                if let error {
-                    NSLog("FinderSyncAppGenerator: host launch failed: \(error.localizedDescription)")
-                }
-            }
+        if fileManager.fileExists(atPath: destination.path) {
+            _ = try fileManager.replaceItemAt(destination, withItemAt: hostURL,
+                                              options: .usingNewMetadataOnly)
+        } else {
+            try fileManager.moveItem(at: hostURL, to: destination)
+        }
+    }
 
-            let extID = Self.extensionBundleID(for: favorite)
-            var registered = false
-            for _ in 0..<10 {
-                Thread.sleep(forTimeInterval: 1)
-                if ProcessRunner.run("/usr/bin/pluginkit", ["-m", "-i", extID]).succeeded {
-                    registered = true
-                    break
+    private struct InstallFailure: LocalizedError {
+        let errorDescription: String?
+        init(_ message: String) { errorDescription = message }
+    }
+
+    private static func isCurrentExtensionRegistered(_ favorite: Favorite, hostURL: URL) -> Bool {
+        let extID = extensionBundleID(for: favorite)
+        let name = hostURL.deletingPathExtension().lastPathComponent
+        let extURL = hostURL.appendingPathComponent("Contents/PlugIns/\(name)Sync.appex")
+        let result = ProcessRunner.run("/usr/bin/pluginkit", ["-m", "-v", "-i", extID,
+                                                              "CFBundleVersion=\(templateRevision)"])
+        return result.succeeded && result.output.split(separator: "\n").contains { line in
+            guard let path = line.split(separator: "\t").last, path.hasPrefix("/") else { return false }
+            return URL(fileURLWithPath: String(path)).standardizedFileURL.path == extURL.standardizedFileURL.path
+        }
+    }
+
+    private static func registerHelper(_ favorite: Favorite, hostURL: URL, enableNewHelper: Bool) -> [String] {
+        let displayName = displayName(for: favorite)
+        let extID = extensionBundleID(for: favorite)
+        if let failure = ProcessRunner.failureDescription(
+            ProcessRunner.lsregisterPath, ["-f", "-R", "-trusted", hostURL.path]) {
+            return ["\"\(displayName)\" could not register with Launch Services: \(failure)"]
+        }
+        // Opening the host registers the appex. Report launch errors (including
+        // wrong architecture/OS) directly instead of suggesting an enablement fix.
+        if let failure = ProcessRunner.failureDescription("/usr/bin/open", ["-g", hostURL.path]) {
+            return ["Couldn't open \"\(displayName)\": \(failure)"]
+        }
+        for _ in 0..<10 {
+            Thread.sleep(forTimeInterval: 1)
+            if isCurrentExtensionRegistered(favorite, hostURL: hostURL) {
+                if enableNewHelper {
+                    _ = ProcessRunner.run("/usr/bin/pluginkit", ["-e", "use", "-i", extID])
+                    Thread.sleep(forTimeInterval: 2)
                 }
-            }
-            if registered {
-                _ = ProcessRunner.run("/usr/bin/pluginkit", ["-e", "use", "-i", extID])
-                Thread.sleep(forTimeInterval: 2)
                 let state = ProcessRunner.run("/usr/bin/pluginkit", ["-m", "-i", extID]).output
                 if !state.hasPrefix("+") {
-                    warnings.append("\"\(displayName)\" is installed but not enabled yet. Enable it under System Settings › General › Login Items & Extensions.")
+                    return ["\"\(displayName)\" is installed but not enabled yet. Enable it under System Settings › General › Login Items & Extensions."]
                 }
-            } else {
-                warnings.append("\"\(displayName)\" did not register with the extension system. Its row keeps the regular sidebar icon for now.")
+                return []
             }
-
-            try stateFingerprint(for: favorite)
-                .write(to: stateFileURL(for: favorite), atomically: true, encoding: .utf8)
-            NSLog("FinderSyncAppGenerator: installed \(displayName) (\(extID))")
-        } catch {
-            warnings.append("Couldn't set up \"\(displayName)\": \(error.localizedDescription)")
         }
-        return warnings
+        return ["\"\(displayName)\" did not register with the extension system. Its row keeps the regular sidebar icon for now."]
     }
 
     // MARK: - Remove
@@ -335,7 +362,7 @@ final class FinderSyncAppGenerator {
             lock.lock()
             defer { lock.unlock() }
             var warnings: [String] = []
-            let root = configManager.advancedAppsDirectoryURL
+            let root = advancedAppsDirectory
             guard let entries = try? fileManager.contentsOfDirectory(atPath: root.path) else {
                 return warnings
             }
@@ -356,7 +383,7 @@ final class FinderSyncAppGenerator {
             return
         }
         _ = ProcessRunner.run("/usr/bin/pluginkit", ["-e", "ignore", "-i", extID])
-        _ = ProcessRunner.run(lsregisterPath, ["-u", hostURL.path])
+        _ = ProcessRunner.run(ProcessRunner.lsregisterPath, ["-u", hostURL.path])
         do {
             try fileManager.removeItem(at: hostURL)
             NSLog("FinderSyncAppGenerator: removed \(hostURL.lastPathComponent) (\(extID))")
@@ -392,7 +419,7 @@ final class FinderSyncAppGenerator {
     /// step. So a bundle with no advanced favorite behind it means the config
     /// lost the answer, not that the user changed their mind.
     func favoritesWithOrphanedHelpers(in favorites: [Favorite]) -> [UUID] {
-        let root = configManager.advancedAppsDirectoryURL
+        let root = advancedAppsDirectory
         guard let installed = try? fileManager.contentsOfDirectory(atPath: root.path) else {
             return []
         }
@@ -450,18 +477,6 @@ final class FinderSyncAppGenerator {
     }
 
     // MARK: - Plumbing
-
-    private var lsregisterPath: String {
-        "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
-    }
-
-    private func templateDirectoryURL() -> URL? {
-        if let url = Bundle.main.resourceURL?.appendingPathComponent(Self.templateDirectoryName),
-           fileManager.fileExists(atPath: url.appendingPathComponent("host-bin").path) {
-            return url
-        }
-        return nil
-    }
 
     private func writePlist(_ dictionary: [String: Any], to url: URL) throws {
         let data = try PropertyListSerialization.data(

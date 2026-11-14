@@ -21,12 +21,17 @@ echo ""
 
 # Step 1: Clean previous builds
 echo "Cleaning previous builds..."
-# A DMG left mounted from a previous run keeps its backing file busy, and Finder
-# recreates .DS_Store while rm is walking the tree - both make the first attempt
-# fail spuriously. Detach anything we mounted, then retry once before giving up.
-if [ -d "/Volumes/$DMG_NAME" ]; then
-    echo "Detaching previously mounted /Volumes/$DMG_NAME..."
-    hdiutil detach "/Volumes/$DMG_NAME" -quiet 2> /dev/null || true
+# A mounted image can have any volume name. Check its actual backing path
+# before cleaning the output directory, and leave mounted volumes alone.
+if [ -d "$BUILD_DIR" ]; then
+    hdiutil info -plist | /usr/bin/python3 -c '
+import pathlib, plistlib, sys
+build = pathlib.Path(sys.argv[1]).resolve()
+for image in plistlib.loads(sys.stdin.buffer.read())["images"]:
+    path = image.get("image-path")
+    if path and build in pathlib.Path(path).resolve().parents:
+        sys.exit(f"Eject the mounted disk image {path} before cleaning {build}.")
+' "$BUILD_DIR"
 fi
 
 if ! rm -rf "$BUILD_DIR" 2> /dev/null && ! rm -rf "$BUILD_DIR"; then
@@ -341,6 +346,7 @@ fi
 # Step 12: Verification / report
 echo ""
 echo "=== Verification ==="
+"$SCRIPT_DIR/verify-dmg.py" "$DMG_PATH"
 echo "Verifying code signature (deep, strict)..."
 codesign --verify --deep --strict --verbose=2 "$OUTER_APP_PATH"
 

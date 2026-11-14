@@ -164,10 +164,13 @@ final class FavoriteSyncCoordinator: ObservableObject {
             }
         }
 
-        // Before the reconcile, so a row whose mode was dropped is repainted as
-        // the advanced favorite it still is.
+        await finishBootstrap(force: false)
+    }
+
+    private func finishBootstrap(force: Bool) async {
+        // Restore Both icons before either reconcile can discard a recovered helper.
         await restoreModesLostToAnOlderBuild()
-        await requestReconcile(force: false)
+        await requestReconcile(force: force)
         await syncAdvancedHelpers()
     }
 
@@ -206,7 +209,7 @@ final class FavoriteSyncCoordinator: ObservableObject {
 
         // A migrated config has never had a helper bundle built for it, so the
         // digest short-circuit must not be allowed to skip the first build.
-        await requestReconcile(force: outcome.migrated)
+        await finishBootstrap(force: outcome.migrated)
     }
 
     /// GUARD: no work that builds the helper or touches Finder's sidebar may run
